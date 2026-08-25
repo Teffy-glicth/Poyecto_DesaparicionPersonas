@@ -1,5 +1,223 @@
+<<<<<<< HEAD
 body {
     font-family: Arial, sans-serif;
     text-align: center;
     margin-top: 50px;
+=======
+:root {
+    --color-bg: #f5f6f8;
+    --color-surface: #ffffff;
+    --color-text: #1f2430;
+    --color-muted: #5b6472;
+    --color-primary: #2c3e91;
+    --color-border: #e1e4ea;
+    --color-badge-bg: #eef0fb;
+    --color-badge-text: #2c3e91;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 14px 28px;
+}
+
+.site-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.main-nav { position: relative; }
+
+.nav-dropdown { position: relative; }
+
+.nav-toplevel {
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.nav-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(20, 25, 40, 0.12);
+    min-width: 300px;
+    z-index: 10;
+    overflow: hidden;
+}
+
+.nav-dropdown:hover .nav-menu,
+.nav-dropdown:focus-within .nav-menu {
+    display: block;
+}
+
+.nav-menu a {
+    display: block;
+    padding: 10px 16px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 0.92rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.nav-menu a:last-child { border-bottom: none; }
+.nav-menu a:hover { background: var(--color-badge-bg); }
+.nav-menu a.active { color: var(--color-primary); font-weight: 700; }
+
+.site-main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+}
+
+.hero { text-align: center; margin-bottom: 32px; }
+.hero p { color: var(--color-muted); }
+
+.menu-grid .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 16px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: box-shadow 0.15s ease;
+}
+
+.card:hover { box-shadow: 0 6px 18px rgba(20, 25, 40, 0.10); }
+
+.card-num {
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    font-weight: 700;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}
+
+.page h1 { color: var(--color-primary); margin-bottom: 6px; }
+.page .lead { color: var(--color-muted); margin-bottom: 28px; }
+
+.btn-descarga {
+    display: inline-block;
+    background: var(--color-primary);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 28px;
+    transition: opacity 0.15s ease;
+}
+
+.btn-descarga:hover { opacity: 0.88; }
+
+.placeholder-note {
+    background: var(--color-badge-bg);
+    border: 1px dashed var(--color-primary);
+    padding: 14px 18px;
+    border-radius: 8px;
+    color: var(--color-muted);
+}
+
+.fuente-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+}
+
+.fuente-card h2 { margin-bottom: 8px; font-size: 1.15rem; }
+
+.badge {
+    display: inline-block;
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-right: 6px;
+    margin-bottom: 12px;
+}
+
+.badge-tipo { background: #f1eef8; color: #5a3ea0; }
+
+.fuente-detalle {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 6px 16px;
+    margin: 0;
+}
+
+.fuente-detalle dt { color: var(--color-muted); font-size: 0.85rem; }
+.fuente-detalle dd { margin: 0; }
+
+.justificacion, .limitaciones, .cumplimiento, .niveles, .columnas, .muestra {
+    margin-top: 28px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: var(--color-surface);
+    font-size: 0.88rem;
+}
+
+th, td {
+    border: 1px solid var(--color-border);
+    padding: 8px 10px;
+    text-align: left;
+}
+
+th { background: var(--color-badge-bg); color: var(--color-badge-text); }
+
+.tabla-scroll { overflow-x: auto; border: 1px solid var(--color-border); border-radius: 8px; }
+.tabla-scroll table { border: none; }
+
+.nota { color: var(--color-muted); font-size: 0.85rem; }
+
+.site-footer {
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    padding: 20px;
+>>>>>>> feature/etapa-1-upload
 }

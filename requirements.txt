@@ -1,2 +1,8 @@
 Flask==3.0.3
 gunicorn==22.0.0
+<<<<<<< HEAD
+=======
+pandas==3.0.5
+openpyxl==3.1.5
+pyarrow==25.0.1
+>>>>>>> feature/etapa-1-upload

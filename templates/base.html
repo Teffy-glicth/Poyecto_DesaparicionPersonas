@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Proyecto Desaparición de Personas{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <a class="site-title" href="{{ url_for('index') }}">Proyecto Desaparición de Personas</a>
+        <nav class="main-nav">
+            <div class="nav-dropdown">
+                <button class="nav-toplevel">Etapa 1 ▾</button>
+                <div class="nav-menu">
+                    {% for item in etapa1_menu %}
+                    <a href="{{ url_for('etapa1_pagina', slug=item.slug) }}"
+                       class="{{ 'active' if item.slug == current_slug else '' }}">
+                        {{ item.numero }}. {{ item.titulo }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="site-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <p>Etapa 1 — Minería de Datos · Proyecto Desaparición de Personas</p>
+    </footer>
+</body>
+</html>
