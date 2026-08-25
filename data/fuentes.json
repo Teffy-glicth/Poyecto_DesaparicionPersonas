@@ -1,0 +1,79 @@
+{
+  "fuentes": [
+    {
+      "id": "iom",
+      "nombre": "IOM Missing Migrants Project",
+      "institucion": "Organización Internacional para las Migraciones (OIM), Naciones Unidas",
+      "url": "https://missingmigrants.iom.int/downloads",
+      "tipo": "Terciaria / secundaria (integra reportes de médicos forenses, ONG, medios y autoridades locales)",
+      "nivel": "Global",
+      "cobertura_geografica": "Global — 151 países de incidente registrados en la descarga",
+      "periodo_disponible": "2014-01-06 a 2026-08-18",
+      "formato": "Excel (.xlsx)",
+      "metodo_adquisicion": "Descarga directa desde el portal oficial (missingmigrants.iom.int/downloads)",
+      "num_registros": "22.299 incidentes",
+      "variables_disponibles": "Incident Date, Incident Year/Month, Country/Region of Incident, Country/Region of Origin, Coordinates, Cause of Death, Number of Dead/Missing/Survivors/Females/Males/Children, Migration Route, Source Quality (25 columnas en total)",
+      "fecha_descarga": "2026-08-24",
+      "restricciones": "Descarga pública y gratuita; el portal solicita atribución a IOM Missing Migrants Project en cualquier publicación derivada.",
+      "unidad_registro": "1 fila = 1 incidente (puede agrupar varias personas fallecidas/desaparecidas)"
+    },
+    {
+      "id": "acled",
+      "nombre": "ACLED — Armed Conflict Location & Event Data Project (filtrado a Abduction/forced disappearance)",
+      "institucion": "ACLED (Armed Conflict Location & Event Data Project)",
+      "url": "https://acleddata.com/conflict-data/data-export-tool",
+      "tipo": "Terciaria (agrega reportes de medios, ONG y socios locales en todo el mundo)",
+      "nivel": "Global",
+      "cobertura_geografica": "Global — 122 países presentes en el export filtrado",
+      "periodo_disponible": "2001-08-25 a 2026-08-15",
+      "formato": "CSV",
+      "metodo_adquisicion": "Exportación vía Data Export Tool (requiere cuenta registrada), filtrada a sub_event_type = 'Abduction/forced disappearance'",
+      "num_registros": "26.706 filas agregadas (representan 47.109 eventos individuales según la columna 'events')",
+      "variables_disponibles": "week, region, country, admin1, event_type, sub_event_type, events, fatalities, population_exposure, disorder_type, centroid_latitude/longitude (12 columnas)",
+      "fecha_descarga": "2026-08-24",
+      "restricciones": "Requiere registro gratuito en ACLED; uso académico permitido citando la fuente; prohibida la reventa de los datos crudos.",
+      "unidad_registro": "1 fila = agregado semanal por país/admin1 (NO es incidente individual — limitación de granularidad de esta fuente, documentada en el diagnóstico de calidad)"
+    },
+    {
+      "id": "medicina_legal",
+      "nombre": "Desaparecidos en Colombia — Histórico (SIRDEC)",
+      "institucion": "Instituto Nacional de Medicina Legal y Ciencias Forenses (INMLCF)",
+      "url": "https://www.datos.gov.co/Justicia-y-Derecho/Desaparecidos-en-Colombia-Hist-rico-junio-de-2026/8hqm-7fdt/about_data",
+      "tipo": "Secundaria (registro administrativo oficial, sistema SIRDEC)",
+      "nivel": "Nacional / Regional (Colombia)",
+      "cobertura_geografica": "Nacional Colombia, con desagregación regional: 35 departamentos y 1.020 municipios vía código DANE",
+      "periodo_disponible": "1930 a 2026-06-30",
+      "formato": "CSV (portal de Datos Abiertos del Estado colombiano)",
+      "metodo_adquisicion": "Descarga directa desde datos.gov.co",
+      "num_registros": "205.938 personas",
+      "variables_disponibles": "Estado/Clasificación de la desaparición, Sexo, Grupo etario, Fecha/Año/Mes/Día, País, Departamento y Municipio (código DANE), Zona, Contexto (30 columnas en total)",
+      "fecha_descarga": "2026-08-24",
+      "fecha_actualizacion_fuente": "2026-08-04",
+      "restricciones": "Licencia de datos abiertos del Estado colombiano — uso libre citando la fuente.",
+      "unidad_registro": "1 fila = 1 persona reportada como desaparecida"
+    },
+    {
+      "id": "sievcac",
+      "nombre": "SIEVCAC — Víctimas Desaparición Forzada (DF)",
+      "institucion": "Centro Nacional de Memoria Histórica (CNMH)",
+      "url": "https://www.datos.gov.co/Inclusi-n-Social-y-Reconciliaci-n/Sistema-de-Informaci-n-de-Eventos-de-Violencia-del/c59y-p4sz/about_data",
+      "tipo": "Terciaria / secundaria (SIEVCAC integra y consolida registros de víctimas de varias entidades del Estado)",
+      "nivel": "Nacional / Regional (Colombia)",
+      "cobertura_geografica": "Nacional Colombia, con desagregación regional: 35 departamentos y 943 municipios vía código DANE, incluye coordenadas de punto",
+      "periodo_disponible": "1948-02-13 a 2026-09-02 (corte de la fuente al 2026-03-31)",
+      "formato": "CSV (portal de Datos Abiertos del Estado colombiano)",
+      "metodo_adquisicion": "Descarga directa desde datos.gov.co",
+      "num_registros": "82.486 víctimas",
+      "variables_disponibles": "Código DANE de municipio, Departamento, Año/Mes/Día, Sexo, Etnia, Ocupación, Calidad de la víctima, Situación actual de la víctima, Edad, latitud-longitud (20 columnas en total)",
+      "fecha_descarga": "2026-08-24",
+      "restricciones": "Licencia de datos abiertos del Estado colombiano — uso libre citando la fuente.",
+      "unidad_registro": "1 fila = 1 víctima (un mismo caso puede agrupar varias víctimas)"
+    }
+  ],
+  "justificacion_general": "Las cuatro fuentes son pertinentes porque cubren directamente el fenómeno de la desaparición de personas en los tres niveles requeridos: IOM y ACLED aportan la escala global (migrantes desaparecidos/fallecidos y eventos de desaparición forzada en contextos de conflicto en el mundo), mientras que Medicina Legal (SIRDEC) y SIEVCAC (CNMH) aportan la escala nacional colombiana con desagregación regional real vía código DANE de departamento y municipio — por lo que el nivel regional se obtiene desagregando estas dos fuentes nacionales, sin necesidad de una fuente adicional dedicada. Son confiables por provenir de organismos oficiales o de referencia internacional (OIM/ONU, INMLCF, CNMH) y de la base de datos de conflicto más citada académicamente (ACLED). Son actuales: las cuatro fueron descargadas el 24/08/2026 y cubren datos hasta 2026. En conjunto ofrecen una cobertura geográfica y temporal amplia y con buena granularidad (nivel de caso/persona en 3 de las 4 fuentes).",
+  "limitaciones_conocidas": [
+    "Ninguna de las 4 fuentes es primaria (encuesta/entrevista/sensor propio); las 4 son secundarias y/o terciarias. La rúbrica pide mínimo 2 fuentes primarias por nivel — este es un vacío pendiente de resolver por el grupo, no corregido aquí porque no corresponde a la construcción del dataset.",
+    "ACLED se descargó ya agregada por semana y región administrativa (admin1), no a nivel de incidente individual; se documenta como limitación de granularidad de esa fuente.",
+    "No existe una llave de unión fila-a-fila entre las 4 fuentes (distinto grano y distinta cobertura); la integración se hizo por concatenación hacia un esquema común (ver Dataset), no por join."
+  ]
+}

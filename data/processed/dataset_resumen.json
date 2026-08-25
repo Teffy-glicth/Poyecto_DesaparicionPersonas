@@ -1,0 +1,159 @@
+{
+  "total_registros": 337429,
+  "cumple_10000_registros": true,
+  "total_variables": 21,
+  "cumple_10_variables": true,
+  "variables_numericas": [
+    "num_personas",
+    "anio",
+    "mes",
+    "latitud",
+    "longitud"
+  ],
+  "cumple_3_numericas": true,
+  "variables_categoricas": [
+    "fuente",
+    "nivel_fuente",
+    "unidad_de_analisis",
+    "tipo_evento",
+    "estado_victima",
+    "sexo",
+    "pais",
+    "region",
+    "departamento",
+    "municipio",
+    "codigo_dane_departamento",
+    "codigo_dane_municipio",
+    "detalle"
+  ],
+  "cumple_3_categoricas": true,
+  "variables_temporales": [
+    "anio",
+    "mes",
+    "fecha"
+  ],
+  "cumple_1_temporal": true,
+  "variables_geograficas": [
+    "pais",
+    "region",
+    "departamento",
+    "municipio",
+    "codigo_dane_departamento",
+    "codigo_dane_municipio",
+    "latitud",
+    "longitud"
+  ],
+  "cumple_1_geografica": true,
+  "registros_por_fuente": {
+    "IOM Missing Migrants": 22299,
+    "ACLED": 26706,
+    "Medicina Legal (SIRDEC)": 205938,
+    "SIEVCAC (CNMH)": 82486
+  },
+  "registros_por_nivel_fuente": {
+    "Nacional": 288424,
+    "Global": 49005
+  },
+  "registros_por_pais_top10": {
+    "Colombia": 288007,
+    "Iran (Islamic Republic of)": 5547,
+    "United States of America": 4761,
+    "Nigeria": 3299,
+    "Mexico": 3228,
+    "Libya": 2676,
+    "Syria": 1960,
+    "Myanmar": 1784,
+    "Sudan": 1446,
+    "Yemen": 1440
+  },
+  "rango_anios": [
+    1930,
+    2026
+  ],
+  "columnas": [
+    {
+      "nombre": "id_registro",
+      "tipo": "identificador/texto"
+    },
+    {
+      "nombre": "id_original",
+      "tipo": "identificador/texto"
+    },
+    {
+      "nombre": "fuente",
+      "tipo": "categorica"
+    },
+    {
+      "nombre": "nivel_fuente",
+      "tipo": "categorica"
+    },
+    {
+      "nombre": "unidad_de_analisis",
+      "tipo": "categorica"
+    },
+    {
+      "nombre": "num_personas",
+      "tipo": "numerica"
+    },
+    {
+      "nombre": "tipo_evento",
+      "tipo": "categorica"
+    },
+    {
+      "nombre": "estado_victima",
+      "tipo": "categorica"
+    },
+    {
+      "nombre": "sexo",
+      "tipo": "categorica"
+    },
+    {
+      "nombre": "anio",
+      "tipo": "numerica"
+    },
+    {
+      "nombre": "mes",
+      "tipo": "numerica"
+    },
+    {
+      "nombre": "fecha",
+      "tipo": "temporal"
+    },
+    {
+      "nombre": "pais",
+      "tipo": "geografica"
+    },
+    {
+      "nombre": "region",
+      "tipo": "geografica"
+    },
+    {
+      "nombre": "departamento",
+      "tipo": "geografica"
+    },
+    {
+      "nombre": "municipio",
+      "tipo": "geografica"
+    },
+    {
+      "nombre": "codigo_dane_departamento",
+      "tipo": "geografica"
+    },
+    {
+      "nombre": "codigo_dane_municipio",
+      "tipo": "geografica"
+    },
+    {
+      "nombre": "latitud",
+      "tipo": "numerica"
+    },
+    {
+      "nombre": "longitud",
+      "tipo": "numerica"
+    },
+    {
+      "nombre": "detalle",
+      "tipo": "categorica"
+    }
+  ]
+}
