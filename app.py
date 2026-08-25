@@ -1,5 +1,6 @@
 import csv
 import json
+import os
 from pathlib import Path
 
 from flask import Flask, abort, render_template, send_from_directory
@@ -44,6 +45,21 @@ def render_fuentes():
         justificacion_general=data["justificacion_general"],
         limitaciones=data["limitaciones_conocidas"],
         current_slug="fuentes",
+    )
+
+
+def render_diccionario():
+    diccionario_path = DATA_DIR / "diccionario_datos.json"
+    if not diccionario_path.exists():
+        abort(500, description="Falta el archivo data/diccionario_datos.json.")
+
+    with open(diccionario_path, encoding="utf-8") as f:
+        diccionario = json.load(f)
+
+    return render_template(
+        "etapa1_diccionario.html",
+        diccionario=diccionario,
+        current_slug="diccionario",
     )
 
 
@@ -95,6 +111,8 @@ def etapa1_pagina(slug):
         return render_fuentes()
     if slug == "dataset":
         return render_dataset()
+    if slug == "diccionario":
+        return render_diccionario()
 
     item = ETAPA1_MENU_BY_SLUG[slug]
     return render_template(
@@ -106,5 +124,4 @@ def etapa1_pagina(slug):
 
 
 if __name__ == "__main__":
-    import os
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))

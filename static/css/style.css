@@ -214,3 +214,12 @@ th { background: var(--color-badge-bg); color: var(--color-badge-text); }
     font-size: 0.82rem;
     padding: 20px;
 }
+
+.unidad-analisis, .diccionario-tabla, .trazabilidad {
+    margin-top: 28px;
+}
+
+.tabla-diccionario { font-size: 0.85rem; }
+.tabla-diccionario td, .tabla-diccionario th { vertical-align: top; }
+.tabla-diccionario td:nth-child(3),
+.tabla-diccionario td:nth-child(5) { min-width: 220px; }
