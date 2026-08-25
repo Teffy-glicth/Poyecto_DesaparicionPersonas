@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-from flask import Flask, render_template
-
-app = Flask(__name__)
-
-=======
 import csv
 import json
+import os
 from pathlib import Path
 
 from flask import Flask, abort, render_template, send_from_directory
@@ -35,17 +30,12 @@ MUESTRA_MAX_FILAS = 50
 def inject_menu():
     return {"etapa1_menu": ETAPA1_MENU, "current_slug": None}
 
->>>>>>> feature/etapa-1-upload
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-<<<<<<< HEAD
-if __name__ == "__main__":
-    app.run(debug=True)
-=======
 def render_fuentes():
     with open(DATA_DIR / "fuentes.json", encoding="utf-8") as f:
         data = json.load(f)
@@ -55,6 +45,21 @@ def render_fuentes():
         justificacion_general=data["justificacion_general"],
         limitaciones=data["limitaciones_conocidas"],
         current_slug="fuentes",
+    )
+
+
+def render_diccionario():
+    diccionario_path = DATA_DIR / "diccionario_datos.json"
+    if not diccionario_path.exists():
+        abort(500, description="Falta el archivo data/diccionario_datos.json.")
+
+    with open(diccionario_path, encoding="utf-8") as f:
+        diccionario = json.load(f)
+
+    return render_template(
+        "etapa1_diccionario.html",
+        diccionario=diccionario,
+        current_slug="diccionario",
     )
 
 
@@ -106,6 +111,8 @@ def etapa1_pagina(slug):
         return render_fuentes()
     if slug == "dataset":
         return render_dataset()
+    if slug == "diccionario":
+        return render_diccionario()
 
     item = ETAPA1_MENU_BY_SLUG[slug]
     return render_template(
@@ -117,6 +124,4 @@ def etapa1_pagina(slug):
 
 
 if __name__ == "__main__":
-    import os
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
->>>>>>> feature/etapa-1-upload
