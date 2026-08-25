@@ -1,0 +1,41 @@
+
+Dataset 1 (Global) 
+IOM – Missing Migrants Project
+IOM – Missing Migrants Project: dataset descargable en CSV/Excel, con incidentes individuales de personas migrantes muertas o desaparecidas desde 2014, con coordenadas, fecha, causa, región, nacionalidad. Es terciaria/secundaria y es la más útil para tu conteo de registros porque viene a nivel de caso (no agregado). Descarga:
+missingmigrants.iom.int/downloads
+Fecha descarga 24/08/2026
+Fuente secunbdaria 
+registros 22300
+Periodo de los datos (06-01-2014 al 18-08-2026)
+
+Dataset 2 (global )
+Periodo de los datos (23-01-2001 a 21-08-2026)
+
+es la base de datos global más respetada sobre conflictos. Registran eventos violentos en todo el mundo en tiempo real
+filtrados a eventos de Secuestro o desaparicion forzada 
+fecha de descarga 26706 registros 
+
+https://acleddata.com/conflict-data/data-export-tool
+
+fecha de descarga 24/08/2026
+
+
+Dataset 3
+Instituto Nacional de Medicina Legal y Ciencias Forenses
+es un sistema de información nacional e interinstitucional que identifica cadáveres sometidos a necropsia medicolegal y orienta la búsqueda de personas desaparecidas, gestionado por Medicina Legal vía SIRDEC
+Desaparecidos. Colombia, histórico, años 1930 a marzo de 2022", publicado en el portal de Datos Abiertos del gobierno
+
+https://www.datos.gov.co/Justicia-y-Derecho/Desaparecidos-en-Colombia-Hist-rico-junio-de-2026/8hqm-7fdt/about_data
+Fecha descarga 24/08/2026
+Fecha de ultima actualizacion 4 de agosto de 2026
+numero de registros 205940
+Periodo de los datos (1930 a 30-06-2026)
+
+Dataset 4
+Sistema de Información de Eventos de Violencia del Conflicto Armado SIEVCAC - Víctimas DF Desaparición Forzada
+Victimas para el tipo de violencia DF Desaparición Forzada, con corte al 31 - 03 - 2026
+Fecha de descarga 24-08-2026
+Numero de resgistros 82486
+Periodo de los datos (13-02-1948 al 02-09-2026)
+
+https://www.datos.gov.co/Inclusi-n-Social-y-Reconciliaci-n/Sistema-de-Informaci-n-de-Eventos-de-Violencia-del/c59y-p4sz/about_data
