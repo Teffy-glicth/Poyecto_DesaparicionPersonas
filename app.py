@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-from flask import Flask, render_template
-
-app = Flask(__name__)
-
-=======
 import csv
 import json
 from pathlib import Path
@@ -35,17 +29,12 @@ MUESTRA_MAX_FILAS = 50
 def inject_menu():
     return {"etapa1_menu": ETAPA1_MENU, "current_slug": None}
 
->>>>>>> feature/etapa-1-upload
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-<<<<<<< HEAD
-if __name__ == "__main__":
-    app.run(debug=True)
-=======
 def render_fuentes():
     with open(DATA_DIR / "fuentes.json", encoding="utf-8") as f:
         data = json.load(f)
@@ -119,4 +108,3 @@ def etapa1_pagina(slug):
 if __name__ == "__main__":
     import os
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
->>>>>>> feature/etapa-1-upload
