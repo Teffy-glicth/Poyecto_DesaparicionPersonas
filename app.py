@@ -89,6 +89,12 @@ def render_calidad():
         current_slug="calidad",
     )
 
+def render_limitaciones():
+    return render_template(
+        "etapa1_limitaciones.html",
+        current_slug="limitaciones",
+    )
+
 def render_dataset():
     resumen_path = PROCESSED_DIR / "dataset_resumen.json"
     muestra_path = PROCESSED_DIR / "dataset_muestra.csv"
@@ -155,6 +161,8 @@ def etapa1_pagina(slug):
         return render_diccionario()
     if slug == "calidad":
         return render_calidad()
+    if slug == "limitaciones":
+        return render_limitaciones()
 
     item = ETAPA1_MENU_BY_SLUG[slug]
     return render_template(

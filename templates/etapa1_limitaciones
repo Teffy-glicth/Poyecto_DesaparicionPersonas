@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+ 
+<h1>8. Limitaciones y consideraciones</h1>
+ 
+<p>
+  Limitaciones identificadas a partir del diagnóstico de calidad (sección 7),
+  a tener en cuenta para las siguientes etapas del proyecto.
+</p>
+ 
+<h2>1. Heterogeneidad entre fuentes</h2>
+<p>
+  ACLED e IOM Missing Migrants registran eventos agregados (una fila puede
+  representar varias personas, capturado en <code>num_personas</code>), mientras
+  que Medicina Legal y SIEVCAC registran una persona por fila. Cualquier análisis
+  que combine niveles global y nacional debe tener en cuenta esta diferencia
+  antes de sumar o comparar directamente.
+</p>
+ 
+<h2>2. Cobertura geográfica desigual entre niveles</h2>
+<p>
+  El código DANE completo (departamento y municipio) solo existe en Medicina
+  Legal; SIEVCAC tiene nombre de departamento/municipio pero no siempre el
+  código. El nivel "regional" depende por completo de la calidad de estos
+  campos en las dos fuentes nacionales. 
+</p>
+ 
+<h2>3. Ausencia de coordenadas en la fuente más grande</h2>
+<p>
+  Medicina Legal (SIRDEC), que aporta el 61% de los registros del dataset, no
+  incluye <code>latitud</code>/<code>longitud</code>. Esto limita cualquier
+  análisis geoespacial de precisión (mapas de calor, distancias, clustering
+  espacial) para la mayoría de los registros nacionales.
+</p>
+ 
+ 
+<h2>4. Faltantes de fecha concentrados en una fuente</h2>
+<p>
+  SIEVCAC concentra la mayor proporción de registros sin fecha completa (6.9%),
+  lo que puede limitar los análisis de series de tiempo específicamente para
+  los datos que provienen de esa fuente.
+</p>
+ 
+<h2>5. Posible subregistro, como limitación estructural del fenómeno</h2>
+<p>
+  Como en cualquier dataset sobre desaparición de personas, es esperable que
+  existan casos no reportados o no capturados por ninguna de las 4 fuentes
+  utilizadas, especialmente en zonas con menor presencia institucional. Esta
+  es una limitación del tema investigado.
+</p>
+ 
+<h2>6. Diagnóstico exploratorio</h2>
+<p>
+  Los hallazgos de la sección 7 (faltantes, duplicados, distribución de años)
+  corresponden a un diagnóstico inicial de la Etapa 1. La limpieza real del
+  dataset es trabajo de una etapa posterior del proyecto.
+</p>
+ 
+{% endblock %}
+ 
