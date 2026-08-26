@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Etapa 1 — Necesidades de información{% endblock %}
+{% block content %}
+<style>
+    .pagina-necesidades {
+        background: linear-gradient(180deg, #0a1a3f 0%, #050b1a 100%);
+        color: #eef1fb;
+        border-radius: 10px;
+        padding: 32px 36px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .pagina-necesidades h1 {
+        color: #ffffff;
+        border-bottom: 2px solid #1b2f66;
+        padding-bottom: 10px;
+    }
+    .pagina-necesidades h2 {
+        color: #9fb4ff;
+        margin-top: 28px;
+    }
+    .pagina-necesidades h3 {
+        color: #dfe6ff;
+        margin-top: 16px;
+    }
+    .pagina-necesidades p {
+        color: #d6dcf5;
+        line-height: 1.6;
+    }
+    .pagina-necesidades .variable-card {
+        background: #0f2354;
+        border-left: 4px solid #4d6fff;
+        padding: 14px 18px;
+        border-radius: 6px;
+        margin-bottom: 14px;
+    }
+    .pagina-necesidades .variable-card strong {
+        color: #ffffff;
+    }
+</style>
+<section class="page pagina-necesidades">
+    <h1>3. Necesidades de información</h1>
+
+    <h2>3.1 Entidades y variables</h2>
+    <p>
+        La entidad principal de este proyecto es la persona desaparecida, sobre la cual se
+        recolecta información a través del testimonio del familiar que responde la encuesta.
+        Cada registro corresponde así a un caso reportado, caracterizado por variables
+        demográficas como la edad, sexo y ocupación. También se recolectan variables temporales
+        y espaciales (fecha del último contacto, municipio o lugar de última ubicación) y
+        variables relacionadas con el hecho en sí (circunstancias y tipo de hecho).
+    </p>
+
+    <h2>3.2 Periodo de análisis</h2>
+    <p>
+        El periodo de análisis no se fija de antemano, sino que corresponde al rango de fechas
+        que resulte de las respuestas efectivamente recolectadas, ya que estas dependen de qué
+        tan atrás llegue el recuerdo de cada familiar encuestado. Esto implica que el periodo
+        cubierto por el dataset se conocerá con precisión solo una vez cerrada la recolección, y
+        combinará fechas exactas con fechas aproximadas, lo que en etapas posteriores suele
+        requerir llevar todos los registros a un mismo nivel de detalle temporal antes de
+        compararlos.
+    </p>
+
+    <h2>3.3 Cobertura geográfica y población</h2>
+    <p>
+        La cobertura geográfica está determinada por el alcance real de difusión de la encuesta,
+        es decir, por los contactos y redes a través de los cuales las familias llegan a
+        responderla, y no representa necesariamente a la región en su totalidad. La población de
+        análisis corresponde a las personas desaparecidas reportadas por sus familiares, sin
+        distinción previa de edad, sexo o región, quedando la caracterización de esa población
+        como parte de los resultados del análisis y no como un criterio de selección inicial.
+    </p>
+
+    <h2>3.4 Nivel de granularidad</h2>
+    <p>
+        El dataset se maneja a nivel individual, es decir, cada fila representa un caso o persona
+        reportada, lo que permite un análisis detallado por variable sin depender de agregaciones
+        previas por zona o periodo.
+    </p>
+
+    <h2>3.5 Variables para comparar escalas</h2>
+    <p>
+        Algunas variables cumplen un papel adicional al permitir situar los casos reportados
+        dentro de los patrones descritos a nivel global, nacional y regional. El tipo de hecho,
+        por ejemplo, permite relacionar los casos con las categorías usadas en cifras
+        institucionales. El año o época del último contacto permite ubicar los casos frente a
+        hitos históricos relevantes. Y el municipio o zona permite, en etapas posteriores,
+        contrastar la concentración de casos reportados con las regiones históricamente más
+        afectadas por el conflicto armado.
+    </p>
+
+    <h2>3.6 Razón de cada variable</h2>
+
+    <div class="variable-card">
+        <strong>Edad al momento de los hechos:</strong> permite agrupar a las personas
+        desaparecidas por rangos de edad y verificar si ciertos rangos aparecen más asociados a
+        un tipo de hecho específico, por ejemplo, si la desaparición forzada se concentra más en
+        personas jóvenes.
+    </div>
+
+    <div class="variable-card">
+        <strong>Ocupación:</strong> ayuda a entender el contexto social o económico de la persona
+        desaparecida en el momento del hecho. Cruzarla con el tipo de hecho puede mostrar, por
+        ejemplo, si ciertas ocupaciones están más presentes en zonas o circunstancias
+        específicas.
+    </div>
+
+    <div class="variable-card">
+        <strong>Sexo:</strong> permite comparar si hombres y mujeres desaparecidos presentan
+        patrones distintos, tanto en el tipo de hecho como en las circunstancias. Es importante
+        decidir cómo tratar la opción "prefiero no decir", ya que no es lo mismo que un dato
+        faltante: es una respuesta válida que refleja que la persona prefirió no compartir esa
+        información.
+    </div>
+
+    <div class="variable-card">
+        <strong>Fecha del último contacto:</strong> ya sea exacta o aproximada, es la variable
+        que permite ver si los casos se concentran en ciertos años o épocas. El detalle aquí es
+        que unas respuestas vienen con fecha exacta y otras solo con mes y año aproximado, así
+        que antes de poder comparar todos los casos hay que llevarlos a un mismo nivel de
+        detalle.
+    </div>
+
+    <div class="variable-card">
+        <strong>Municipio, barrio o lugar:</strong> es la variable clave para el análisis
+        geográfico, pero como se responde en texto libre, es probable que la misma ciudad
+        aparezca escrita de formas distintas (por ejemplo "Cúcuta" y "cucuta"). Esto significa
+        que antes de poder agrupar y comparar por zona, se necesita limpiar y estandarizar estos
+        datos.
+    </div>
+
+    <div class="variable-card">
+        <strong>Circunstancias del hecho:</strong> al ser una respuesta abierta, no se pueden
+        analizar directamente como categoría o número. Sirven más como apoyo cualitativo, y si se
+        requiere usarlas en cruces cuantitativos se deben revisar y agrupar en categorías.
+    </div>
+
+    <div class="variable-card">
+        <strong>Tipo de hecho:</strong> es probablemente la variable más importante del dataset,
+        porque es la que permite comparar las demás variables según qué clase de hecho ocurrió.
+        La opción "desconocida" no significa que falte el dato, sino que el familiar realmente no
+        sabe qué pasó, lo cual es una respuesta válida.
+    </div>
+</section>
+{% endblock %}

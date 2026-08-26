@@ -50,6 +50,12 @@ def render_preguntas():
         current_slug="preguntas",
     )
 
+def render_necesidades():
+    return render_template(
+        "etapa1_necesidades.html",
+        current_slug="necesidades",
+    )
+
 
 def render_fuentes():
     with open(DATA_DIR / "fuentes.json", encoding="utf-8") as f:
@@ -134,6 +140,8 @@ def etapa1_pagina(slug):
         return render_problema()
     if slug == "preguntas":
         return render_preguntas()
+    if slug == "necesidades":
+        return render_necesidades()
     if slug == "fuentes":
         return render_fuentes()
     if slug == "dataset":
