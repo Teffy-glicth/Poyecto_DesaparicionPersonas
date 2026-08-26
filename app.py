@@ -10,6 +10,7 @@ app = Flask(__name__)
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 PROCESSED_DIR = DATA_DIR / "processed"
+PRIMARIAS_DIR = DATA_DIR / "Primarias"
 
 ETAPA1_MENU = [
     {"numero": 1, "slug": "problema", "titulo": "Problema y contexto"},
@@ -101,6 +102,14 @@ def render_dataset():
         muestra_filas=muestra_filas,
         current_slug="dataset",
     )
+
+
+@app.route("/etapa1/fuentes/entrevista-audio")
+def entrevista_audio():
+    audio_path = PRIMARIAS_DIR / "entrevista_audio.mp4"
+    if not audio_path.exists():
+        abort(404)
+    return send_from_directory(PRIMARIAS_DIR, "entrevista_audio.mp4", mimetype="audio/mp4")
 
 
 @app.route("/etapa1/dataset/descargar")

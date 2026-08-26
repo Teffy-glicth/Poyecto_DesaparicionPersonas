@@ -184,6 +184,18 @@ body {
 .fuente-detalle dt { color: var(--color-muted); font-size: 0.85rem; }
 .fuente-detalle dd { margin: 0; }
 
+.audio-entrevista {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+.audio-label { margin: 0 0 8px; font-weight: 600; font-size: 0.88rem; }
+.audio-entrevista audio { width: 100%; }
+.audio-entrevista .nota { margin: 8px 0 0; }
+
 .justificacion, .limitaciones, .cumplimiento, .niveles, .columnas, .muestra {
     margin-top: 28px;
 }
