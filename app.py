@@ -36,6 +36,20 @@ def index():
     return render_template("index.html")
 
 
+def render_problema():
+    return render_template(
+        "etapa1_problema.html",
+        current_slug="problema",
+    )
+
+
+def render_preguntas():
+    return render_template(
+        "etapa1_preguntas.html",
+        current_slug="preguntas",
+    )
+
+
 def render_fuentes():
     with open(DATA_DIR / "fuentes.json", encoding="utf-8") as f:
         data = json.load(f)
@@ -107,6 +121,10 @@ def descargar_dataset():
 def etapa1_pagina(slug):
     if slug not in ETAPA1_MENU_BY_SLUG:
         abort(404)
+    if slug == "problema":
+        return render_problema()
+    if slug == "preguntas":
+        return render_preguntas()
     if slug == "fuentes":
         return render_fuentes()
     if slug == "dataset":
