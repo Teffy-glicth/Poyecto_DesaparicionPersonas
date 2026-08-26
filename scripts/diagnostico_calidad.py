@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
+
 """
 Diagnostico inicial de calidad - Etapa 1, Punto 7.
 Analiza el dataset consolidado (4 fuentes) SIN limpiarlo, solo para
 documentar su estado actual: faltantes, duplicados, inconsistencias,
 valores fuera de dominio, problemas de formato e integracion entre fuentes.
  
-Uso:
-    python diagnostico_calidad.py ruta/al/dataset_consolidado.csv
 """
  
 import sys

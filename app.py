@@ -83,6 +83,11 @@ def render_diccionario():
         current_slug="diccionario",
     )
 
+def render_calidad():
+    return render_template(
+        "etapa1_calidad.html",
+        current_slug="calidad",
+    )
 
 def render_dataset():
     resumen_path = PROCESSED_DIR / "dataset_resumen.json"
@@ -148,6 +153,8 @@ def etapa1_pagina(slug):
         return render_dataset()
     if slug == "diccionario":
         return render_diccionario()
+    if slug == "calidad":
+        return render_calidad()
 
     item = ETAPA1_MENU_BY_SLUG[slug]
     return render_template(
