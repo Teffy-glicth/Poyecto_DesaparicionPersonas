@@ -1,14 +1,15 @@
 {
-  "total_registros": 337429,
+  "total_registros": 337444,
   "cumple_10000_registros": true,
-  "total_variables": 21,
+  "total_variables": 23,
   "cumple_10_variables": true,
   "variables_numericas": [
     "num_personas",
     "anio",
     "mes",
     "latitud",
-    "longitud"
+    "longitud",
+    "edad"
   ],
   "cumple_3_numericas": true,
   "variables_categoricas": [
@@ -48,14 +49,16 @@
     "IOM Missing Migrants": 22299,
     "ACLED": 26706,
     "Medicina Legal (SIRDEC)": 205938,
-    "SIEVCAC (CNMH)": 82486
+    "SIEVCAC (CNMH)": 82486,
+    "Encuesta propia de caracterizacion": 14,
+    "Entrevista familiar anonima": 1
   },
   "registros_por_nivel_fuente": {
-    "Nacional": 288424,
+    "Nacional": 288439,
     "Global": 49005
   },
   "registros_por_pais_top10": {
-    "Colombia": 288007,
+    "Colombia": 288022,
     "Iran (Islamic Republic of)": 5547,
     "United States of America": 4761,
     "Nigeria": 3299,
@@ -108,6 +111,10 @@
       "tipo": "categorica"
     },
     {
+      "nombre": "edad",
+      "tipo": "numerica"
+    },
+    {
       "nombre": "anio",
       "tipo": "numerica"
     },
@@ -154,6 +161,10 @@
     {
       "nombre": "detalle",
       "tipo": "categorica"
+    },
+    {
+      "nombre": "narrativa",
+      "tipo": "identificador/texto"
     }
   ]
 }

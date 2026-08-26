@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Etapa 1 — Pregunta principal y preguntas secundarias{% endblock %}
+{% block content %}
+<style>
+    .pagina-preguntas {
+        background: linear-gradient(180deg, #0a1a3f 0%, #050b1a 100%);
+        color: #eef1fb;
+        border-radius: 10px;
+        padding: 32px 36px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .pagina-preguntas h1 {
+        color: #ffffff;
+        border-bottom: 2px solid #1b2f66;
+        padding-bottom: 10px;
+    }
+    .pagina-preguntas h2 {
+        color: #9fb4ff;
+        margin-top: 28px;
+    }
+    .pagina-preguntas .lead {
+        background: #0f2354;
+        border-left: 4px solid #4d6fff;
+        padding: 14px 18px;
+        border-radius: 6px;
+        color: #f2f4ff;
+        font-weight: 500;
+    }
+    .pagina-preguntas ol {
+        color: #d6dcf5;
+        line-height: 1.8;
+    }
+    .pagina-preguntas li {
+        margin-bottom: 8px;
+    }
+</style>
+<section class="page pagina-preguntas">
+    <h1>2. Pregunta principal y preguntas secundarias</h1>
+ 
+    <h2>2.1 Pregunta principal</h2>
+    <p class="lead">
+        ¿Qué patrones temporales, geográficos, demográficos y por tipo de hecho caracterizan los
+        casos de desaparición de personas reportados en el sur del país con respecto a otras
+        regiones?
+    </p>
+ 
+    <h2>2.2 Preguntas secundarias</h2>
+    <ol>
+        <li>
+            ¿Cómo se distribuyen los casos reportados según la fecha del último contacto con la
+            persona desaparecida?
+        </li>
+        <li>
+            ¿Qué municipios, barrios o zonas concentran el mayor número de casos reportados?
+        </li>
+        <li>
+            ¿Existen diferencias en el perfil demográfico (sexo, edad, ocupación) de las
+            personas desaparecidas según el tipo de hecho reportado?
+        </li>
+        <li>
+            ¿Qué relación existe entre el tipo de hecho y las circunstancias o el lugar en que
+            ocurrió?
+        </li>
+    </ol>
+</section>
+{% endblock %}
+ 

@@ -4,9 +4,10 @@
 <section class="page">
     <h1>4. Fuentes de datos</h1>
     <p class="lead">
-        Se utilizaron 4 fuentes ya recolectadas, que en conjunto cubren los niveles global y
-        nacional/regional (Colombia). El nivel regional se obtiene desagregando las fuentes
-        nacionales por departamento y municipio (código DANE), sin una fuente adicional dedicada.
+        Se utilizaron 6 fuentes: 4 ya recolectadas (secundarias/terciarias) y 2 primarias
+        (una encuesta y una entrevista propias a familiares de personas desaparecidas), que en
+        conjunto cubren los niveles global y nacional/regional (Colombia). El nivel regional se
+        obtiene desagregando las fuentes nacionales y primarias por departamento y municipio.
     </p>
 
     {% for f in fuentes %}
@@ -17,7 +18,11 @@
 
         <dl class="fuente-detalle">
             <dt>Institución responsable</dt><dd>{{ f.institucion }}</dd>
-            <dt>URL</dt><dd><a href="{{ f.url }}" target="_blank" rel="noopener">{{ f.url }}</a></dd>
+            <dt>URL</dt><dd>
+                {% if f.url %}<a href="{{ f.url }}" target="_blank" rel="noopener">{{ f.url }}</a>
+                {% else %}No aplica (recolección propia, sin URL pública)
+                {% endif %}
+            </dd>
             <dt>Cobertura geográfica</dt><dd>{{ f.cobertura_geografica }}</dd>
             <dt>Periodo disponible</dt><dd>{{ f.periodo_disponible }}</dd>
             <dt>Formato</dt><dd>{{ f.formato }}</dd>
@@ -31,6 +36,17 @@
             {% endif %}
             <dt>Restricciones / condiciones de uso</dt><dd>{{ f.restricciones }}</dd>
         </dl>
+
+        {% if f.id == "entrevista" %}
+        <div class="audio-entrevista">
+            <p class="audio-label">🎧 Audio original de la entrevista:</p>
+            <audio controls preload="none" src="{{ url_for('entrevista_audio') }}">
+                Tu navegador no soporta reproducción de audio.
+                <a href="{{ url_for('entrevista_audio') }}">Descargar el audio</a>.
+            </audio>
+            <p class="nota">Transcripción disponible en <code>data/Primarias/entrevista_transcripcion.md</code>.</p>
+        </div>
+        {% endif %}
     </article>
     {% endfor %}
 

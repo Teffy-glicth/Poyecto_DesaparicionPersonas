@@ -10,6 +10,7 @@ app = Flask(__name__)
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 PROCESSED_DIR = DATA_DIR / "processed"
+PRIMARIAS_DIR = DATA_DIR / "Primarias"
 
 ETAPA1_MENU = [
     {"numero": 1, "slug": "problema", "titulo": "Problema y contexto"},
@@ -34,6 +35,26 @@ def inject_menu():
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+def render_problema():
+    return render_template(
+        "etapa1_problema.html",
+        current_slug="problema",
+    )
+
+
+def render_preguntas():
+    return render_template(
+        "etapa1_preguntas.html",
+        current_slug="preguntas",
+    )
+
+def render_necesidades():
+    return render_template(
+        "etapa1_necesidades.html",
+        current_slug="necesidades",
+    )
 
 
 def render_fuentes():
@@ -89,6 +110,14 @@ def render_dataset():
     )
 
 
+@app.route("/etapa1/fuentes/entrevista-audio")
+def entrevista_audio():
+    audio_path = PRIMARIAS_DIR / "entrevista_audio.mp4"
+    if not audio_path.exists():
+        abort(404)
+    return send_from_directory(PRIMARIAS_DIR, "entrevista_audio.mp4", mimetype="audio/mp4")
+
+
 @app.route("/etapa1/dataset/descargar")
 def descargar_dataset():
     csv_path = PROCESSED_DIR / "dataset_consolidado.csv"
@@ -107,6 +136,12 @@ def descargar_dataset():
 def etapa1_pagina(slug):
     if slug not in ETAPA1_MENU_BY_SLUG:
         abort(404)
+    if slug == "problema":
+        return render_problema()
+    if slug == "preguntas":
+        return render_preguntas()
+    if slug == "necesidades":
+        return render_necesidades()
     if slug == "fuentes":
         return render_fuentes()
     if slug == "dataset":
