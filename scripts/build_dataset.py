@@ -30,11 +30,11 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 COLUMNS = [
     "id_registro", "id_original", "fuente", "nivel_fuente", "unidad_de_analisis",
-    "num_personas", "tipo_evento", "estado_victima", "sexo",
+    "num_personas", "tipo_evento", "estado_victima", "sexo", "edad",
     "anio", "mes", "fecha",
     "pais", "region", "departamento", "municipio",
     "codigo_dane_departamento", "codigo_dane_municipio",
-    "latitud", "longitud", "detalle",
+    "latitud", "longitud", "detalle", "narrativa",
 ]
 
 
@@ -91,6 +91,7 @@ def load_iom():
         "tipo_evento": "Desaparicion/muerte de persona migrante",
         "estado_victima": df.apply(estado, axis=1),
         "sexo": "Sin informacion",
+        "edad": pd.NA,
         "anio": fecha.dt.year.fillna(df["Incident Year"]),
         "mes": fecha.dt.month,
         "fecha": fecha,
@@ -103,6 +104,7 @@ def load_iom():
         "latitud": lat,
         "longitud": lon,
         "detalle": df["Cause of Death"],
+        "narrativa": pd.NA,
     })
     out["id_registro"] = "IOM-" + out["id_original"]
     return out[COLUMNS]
@@ -129,6 +131,7 @@ def load_acled():
         "tipo_evento": "Abduccion/desaparicion forzada (conflicto armado)",
         "estado_victima": "Sin informacion (evento agregado)",
         "sexo": "Sin informacion",
+        "edad": pd.NA,
         "anio": fecha.dt.year,
         "mes": fecha.dt.month,
         "fecha": fecha,
@@ -141,6 +144,7 @@ def load_acled():
         "latitud": df["centroid_latitude"],
         "longitud": df["centroid_longitude"],
         "detalle": df["admin1"],
+        "narrativa": pd.NA,
     })
     out["id_registro"] = "ACLED-" + pd.Series(range(len(out)), index=out.index).astype(str)
     return out[COLUMNS]
@@ -183,6 +187,7 @@ def load_medicina_legal():
         "tipo_evento": tipo_evento,
         "estado_victima": df["Estado de la desaparición"].map(ESTADO_ML_MAP).fillna("Sin informacion"),
         "sexo": df["Sexo del desaparecido"],
+        "edad": pd.NA,
         "anio": anio_col,
         "mes": fecha.dt.month,
         "fecha": fecha,
@@ -195,6 +200,7 @@ def load_medicina_legal():
         "latitud": pd.NA,
         "longitud": pd.NA,
         "detalle": df["Zona donde ocurre la desaparición"],
+        "narrativa": pd.NA,
     })
     out["id_registro"] = "ML-" + out["id_original"]
     return out[COLUMNS]
@@ -249,6 +255,7 @@ def load_sievcac():
         "tipo_evento": "Desaparicion forzada (conflicto armado)",
         "estado_victima": df["Situación Actual de la Víctima"].map(ESTADO_SIEVCAC_MAP).fillna("Sin informacion"),
         "sexo": df["Sexo"].map(SEXO_SIEVCAC_MAP).fillna("Sin informacion"),
+        "edad": pd.NA,
         "anio": anio_num,
         "mes": mes_num,
         "fecha": fecha,
@@ -261,15 +268,160 @@ def load_sievcac():
         "latitud": lat,
         "longitud": lon,
         "detalle": df["Calidad de la Víctima o la Baja"],
+        "narrativa": pd.NA,
     })
     out["id_registro"] = "SIEVCAC-" + out["id_original"]
     return out[COLUMNS]
 
 
 # ---------------------------------------------------------------------------
+# Fuente 5: Encuesta propia de caracterizacion (Primaria) - 1 fila = 1 persona
+# reportada por un familiar. Se excluyen las respuestas sin consentimiento.
+# ---------------------------------------------------------------------------
+MESES_ES = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
+    "julio": 7, "agosto": 8, "septiembre": 9, "octubre": 10,
+    "noviembre": 11, "diciembre": 12,
+}
+
+
+def parse_fecha_libre(texto):
+    """Extrae (anio, mes) de texto libre en espanol, cuando sea posible."""
+    if pd.isna(texto):
+        return None, None
+    texto = str(texto).strip().lower()
+
+    m = re.search(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b", texto)
+    if m:
+        dia, mes, anio = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        if 1 <= mes <= 12:
+            return anio, mes
+
+    for nombre, num in MESES_ES.items():
+        if nombre in texto:
+            m_anio = re.search(r"(19|20)\d{2}", texto)
+            if m_anio:
+                return int(m_anio.group(0)), num
+
+    m = re.search(r"\b(\d{1,2})/(\d{4})\b", texto)
+    if m:
+        mes, anio = int(m.group(1)), int(m.group(2))
+        if 1 <= mes <= 12:
+            return anio, mes
+
+    m = re.search(r"(19|20)\d{2}", texto)
+    if m:
+        return int(m.group(0)), None
+
+    return None, None
+
+
+def parse_edad(valor):
+    if pd.isna(valor):
+        return None
+    m = re.search(r"\d+", str(valor))
+    return int(m.group(0)) if m else None
+
+
+SEXO_ENCUESTA_MAP = {
+    "Masculino": "Hombre",
+    "Femenino": "Mujer",
+    "Prefiero no decir": "Sin informacion",
+}
+
+
+def load_encuesta():
+    path = RAW / "Primarias" / "encuesta_caracterizacion_desaparecidos.xlsx"
+    df = pd.read_excel(path)
+    col_consentimiento = "¿Autoriza el uso anónimo de esta información con fines académicos?"
+    col_edad = ("¿Qué edad, sea exacta o aproximada, tenía su familiar en el "
+                "momento en que ocurrieron los hechos ?")
+    col_ocupacion = "¿A que se dedicaba en esa época? ¿Cuál era su profesión principal?"
+    col_sexo = "Sexo de la persona desaparecida"
+    col_fecha_exacta = "Fecha exacta"
+    col_fecha_aprox = "Fecha aproximada\n\n"
+    col_lugar = "¿En qué municipio, barrio o lugar específico se encontraba o fue visto por última vez?"
+    col_circunstancia = "¿Qué estaba haciendo su familiar ese día o bajo qué circunstancias ocurrió la desaparición?"
+    col_tipo = "Según su conocimiento, ¿cuál considera que fue el tipo de hecho?"
+
+    # Se excluyen las respuestas que no autorizaron el uso de su informacion
+    # (requisito etico, no es limpieza de calidad).
+    df = df[df[col_consentimiento] == "Si"].reset_index(drop=True)
+
+    fecha_exacta = pd.to_datetime(df[col_fecha_exacta], errors="coerce")
+    anio_mes_libre = df[col_fecha_aprox].apply(parse_fecha_libre)
+    anio_libre = anio_mes_libre.apply(lambda t: t[0])
+    mes_libre = anio_mes_libre.apply(lambda t: t[1])
+
+    anio = fecha_exacta.dt.year.combine_first(pd.Series(anio_libre, dtype="Float64"))
+    mes = fecha_exacta.dt.month.combine_first(pd.Series(mes_libre, dtype="Float64"))
+
+    out = pd.DataFrame({
+        "id_original": df["ID"].astype(str),
+        "fuente": "Encuesta propia de caracterizacion",
+        "nivel_fuente": "Nacional",
+        "unidad_de_analisis": "persona",
+        "num_personas": 1,
+        "tipo_evento": df[col_tipo].fillna("Sin informacion"),
+        "estado_victima": "Desaparecido",
+        "sexo": df[col_sexo].map(SEXO_ENCUESTA_MAP).fillna("Sin informacion"),
+        "edad": df[col_edad].apply(parse_edad),
+        "anio": anio,
+        "mes": mes,
+        "fecha": fecha_exacta,
+        "pais": "Colombia",
+        "region": pd.NA,
+        "departamento": pd.NA,
+        "municipio": df[col_lugar].str.strip(),
+        "codigo_dane_departamento": pd.NA,
+        "codigo_dane_municipio": pd.NA,
+        "latitud": pd.NA,
+        "longitud": pd.NA,
+        "detalle": df[col_ocupacion],
+        "narrativa": df[col_circunstancia],
+    })
+    out["id_registro"] = "ENCUESTA-" + out["id_original"]
+    return out[COLUMNS]
+
+
+# ---------------------------------------------------------------------------
+# Fuente 6: Entrevista anonima a un familiar (Primaria) - 1 caso puntual,
+# transcrita en data/Primarias/entrevista_transcripcion.md; audio disponible
+# en data/Primarias/entrevista_audio.mp4 (reproducible desde Fuentes de datos).
+# ---------------------------------------------------------------------------
+def load_entrevista():
+    out = pd.DataFrame([{
+        "id_original": "1",
+        "fuente": "Entrevista familiar anonima",
+        "nivel_fuente": "Nacional",
+        "unidad_de_analisis": "persona",
+        "num_personas": 1,
+        "tipo_evento": "Desconocida",
+        "estado_victima": "Desaparecido",
+        "sexo": "Hombre",
+        "edad": 28,
+        "anio": 2006,
+        "mes": pd.NA,
+        "fecha": pd.NaT,
+        "pais": "Colombia",
+        "region": pd.NA,
+        "departamento": "Tolima",
+        "municipio": "Melgar",
+        "codigo_dane_departamento": pd.NA,
+        "codigo_dane_municipio": pd.NA,
+        "latitud": pd.NA,
+        "longitud": pd.NA,
+        "detalle": "Policia",
+        "narrativa": "Desapareció presuntamente mientras ejercía sus labores como policía; caso sigue inconcluso ante las autoridades.",
+    }])
+    out["id_registro"] = "ENTREVISTA-" + out["id_original"]
+    return out[COLUMNS]
+
+
+# ---------------------------------------------------------------------------
 # Consolidacion y reporte de cumplimiento
 # ---------------------------------------------------------------------------
-NUMERIC_VARS = ["num_personas", "anio", "mes", "latitud", "longitud"]
+NUMERIC_VARS = ["num_personas", "anio", "mes", "latitud", "longitud", "edad"]
 CATEGORICAL_VARS = [
     "fuente", "nivel_fuente", "unidad_de_analisis", "tipo_evento",
     "estado_victima", "sexo", "pais", "region", "departamento",
@@ -289,6 +441,8 @@ def main():
         "ACLED": load_acled(),
         "Medicina Legal (SIRDEC)": load_medicina_legal(),
         "SIEVCAC (CNMH)": load_sievcac(),
+        "Encuesta propia de caracterizacion": load_encuesta(),
+        "Entrevista familiar anonima": load_entrevista(),
     }
     for nombre, df in partes.items():
         print(f"  - {nombre}: {len(df):,} registros")
@@ -298,6 +452,7 @@ def main():
     dataset["codigo_dane_municipio"] = dataset["codigo_dane_municipio"].astype("Int64")
     dataset["anio"] = dataset["anio"].astype("Int64")
     dataset["mes"] = dataset["mes"].astype("Int64")
+    dataset["edad"] = pd.to_numeric(dataset["edad"], errors="coerce").astype("Int64")
 
     csv_path = OUT_DIR / "dataset_consolidado.csv"
     dataset.to_csv(csv_path, index=False, encoding="utf-8-sig")

@@ -3,7 +3,15 @@
 {% block content %}
 <section class="page">
     <h1>5. Dataset</h1>
-   
+    <p class="lead">
+        Dataset consolidado construido a partir de las 6 fuentes documentadas en la sección
+        anterior (4 secundarias/terciarias ya recolectadas + 2 primarias propias: una encuesta
+        y una entrevista), mediante concatenación hacia un esquema común (no join fila-a-fila,
+        ya que las fuentes tienen grano y cobertura distintos). Se conserva la granularidad
+        nativa de cada fuente: 1 fila = 1 persona (Medicina Legal, SIEVCAC, encuesta, entrevista),
+        1 fila = 1 incidente (IOM) o 1 fila = 1 agregado semanal por región (ACLED). El script
+        reproducible está en <code>scripts/build_dataset.py</code>.
+    </p>
 
     <a class="btn-descarga" href="{{ url_for('descargar_dataset') }}" download>
         ⬇ Descargar dataset consolidado completo (.csv, {{ "{:,}".format(resumen.total_registros) }} registros)
