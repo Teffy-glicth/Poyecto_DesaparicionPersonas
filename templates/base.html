@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Proyecto Desaparición de Personas{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .back-to-menu {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 18px 0;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-primary, #2c3e91);
+            text-decoration: none;
+            border: 1px solid var(--color-border, #e1e4ea);
+            border-radius: 6px;
+            background: var(--color-surface, #ffffff);
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+        .back-to-menu:hover {
+            background: var(--color-badge-bg, #eef0fb);
+            transform: translateX(-2px);
+        }
+        .back-arrow {
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+    </style>
 </head>
 <body>
     <header class="site-header">
@@ -23,13 +48,19 @@
             </div>
         </nav>
     </header>
-
+ 
     <main class="site-main">
+        {% if current_slug %}
+        <a class="back-to-menu" href="{{ url_for('index') }}">
+            <span class="back-arrow">←</span> Regresar al menú principal
+        </a>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
-
+ 
     <footer class="site-footer">
         <p>Etapa 1 — Minería de Datos · Proyecto Desaparición de Personas</p>
     </footer>
 </body>
 </html>
+ 

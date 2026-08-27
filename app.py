@@ -37,6 +37,26 @@ def index():
     return render_template("index.html")
 
 
+def render_problema():
+    return render_template(
+        "etapa1_problema.html",
+        current_slug="problema",
+    )
+
+
+def render_preguntas():
+    return render_template(
+        "etapa1_preguntas.html",
+        current_slug="preguntas",
+    )
+
+def render_necesidades():
+    return render_template(
+        "etapa1_necesidades.html",
+        current_slug="necesidades",
+    )
+
+
 def render_fuentes():
     with open(DATA_DIR / "fuentes.json", encoding="utf-8") as f:
         data = json.load(f)
@@ -63,6 +83,17 @@ def render_diccionario():
         current_slug="diccionario",
     )
 
+def render_calidad():
+    return render_template(
+        "etapa1_calidad.html",
+        current_slug="calidad",
+    )
+
+def render_limitaciones():
+    return render_template(
+        "etapa1_limitaciones.html",
+        current_slug="limitaciones",
+    )
 
 def render_dataset():
     resumen_path = PROCESSED_DIR / "dataset_resumen.json"
@@ -116,12 +147,22 @@ def descargar_dataset():
 def etapa1_pagina(slug):
     if slug not in ETAPA1_MENU_BY_SLUG:
         abort(404)
+    if slug == "problema":
+        return render_problema()
+    if slug == "preguntas":
+        return render_preguntas()
+    if slug == "necesidades":
+        return render_necesidades()
     if slug == "fuentes":
         return render_fuentes()
     if slug == "dataset":
         return render_dataset()
     if slug == "diccionario":
         return render_diccionario()
+    if slug == "calidad":
+        return render_calidad()
+    if slug == "limitaciones":
+        return render_limitaciones()
 
     item = ETAPA1_MENU_BY_SLUG[slug]
     return render_template(
