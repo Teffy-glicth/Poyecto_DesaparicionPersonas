@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Etapa 1 — Fuentes de datos{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>4. Fuentes de datos</h1>
+    <p class="lead">
+        Se utilizaron 6 fuentes: 4 ya recolectadas (secundarias/terciarias) y 2 primarias
+        (una encuesta y una entrevista propias a familiares de personas desaparecidas), que en
+        conjunto cubren los niveles global y nacional/regional (Colombia). El nivel regional se
+        obtiene desagregando las fuentes nacionales y primarias por departamento y municipio.
+    </p>
+
+    {% for f in fuentes %}
+    <article class="fuente-card">
+        <h2>{{ f.nombre }}</h2>
+        <span class="badge">{{ f.nivel }}</span>
+        <span class="badge badge-tipo">{{ f.tipo }}</span>
+
+        <dl class="fuente-detalle">
+            <dt>Institución responsable</dt><dd>{{ f.institucion }}</dd>
+            <dt>URL</dt><dd>
+                {% if f.url %}<a href="{{ f.url }}" target="_blank" rel="noopener">{{ f.url }}</a>
+                {% else %}No aplica (recolección propia, sin URL pública)
+                {% endif %}
+            </dd>
+            <dt>Cobertura geográfica</dt><dd>{{ f.cobertura_geografica }}</dd>
+            <dt>Periodo disponible</dt><dd>{{ f.periodo_disponible }}</dd>
+            <dt>Formato</dt><dd>{{ f.formato }}</dd>
+            <dt>Método de adquisición</dt><dd>{{ f.metodo_adquisicion }}</dd>
+            <dt>Número de registros</dt><dd>{{ f.num_registros }}</dd>
+            <dt>Unidad de registro</dt><dd>{{ f.unidad_registro }}</dd>
+            <dt>Variables disponibles</dt><dd>{{ f.variables_disponibles }}</dd>
+            <dt>Fecha de descarga</dt><dd>{{ f.fecha_descarga }}</dd>
+            {% if f.fecha_actualizacion_fuente %}
+            <dt>Última actualización de la fuente</dt><dd>{{ f.fecha_actualizacion_fuente }}</dd>
+            {% endif %}
+            <dt>Restricciones / condiciones de uso</dt><dd>{{ f.restricciones }}</dd>
+        </dl>
+
+        {% if f.id == "entrevista" %}
+        <div class="audio-entrevista">
+            <p class="audio-label">🎧 Audio original de la entrevista:</p>
+            <audio controls preload="none" src="{{ url_for('entrevista_audio') }}">
+                Tu navegador no soporta reproducción de audio.
+                <a href="{{ url_for('entrevista_audio') }}">Descargar el audio</a>.
+            </audio>
+            <p class="nota">Transcripción disponible en <code>data/Primarias/entrevista_transcripcion.md</code>.</p>
+        </div>
+        {% endif %}
+    </article>
+    {% endfor %}
+
+    <section class="justificacion">
+        <h2>Pertinencia, confiabilidad, actualidad y cobertura</h2>
+        <p>{{ justificacion_general }}</p>
+    </section>
+
+    <section class="limitaciones">
+        
+    </section>
+</section>
+{% endblock %}

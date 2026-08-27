@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Etapa 1 — Problema y contexto{% endblock %}
+{% block content %}
+<style>
+    .pagina-problema {
+        background: linear-gradient(180deg, #0a1a3f 0%, #050b1a 100%);
+        color: #eef1fb;
+        border-radius: 10px;
+        padding: 32px 36px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .pagina-problema h1 {
+        color: #ffffff;
+        border-bottom: 2px solid #1b2f66;
+        padding-bottom: 10px;
+    }
+    .pagina-problema h2 {
+        color: #9fb4ff;
+        margin-top: 28px;
+    }
+    .pagina-problema h3 {
+        color: #dfe6ff;
+        margin-top: 16px;
+    }
+    .pagina-problema p {
+        color: #d6dcf5;
+        line-height: 1.6;
+    }
+</style>
+<section class="page pagina-problema">
+    <h1>1. Problema y contexto</h1>
+ 
+    <h2>1.1 Contexto general</h2>
+    <p>
+        La desaparición de personas en Colombia combina distintos tipos de hechos, entre las
+        cuales están casos como desaparición forzada, reclutamiento, accidentes, desplazamiento
+        con pérdida de contacto, entre otros. Las fuentes disponibles, como registros
+        institucionales de la UBPD (Unidad de Búsqueda de Personas dadas por Desaparecidas),
+        Medicina Legal, o el testimonio directo de familiares, capturan aspectos distintos del
+        fenómeno. Este proyecto aborda el problema desde el testimonio de los familiares,
+        recolectado mediante encuesta, lo cual permite acceder a información contextual y
+        circunstancial a nivel regional.
+    </p>
+ 
+    <h2>1.2 Problema específico de investigación</h2>
+    <p>
+        La falta de sistematización del conocimiento que tienen las familias sobre las
+        circunstancias, el momento y el lugar de la desaparición de sus seres queridos dificulta
+        identificar patrones temporales, geográficos, demográficos y por tipo de hecho que
+        ayuden a comprender cómo se manifiesta dicha situación en Colombia.
+    </p>
+ 
+    <h2>1.3 Análisis por niveles</h2>
+ 
+    <h3>A nivel global</h3>
+    <p>
+        La desaparición de personas, en especial la forzada, se ha documentado en al menos 85
+        países, con magnitudes comparables en la región: México cuenta con más de 100.000 casos
+        registrados, Guatemala con 45.000 y Argentina con 30.000, situando a Colombia dentro de
+        un patrón latinoamericano de violencia y desplazamiento.
+    </p>
+ 
+    <h3>A nivel nacional</h3>
+    <p>
+        Las cifras institucionales oscilan entre 122.000 y 210.000 personas desaparecidas según
+        la fuente y el método de estimación (UBPD, JEP-CEV-HRDAG). Organismos como la ONU han
+        señalado que el fenómeno persiste pese al Acuerdo de Paz de 2016, agravado por la falta
+        de datos unificados.
+    </p>
+ 
+    <h3>A nivel regional</h3>
+    <p>
+        Dentro de Colombia, el fenómeno no se distribuye de manera uniforme, sino que se
+        concentra históricamente en zonas con presencia prolongada de grupos armados y economías
+        ilegales, como el Catatumbo, el Pacífico nariñense y caucano, y la región del Urabá,
+        donde confluyen factores como el control territorial armado y el desplazamiento forzado.
+        Esta concentración regional resulta relevante para el proyecto porque permite contrastar
+        si los casos reportados por los familiares encuestados coinciden con estas zonas
+        históricamente más afectadas, o si por el contrario reflejan un patrón distinto asociado
+        al alcance de la encuesta.
+    </p>
+ 
+    <h2>1.4 Conocimiento esperado</h2>
+    <p>
+        Identificar si los casos reportados se concentran en ciertos periodos o zonas,
+        caracterizar el perfil demográfico de las víctimas según el tipo de hecho, y explorar
+        relaciones entre circunstancias, lugar y tipo de hecho. También se espera evidenciar las
+        limitaciones propias de un dataset construido por encuesta a familiares (cobertura
+        parcial, sesgo de memoria, autoselección de respondientes).
+    </p>
+</section>
+{% endblock %}

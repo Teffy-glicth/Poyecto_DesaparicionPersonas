@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Etapa 1 — Dataset{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>5. Dataset</h1>
+    <p class="lead">
+        Dataset consolidado construido a partir de las 6 fuentes documentadas en la sección
+        anterior (4 secundarias/terciarias ya recolectadas + 2 primarias propias: una encuesta
+        y una entrevista), mediante concatenación hacia un esquema común (no join fila-a-fila,
+        ya que las fuentes tienen grano y cobertura distintos). Se conserva la granularidad
+        nativa de cada fuente: 1 fila = 1 persona (Medicina Legal, SIEVCAC, encuesta, entrevista),
+        1 fila = 1 incidente (IOM) o 1 fila = 1 agregado semanal por región (ACLED). El script
+        reproducible está en <code>scripts/build_dataset.py</code>.
+    </p>
+
+    <a class="btn-descarga" href="{{ url_for('descargar_dataset') }}" download>
+        ⬇ Descargar dataset consolidado completo (.csv, {{ "{:,}".format(resumen.total_registros) }} registros)
+    </a>
+
+    <section class="cumplimiento">
+        <h2>Cumplimiento de mínimos exigidos</h2>
+        <table class="tabla-cumplimiento">
+            <thead><tr><th>Requisito</th><th>Mínimo</th><th>Obtenido</th><th>Estado</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>Registros consolidados</td><td>10.000</td>
+                    <td>{{ "{:,}".format(resumen.total_registros) }}</td>
+                    <td>{{ "✅" if resumen.cumple_10000_registros else "❌" }}</td>
+                </tr>
+                <tr>
+                    <td>Variables totales</td><td>10</td>
+                    <td>{{ resumen.total_variables }}</td>
+                    <td>{{ "✅" if resumen.cumple_10_variables else "❌" }}</td>
+                </tr>
+                <tr>
+                    <td>Variables numéricas</td><td>3</td>
+                    <td>{{ resumen.variables_numericas|length }}</td>
+                    <td>{{ "✅" if resumen.cumple_3_numericas else "❌" }}</td>
+                </tr>
+                <tr>
+                    <td>Variables categóricas</td><td>3</td>
+                    <td>{{ resumen.variables_categoricas|length }}</td>
+                    <td>{{ "✅" if resumen.cumple_3_categoricas else "❌" }}</td>
+                </tr>
+                <tr>
+                    <td>Variables temporales</td><td>1</td>
+                    <td>{{ resumen.variables_temporales|length }}</td>
+                    <td>{{ "✅" if resumen.cumple_1_temporal else "❌" }}</td>
+                </tr>
+                <tr>
+                    <td>Variables geográficas</td><td>1</td>
+                    <td>{{ resumen.variables_geograficas|length }}</td>
+                    <td>{{ "✅" if resumen.cumple_1_geografica else "❌" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="niveles">
+        <h2>Cobertura por nivel y fuente</h2>
+        <ul>
+            {% for fuente, n in resumen.registros_por_fuente.items() %}
+            <li><strong>{{ fuente }}</strong>: {{ "{:,}".format(n) }} registros</li>
+            {% endfor %}
+        </ul>
+        <p>
+            Por nivel: {% for nivel, n in resumen.registros_por_nivel_fuente.items() %}{{ nivel }} = {{ "{:,}".format(n) }}{{ ", " if not loop.last }}{% endfor %}.
+            Rango de años: {{ resumen.rango_anios[0] }}–{{ resumen.rango_anios[1] }}.
+            El nivel regional se obtiene filtrando/agrupando las fuentes nacionales por
+            <code>departamento</code>, <code>municipio</code> o código DANE.
+        </p>
+    </section>
+
+    <section class="columnas">
+        <h2>Listado de columnas finales (referencia rápida)</h2>
+        <p class="nota">Esto no es el diccionario de datos formal — esa caracterización detallada corresponde a otra sección del grupo.</p>
+        <table class="tabla-columnas">
+            <thead><tr><th>Columna</th><th>Tipo</th></tr></thead>
+            <tbody>
+                {% for col in resumen.columnas %}
+                <tr><td><code>{{ col.nombre }}</code></td><td>{{ col.tipo }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="muestra">
+        <h2>Muestra del dataset consolidado</h2>
+        <div class="tabla-scroll">
+        <table class="tabla-muestra">
+            <thead><tr>{% for col in muestra_columnas %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+            <tbody>
+                {% for fila in muestra_filas %}
+                <tr>{% for col in muestra_columnas %}<td>{{ fila[col] }}</td>{% endfor %}</tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        <p class="nota">
+            Vista previa de {{ muestra_filas|length }} de {{ "{:,}".format(resumen.total_registros) }} registros totales
+            (muestra estratificada por fuente). El archivo completo está en
+            <code>data/processed/dataset_consolidado.csv</code>.
+        </p>
+    </section>
+</section>
+{% endblock %}

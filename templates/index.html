@@ -1,12 +1,20 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyecto Desaparición de Personas</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <h1>Proyecto Desaparicion de Personas</h1>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Proyecto Desaparición de Personas{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>Proyecto Desaparición de Personas</h1>
+    <p>Bitácora técnica y plataforma de documentación del proyecto de Minería de Datos.</p>
+</section>
+
+<section class="menu-grid">
+    <h2>Etapa 1</h2>
+    <div class="grid">
+        {% for item in etapa1_menu %}
+        <a class="card" href="{{ url_for('etapa1_pagina', slug=item.slug) }}">
+            <span class="card-num">{{ item.numero }}</span>
+            <span class="card-title">{{ item.titulo }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block content %}
+ 
+<h1>7. Calidad inicial de los datos</h1>
+ 
+<p>
+  Diagnóstico exploratorio del dataset consolidado (337,444 registros, 6 fuentes:
+  4 ya recolectadas más 2 primarias propias del grupo — encuesta y entrevista),
+  realizado antes de cualquier limpieza. El objetivo es documentar el estado
+  actual de los datos en su primer momento.
+</p>
+
+<h2>Valores faltantes</h2>
+
+<p>
+  La mayoría de los valores faltantes no son errores de captura, sino consecuencia
+  de integrar 6 fuentes con estructuras distintas, es decir, columnas geográficas nacionales
+  no aplican a las fuentes globales, y viceversa con las coordenadas. Las dos fuentes
+  primarias (encuesta y entrevista) tampoco aportan coordenadas ni código DANE.
+</p>
+ 
+<table>
+  <thead>
+    <tr>
+      <th>Columna</th>
+      <th>% faltante</th>
+      <th>Causa</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>region</td>
+      <td>85.48% (288,439)</td>
+      <td>Vacía en las fuentes nacionales y primarias (Medicina Legal, SIEVCAC, encuesta, entrevista). Solo aplica a fuentes globales</td>
+    </tr>
+    <tr>
+      <td>latitud / longitud</td>
+      <td>61.03% (205,955)</td>
+      <td>100% vacías en Medicina Legal (SIRDEC) y en las 2 fuentes primarias; presentes en IOM, ACLED y SIEVCAC</td>
+    </tr>
+    <tr>
+      <td>codigo_dane_departamento</td>
+      <td>39.44% (133,087)</td>
+      <td>Vacío en fuentes globales, en SIEVCAC (registra por nombre pero no por código DANE) y en las 2 fuentes primarias</td>
+    </tr>
+    <tr>
+      <td>codigo_dane_municipio</td>
+      <td>15.02% (50,668)</td>
+      <td>Mismo caso al anterior, a nivel municipio</td>
+    </tr>
+    <tr>
+      <td>departamento</td>
+      <td>14.53% (49,019)</td>
+      <td>Vacía en las fuentes globales y también en la encuesta (que solo preguntó municipio/lugar, no departamento)</td>
+    </tr>
+    <tr>
+      <td>municipio</td>
+      <td>14.52% (49,005)</td>
+      <td>100% vacía en las fuentes globales (ACLED, IOM); presente en ambas fuentes primarias</td>
+    </tr>
+    <tr>
+      <td>fecha</td>
+      <td>1.72% (5,808)</td>
+      <td>Faltante real, concentrada en SIEVCAC (6.9% de sus registros)</td>
+    </tr>
+    <tr>
+      <td>anio</td>
+      <td>1.26% (4,263)</td>
+      <td>Faltante real, menor</td>
+    </tr>
+    <tr>
+      <td>mes</td>
+      <td>0.52% (1,757)</td>
+      <td>Faltante real, menor</td>
+    </tr>
+  </tbody>
+</table>
+ 
+<h2>Registros duplicados</h2>
+ 
+<ul>
+  <li><strong>28 duplicados</strong> por combinación de <code>id_original</code> + <code>fuente</code> (posible doble carga de un mismo evento)</li>
+  <li><strong>1 fila 100% idéntica</strong> en todas las columnas (excluyendo el id autogenerado)</li>
+</ul>
+ 
+<p>Es un volumen bajo (0.008% del total), pero se documenta para la etapa de limpieza.</p>
+ 
+<h2>Valores fuera de dominio</h2>
+ 
+<p>
+  El dominio de cada variable corresponde al <strong>rango observado</strong>
+  documentado en el diccionario de datos del equipo, no a reglas de negocio
+  con límites estrictos. Verificando contra esos rangos:
+</p>
+ 
+<table>
+  <thead>
+    <tr>
+      <th>Variable</th>
+      <th>Resultado</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>mes</td>
+      <td>0 valores fuera de 1-12</td>
+      <td>✅ dentro del dominio</td>
+    </tr>
+    <tr>
+      <td>num_personas</td>
+      <td>Rango 1 - 1,022, sin valores ≤ 0</td>
+      <td>✅ coincide con el dominio documentado</td>
+    </tr>
+    <tr>
+      <td>latitud / longitud</td>
+      <td>Todas dentro de rango válido</td>
+      <td>✅ dentro del dominio</td>
+    </tr>
+    <tr>
+      <td>anio</td>
+      <td>Rango 1930 - 2026</td>
+      <td>✅ coincide exactamente con el rango documentado en el diccionario de datos</td>
+    </tr>
+  </tbody>
+</table>
+ 
+<p><strong>No se identificaron valores fuera de los dominios definidos por el equipo.</strong></p>
+ 
+<p>
+  <em>Observación exploratoria:</em> dentro del
+  rango válido de <code>anio</code>, el 4.8% de los registros (16,328) corresponde
+  a años anteriores a 1990. No es un error ni una violación de dominio, solo es una
+  distribución interna que vale la pena revisar, para confirmar si corresponde a
+  información histórica legítima (frecuente en registros de Medicina Legal/SIEVCAC
+  ligados al conflicto armado) o si conviene analizarla por separado en etapas
+  posteriores.
+</p>
+ 
+<h2>Consistencia de categorías</h2>
+
+<p>La mayoría de las variables categóricas siguen limpias y estandarizadas, pero al incorporar la encuesta propia (respuesta de texto libre para el tipo de hecho) sí aparecieron variantes nuevas que antes no existían:</p>
+
+<ul>
+  <li><strong>sexo:</strong> 3 valores (Hombre, Mujer, Sin información)</li>
+  <li><strong>estado_victima:</strong> 5 valores bien definidos</li>
+  <li><strong>tipo_evento:</strong> creció de 5 a 11 valores al sumar la encuesta y la entrevista (que aportan respuestas libres como "Reclutamiento", "Accidente", "Otro", "Desconocida"). Se detectó además <strong>1 valor con error de codificación</strong>: <code>"Desaparici�n forzada"</code> (5 registros de la encuesta), que debería decir "Desaparición forzada" — pendiente de corregir en la etapa de limpieza.</li>
+  <li><strong>fuente</strong> y <strong>nivel_fuente:</strong> consistentes, sin variantes de nombre</li>
+</ul>
+ 
+<h2>Formato de fecha</h2>
+ 
+<p>
+  <strong>0 registros</strong> con formato de fecha inconsistente, todas calzan
+  con <code>YYYY-MM-DD</code>. Esto es resultado directo de la homologación
+  aplicada en <code>build_dataset.py</code>.
+</p>
+ 
+<h2>Integración entre fuentes</h2>
+ 
+<ul>
+  <li>
+    Las 6 fuentes tienen granularidad distinta por diseño: ACLED (agregado semanal
+    por país/admin1), IOM (1 fila = 1 incidente agregado), Medicina Legal, SIEVCAC,
+    encuesta y entrevista (1 fila = 1 persona). Esto implica que <strong>sumar filas entre fuentes no
+    equivale a sumar personas</strong> directamente, hay que usar
+    <code>num_personas</code> para las fuentes agregadas.
+  </li>
+  <li>
+    Dos fuentes cubren el nivel Global (49,005 registros), dos el nivel Nacional
+    (288,424 registros) y las 2 fuentes primarias (15 registros) se etiquetan
+    directamente como nivel "Regional"; adicionalmente, el nivel regional también
+    puede obtenerse agrupando las fuentes nacionales por departamento/municipio.
+  </li>
+  <li>
+    Las columnas <code>edad</code> y <code>narrativa</code> son nuevas: solo las
+    aportan la encuesta y la entrevista (13 y 15 registros con dato, respectivamente,
+    de 337,444 totales), así que quedan vacías para el resto de fuentes por diseño,
+    no por un problema de calidad.
+  </li>
+</ul>
+ 
+{% endblock %}
+ 

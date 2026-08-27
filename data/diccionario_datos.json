@@ -1,0 +1,228 @@
+{
+  "unidad_de_analisis_general": {
+    "intro": "El dataset consolidado no mira los datos siempre de la misma forma: según la variable 'unidad_de_analisis', cada fila puede representar dos cosas distintas:",
+    "puntos": [
+      "Persona: la fila corresponde a una sola persona desaparecida o víctima, identificada de manera individual. Así funcionan las fuentes Medicina Legal, SIEVCAC, y las dos fuentes primarias propias del grupo: la encuesta de caracterización y la entrevista a un familiar.",
+      "Evento agregado: la fila corresponde a un incidente, o a varios eventos agrupados, que pueden involucrar a más de una persona a la vez. Así funcionan las fuentes IOM Missing Migrants y ACLED."
+    ]
+  },
+  "definicion_registro": "Cada fila del archivo data/processed/dataset_consolidado.csv es un registro, y puede ser una persona desaparecida/víctima o un evento (un incidente puntual, o un conjunto de eventos agregados por semana y país/región), dependiendo de cuál de las 6 fuentes lo originó (columna 'fuente'): 4 fuentes secundarias/terciarias ya recolectadas (IOM, ACLED, Medicina Legal, SIEVCAC) y 2 fuentes primarias propias del grupo (una encuesta y una entrevista, ambas a familiares de personas desaparecidas, con consentimiento informado). La columna 'id_registro' identifica de forma única cada fila dentro del dataset consolidado.",
+  "total_registros": 337444,
+  "total_variables": 23,
+  "fecha_generacion": "2026-08-27",
+  "variables": [
+    {
+      "nombre": "id_registro",
+      "tipo": "Identificador",
+      "descripcion": "Es el código con el que identificamos cada fila dentro del dataset ya unido. Se arma pegando un prefijo según la fuente (por ejemplo 'ML-' o 'SIEVCAC-') al identificador original de esa fila.",
+      "unidad_medida": "Texto (cadena)",
+      "dominio": "Ej.: 'ML-123456', 'SIEVCAC-98765', 'IOM-4521', 'ACLED-102'.",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Generado en la consolidación (todas las fuentes)"
+    },
+    {
+      "nombre": "id_original",
+      "tipo": "Identificador",
+      "descripcion": "Es el identificador con el que ese mismo registro aparecía en su archivo original, antes de unir las 4 fuentes. Sirve para poder devolvernos y verificar de dónde salió cada dato.",
+      "unidad_medida": "Texto (cadena)",
+      "dominio": "Varía por fuente: numérico como texto en Medicina Legal ('ID') y SIEVCAC ('ID Persona'); alfanumérico en IOM ('Main ID'); clave compuesta semana_país_admin1 en ACLED.",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Todas las fuentes"
+    },
+    {
+      "nombre": "fuente",
+      "tipo": "Categórica (nominal)",
+      "descripcion": "Dice de cuál de las 6 fuentes de información viene el registro: 4 fuentes ya recolectadas (Medicina Legal, SIEVCAC, ACLED, IOM) y 2 fuentes primarias propias del grupo (una encuesta y una entrevista a familiares).",
+      "unidad_medida": "N/A",
+      "dominio": "6 valores: 'Medicina Legal (SIRDEC)' (205.938), 'SIEVCAC (CNMH)' (82.486), 'ACLED' (26.706), 'IOM Missing Migrants' (22.299), 'Encuesta propia de caracterizacion' (14), 'Entrevista familiar anonima' (1).",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Generado en la consolidación"
+    },
+    {
+      "nombre": "nivel_fuente",
+      "tipo": "Categórica (nominal)",
+      "descripcion": "Indica a qué escala mide el fenómeno la fuente de ese registro: todo el mundo ('Global'), Colombia en general ('Nacional'), o un municipio/zona puntual reportado directamente por una fuente primaria ('Regional').",
+      "unidad_medida": "N/A",
+      "dominio": "3 valores: 'Nacional' (288.424, Medicina Legal + SIEVCAC), 'Global' (49.005, IOM + ACLED), 'Regional' (15, encuesta + entrevista propias). El nivel regional también puede obtenerse desagregando los registros 'Nacional' por 'departamento'/'municipio'.",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Generado en la consolidación"
+    },
+    {
+      "nombre": "unidad_de_analisis",
+      "tipo": "Categórica (nominal)",
+      "descripcion": "Aclara qué representa la fila: una sola persona, o un evento que puede agrupar a varias personas a la vez.",
+      "unidad_medida": "N/A",
+      "dominio": "2 valores: 'persona' (288.439), 'evento_agregado' (49.005).",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Generado en la consolidación"
+    },
+    {
+      "nombre": "num_personas",
+      "tipo": "Numérica (entera, discreta)",
+      "descripcion": "Cuántas personas están involucradas en ese registro. Si la fila representa a una sola persona, este número siempre es 1; si representa un evento agregado, puede ser mayor.",
+      "unidad_medida": "Personas (conteo)",
+      "dominio": "Rango observado: 1 a 1.022.",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Todas las fuentes"
+    },
+    {
+      "nombre": "tipo_evento",
+      "tipo": "Categórica (nominal)",
+      "descripcion": "Explica qué tipo de desaparición o evento fue, según cómo lo clasificó la fuente original (por ejemplo, si fue por conflicto armado o si no se tiene ese dato).",
+      "unidad_medida": "N/A",
+      "dominio": "5 valores observados: 'Sin informacion' (147.904), 'Desaparicion forzada (conflicto armado)' (82.486), 'Desaparicion forzada (presunta)' (58.034), 'Abduccion/desaparicion forzada (conflicto armado)' (26.706), 'Desaparicion/muerte de persona migrante' (22.299).",
+      "completitud": "100% (0 nulos, aunque incluye la categoría explícita 'Sin informacion')",
+      "procedencia": "Todas las fuentes"
+    },
+    {
+      "nombre": "estado_victima",
+      "tipo": "Categórica (nominal)",
+      "descripcion": "Cuenta qué se sabe de la persona (o del evento) hasta el último reporte disponible: si sigue desaparecida, si apareció con vida o si apareció sin vida.",
+      "unidad_medida": "N/A",
+      "dominio": "5 valores: 'Desaparecido' (204.101), 'Aparecido con vida' (63.755), 'Aparecido sin vida' (41.915), 'Sin informacion (evento agregado)' (26.706, exclusivo de ACLED), 'Fallecido y desaparecido (mixto)' (952, exclusivo de IOM).",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Todas las fuentes"
+    },
+    {
+      "nombre": "sexo",
+      "tipo": "Categórica (nominal)",
+      "descripcion": "El sexo de la persona desaparecida, cuando se conoce. En los registros que representan eventos agregados (no personas individuales) este dato no aplica y queda como 'Sin informacion'.",
+      "unidad_medida": "N/A",
+      "dominio": "3 valores: 'Hombre' (213.753), 'Mujer' (71.682), 'Sin informacion' (51.994).",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Medicina Legal, SIEVCAC, Encuesta, Entrevista (IOM y ACLED siempre 'Sin informacion')"
+    },
+    {
+      "nombre": "edad",
+      "tipo": "Numérica (entera, discreta)",
+      "descripcion": "La edad que tenía la persona desaparecida en el momento de los hechos, según el recuerdo del familiar que respondió. Es un dato nuevo que solo aportan las dos fuentes primarias del grupo; ninguna de las otras 4 fuentes lo reporta.",
+      "unidad_medida": "Años",
+      "dominio": "Rango observado: 13 a 86 años.",
+      "completitud": "0,004% (13 de 337.444 registros; solo en Encuesta propia y Entrevista familiar)",
+      "procedencia": "Encuesta propia de caracterización, Entrevista familiar anónima"
+    },
+    {
+      "nombre": "anio",
+      "tipo": "Numérica (entera) / Temporal",
+      "descripcion": "El año en que ocurrió la desaparición o el evento.",
+      "unidad_medida": "Año (YYYY)",
+      "dominio": "Rango observado: 1930 a 2026.",
+      "completitud": "98,74% (4.263 nulos, 1,26%)",
+      "procedencia": "Todas las fuentes"
+    },
+    {
+      "nombre": "mes",
+      "tipo": "Numérica (entera) / Temporal",
+      "descripcion": "El mes del año en que ocurrió la desaparición o el evento, del 1 (enero) al 12 (diciembre).",
+      "unidad_medida": "Mes (1-12)",
+      "dominio": "Enteros de 1 a 12.",
+      "completitud": "99,48% (1.757 nulos, 0,52%)",
+      "procedencia": "Todas las fuentes"
+    },
+    {
+      "nombre": "fecha",
+      "tipo": "Temporal",
+      "descripcion": "La fecha exacta del evento, cuando la fuente la reporta con ese detalle. Ojo: en ACLED esta fecha es el lunes de la semana en la que se agregó el evento, no necesariamente el día exacto en que ocurrió.",
+      "unidad_medida": "Fecha (AAAA-MM-DD)",
+      "dominio": "1930-01-01 a 2026-08-21 aprox.",
+      "completitud": "98,28% (5.808 nulos, 1,72%)",
+      "procedencia": "Todas las fuentes"
+    },
+    {
+      "nombre": "pais",
+      "tipo": "Categórica (nominal) / Geográfica",
+      "descripcion": "El país donde ocurrió la desaparición o el evento.",
+      "unidad_medida": "N/A",
+      "dominio": "Texto libre; nombre en inglés (formato ISO/OCHA) para fuentes globales, fijo en 'Colombia' para fuentes nacionales y primarias. Top valores: Colombia (288.022), Iran (5.547), Estados Unidos (4.761), Nigeria (3.299), México (3.228).",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Todas las fuentes"
+    },
+    {
+      "nombre": "region",
+      "tipo": "Categórica (nominal) / Geográfica",
+      "descripcion": "La región geográfica más amplia a la que pertenece el evento (por ejemplo 'Sudamérica' o 'Medio Oriente'). Solo la reportan las fuentes globales; en los datos de Colombia este campo queda vacío porque ahí usamos departamento y municipio en su lugar.",
+      "unidad_medida": "N/A",
+      "dominio": "Texto libre (ej. 'South America', 'Middle East'); nulo en registros de nivel_fuente = 'Nacional'.",
+      "completitud": "14,52% (288.439 nulos, 85,48%)",
+      "procedencia": "IOM, ACLED"
+    },
+    {
+      "nombre": "departamento",
+      "tipo": "Categórica (nominal) / Geográfica",
+      "descripcion": "El departamento de Colombia donde ocurrió la desaparición. Solo aplica a los datos nacionales y a la entrevista primaria; la encuesta propia no preguntó el departamento, solo el municipio o lugar específico.",
+      "unidad_medida": "N/A",
+      "dominio": "33 departamentos/entidades de Colombia (texto); nulo en fuentes globales y en la encuesta.",
+      "completitud": "85,47% (49.019 nulos, 14,53%)",
+      "procedencia": "Medicina Legal, SIEVCAC, Entrevista"
+    },
+    {
+      "nombre": "municipio",
+      "tipo": "Categórica (nominal) / Geográfica",
+      "descripcion": "El municipio, barrio o lugar donde ocurrió la desaparición. Aplica a los datos nacionales y también a las dos fuentes primarias (en la encuesta lo describió el propio familiar en texto libre).",
+      "unidad_medida": "N/A",
+      "dominio": "Texto libre (nombres de municipios colombianos, o lugar/barrio específico en la encuesta); nulo en fuentes globales.",
+      "completitud": "85,48% (49.005 nulos, 14,52%)",
+      "procedencia": "Medicina Legal, SIEVCAC, Encuesta, Entrevista"
+    },
+    {
+      "nombre": "codigo_dane_departamento",
+      "tipo": "Numérica (entera) / Geográfica (código)",
+      "descripcion": "El código oficial que el DANE le asigna a cada departamento de Colombia. Aunque es un número, no representa una cantidad sino un identificador (por ejemplo, 11 es Bogotá D.C. y 05 es Antioquia).",
+      "unidad_medida": "Código DANE (2 dígitos)",
+      "dominio": "Códigos oficiales DANE de departamento (ej. 11 = Bogotá D.C., 05 = Antioquia); disponible solo en Medicina Legal.",
+      "completitud": "60,56% (133.087 nulos, 39,44%)",
+      "procedencia": "Medicina Legal"
+    },
+    {
+      "nombre": "codigo_dane_municipio",
+      "tipo": "Numérica (entera) / Geográfica (código)",
+      "descripcion": "El código oficial que el DANE le asigna a cada municipio de Colombia. Igual que el del departamento, es un número que funciona como identificador, no como cantidad.",
+      "unidad_medida": "Código DANE (5 dígitos)",
+      "dominio": "Códigos oficiales DANE de municipio; disponible en Medicina Legal y SIEVCAC.",
+      "completitud": "84,98% (50.668 nulos, 15,02%)",
+      "procedencia": "Medicina Legal, SIEVCAC"
+    },
+    {
+      "nombre": "latitud",
+      "tipo": "Numérica (continua) / Geográfica",
+      "descripcion": "La coordenada de latitud del lugar donde ocurrió el evento; sirve para ubicarlo en un mapa.",
+      "unidad_medida": "Grados decimales (WGS84)",
+      "dominio": "Rango observado: -42,60 a 66,93.",
+      "completitud": "38,97% (205.955 nulos, 61,03%)",
+      "procedencia": "IOM (punto del incidente), ACLED (centroide del admin1), SIEVCAC (punto del evento). No disponible en Medicina Legal ni en la encuesta/entrevista propias."
+    },
+    {
+      "nombre": "longitud",
+      "tipo": "Numérica (continua) / Geográfica",
+      "descripcion": "La coordenada de longitud del lugar donde ocurrió el evento; sirve para ubicarlo en un mapa.",
+      "unidad_medida": "Grados decimales (WGS84)",
+      "dominio": "Rango observado: -144,77 a 148,09.",
+      "completitud": "38,97% (205.955 nulos, 61,03%)",
+      "procedencia": "IOM, ACLED, SIEVCAC. No disponible en Medicina Legal ni en la encuesta/entrevista propias."
+    },
+    {
+      "nombre": "detalle",
+      "tipo": "Categórica / Texto libre",
+      "descripcion": "Un dato adicional que cambia de significado según la fuente: en IOM es la causa de muerte, en ACLED es el nombre de la zona (admin1), en Medicina Legal es si la zona es urbana o rural, en SIEVCAC es la calidad de la víctima, y en la encuesta y la entrevista propias es la ocupación que tenía la persona. Por eso no se puede comparar directamente entre fuentes.",
+      "unidad_medida": "N/A",
+      "dominio": "IOM: causa de muerte ('Cause of Death'). ACLED: nombre del admin1. Medicina Legal: zona (urbana/rural). SIEVCAC: calidad de la víctima o la baja. Encuesta/Entrevista: ocupación o profesión de la persona desaparecida.",
+      "completitud": "100% (0 nulos)",
+      "procedencia": "Todas las fuentes (contenido no comparable entre fuentes)"
+    },
+    {
+      "nombre": "narrativa",
+      "tipo": "Texto libre",
+      "descripcion": "El relato, en palabras del familiar, de las circunstancias en las que ocurrió la desaparición. Es información cualitativa que solo existe para las dos fuentes primarias del grupo; ninguna de las 4 fuentes ya recolectadas trae este tipo de relato.",
+      "unidad_medida": "Texto (cadena, longitud libre)",
+      "dominio": "Texto libre en español, sin una lista cerrada de valores.",
+      "completitud": "0,004% (15 de 337.444 registros; solo en Encuesta propia y Entrevista familiar)",
+      "procedencia": "Encuesta propia de caracterización, Entrevista familiar anónima"
+    }
+  ],
+  "notas_trazabilidad": [
+    "El dataset consolidado se genera con scripts/build_dataset.py a partir de los archivos crudos en data/Globales/, data/Nacionales/ y data/Primarias/, sin aplicar limpieza; solo se homologan nombres de columnas, fechas, geografía y categorías para poder unir las 6 fuentes en un esquema común.",
+    "Las columnas 'id_original' y 'fuente' permiten rastrear cualquier registro del dataset consolidado hasta su archivo y fila de origen.",
+    "Se incorporaron dos fuentes primarias propias del grupo: una encuesta de caracterización (14 respuestas válidas, tras excluir 1 respuesta que no autorizó el uso de su información) y una entrevista semiestructurada a un familiar (1 caso, con audio y transcripción disponibles en la sección de Fuentes de datos). Estas dos fuentes trajeron consigo las columnas nuevas 'edad' y 'narrativa', que no existían en las 4 fuentes anteriores.",
+    "El diagnóstico detallado de valores faltantes, duplicados e inconsistencias (más allá de la completitud reportada aquí) se documenta en la sección 7. Calidad inicial de los datos."
+  ]
+}

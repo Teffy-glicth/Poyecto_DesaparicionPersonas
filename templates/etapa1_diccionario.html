@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Etapa 1 — Diccionario de datos{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>6. Diccionario de datos</h1>
+    <p class="lead">
+        Caracterización de las {{ diccionario.total_variables }} variables del dataset consolidado.
+        Permite comprender el conjunto de datos sin depender de explicaciones verbales del grupo.
+    </p>
+
+    <section class="unidad-analisis">
+        <h2>Unidad de análisis y registro</h2>
+        <p>{{ diccionario.unidad_de_analisis_general.intro }}</p>
+        <ol>
+            {% for item in diccionario.unidad_de_analisis_general.puntos %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ol>
+        <p>{{ diccionario.definicion_registro }}</p>
+    </section>
+
+    <section class="diccionario-tabla">
+        <h2>Variables</h2>
+        <div class="tabla-scroll">
+        <table class="tabla-diccionario">
+            <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>Unidad de medida</th>
+                    <th>Dominio / valores posibles</th>
+                    <th>Completitud</th>
+                    <th>Procedencia (fuente)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in diccionario.variables %}
+                <tr>
+                    <td><code>{{ v.nombre }}</code></td>
+                    <td>{{ v.tipo }}</td>
+                    <td>{{ v.descripcion }}</td>
+                    <td>{{ v.unidad_medida }}</td>
+                    <td>{{ v.dominio }}</td>
+                    <td>{{ v.completitud }}</td>
+                    <td>{{ v.procedencia }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section class="trazabilidad">
+        <h2>Trazabilidad</h2>
+        <ul>
+            {% for nota in diccionario.notas_trazabilidad %}
+            <li>{{ nota }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+</section>
+{% endblock %}
