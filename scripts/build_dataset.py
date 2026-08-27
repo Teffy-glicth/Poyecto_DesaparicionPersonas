@@ -359,7 +359,7 @@ def load_encuesta():
     out = pd.DataFrame({
         "id_original": df["ID"].astype(str),
         "fuente": "Encuesta propia de caracterizacion",
-        "nivel_fuente": "Nacional",
+        "nivel_fuente": "Regional",
         "unidad_de_analisis": "persona",
         "num_personas": 1,
         "tipo_evento": df[col_tipo].fillna("Sin informacion"),
@@ -393,7 +393,7 @@ def load_entrevista():
     out = pd.DataFrame([{
         "id_original": "1",
         "fuente": "Entrevista familiar anonima",
-        "nivel_fuente": "Nacional",
+        "nivel_fuente": "Regional",
         "unidad_de_analisis": "persona",
         "num_personas": 1,
         "tipo_evento": "Desconocida",

@@ -54,8 +54,9 @@
     "Entrevista familiar anonima": 1
   },
   "registros_por_nivel_fuente": {
-    "Nacional": 288439,
-    "Global": 49005
+    "Nacional": 288424,
+    "Global": 49005,
+    "Regional": 15
   },
   "registros_por_pais_top10": {
     "Colombia": 288022,
