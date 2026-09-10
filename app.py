@@ -184,25 +184,25 @@ def etapa2_pagina(slug):
 
     if slug == "descripcion":
         return render_template(
-            "Etapa2_descripcion.html",
+            "etapa2_descripcion.html",
             current_slug="descripcion",
         )
 
     if slug == "perfilamiento":
         return render_template(
-            "Etapa2_perfilamiento.html",
+            "etapa2_perfilamiento.html",
             current_slug="perfilamiento",
         )
 
     if slug == "dimensiones":
         return render_template(
-            "Etapa2_dimensiones.html",
+            "etapa2_dimensiones.html",
             current_slug="dimensiones",
         )
 
     if slug == "problemas":
         return render_template(
-            "Etapa2_problemas.html",
+            "etapa2_problemas.html",
             current_slug="problemas",
         )
 
