@@ -181,6 +181,31 @@ def render_tratamiento():
 def etapa2_pagina(slug):
     if slug not in ETAPA2_MENU_BY_SLUG:
         abort(404)
+
+    if slug == "descripcion":
+        return render_template(
+            "Etapa2_descripcion.html",
+            current_slug="descripcion",
+        )
+
+    if slug == "perfilamiento":
+        return render_template(
+            "Etapa2_perfilamiento.html",
+            current_slug="perfilamiento",
+        )
+
+    if slug == "dimensiones":
+        return render_template(
+            "Etapa2_dimensiones.html",
+            current_slug="dimensiones",
+        )
+
+    if slug == "problemas":
+        return render_template(
+            "Etapa2_problemas.html",
+            current_slug="problemas",
+        )
+
     if slug == "tratamiento":
         return render_tratamiento()
 
@@ -191,7 +216,5 @@ def etapa2_pagina(slug):
         titulo=item["titulo"],
         current_slug=slug,
     )
-
-
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
