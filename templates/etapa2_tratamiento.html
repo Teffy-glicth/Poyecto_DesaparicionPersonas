@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Etapa 2 — Acciones de tratamiento aplicadas{% endblock %}
+{% block content %}
+<style>
+    .comparativa {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 20px 0 32px;
+    }
+    .comparativa .col {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        padding: 18px 20px;
+    }
+    .comparativa .col h3 {
+        margin-top: 0;
+        font-size: 0.95rem;
+    }
+    .comparativa .col.despues { border-color: var(--color-primary); }
+    .metrica {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 0.92rem;
+    }
+    .metrica:last-child { border-bottom: none; }
+    .metrica .valor { font-weight: 600; }
+    .metrica .valor.mejora { color: #2f6d3a; }
+    .chart-wrap {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        padding: 20px;
+        margin-bottom: 28px;
+    }
+    .chart-wrap canvas { max-height: 280px; }
+    .acciones-lista li { margin-bottom: 8px; }
+    .nota-metodologica {
+        background: var(--color-badge-bg);
+        border-left: 3px solid var(--color-secondary);
+        padding: 12px 16px;
+        font-size: 0.88rem;
+        color: var(--color-muted);
+        margin: 24px 0;
+    }
+</style>
+
+<section class="page">
+    <h1>Acciones de tratamiento aplicadas</h1>
+    <p class="lead">
+        Tratamiento aplicado al dataset consolidado a partir de los problemas identificados en el
+        perfilamiento (duplicados, errores de codificación en tipo_evento y nulos
+        estructurales sin documentar).
+    </p>
+
+    <h2>Comparación antes / después</h2>
+    <div class="comparativa">
+        <div class="col antes">
+            <h3>Antes del tratamiento</h3>
+            <div class="metrica"><span>Registros</span><span class="valor">{{ resumen.antes.registros }}</span></div>
+            <div class="metrica"><span>Duplicados (id_original + fuente)</span><span class="valor">{{ resumen.antes.duplicados }}</span></div>
+            <div class="metrica"><span>Categorías únicas en tipo_evento</span><span class="valor">{{ resumen.antes.categorias_tipo_evento }}</span></div>
+            <div class="metrica"><span>Progreso</span><span class="valor">{{ resumen.antes.completitud_pct }}%</span></div>
+        </div>
+        <div class="col despues">
+            <h3>Después del tratamiento</h3>
+            <div class="metrica"><span>Registros</span><span class="valor">{{ resumen.despues.registros }}</span></div>
+            <div class="metrica"><span>Duplicados (id_original + fuente)</span><span class="valor mejora">{{ resumen.despues.duplicados }}</span></div>
+            <div class="metrica"><span>Categorías únicas en tipo_evento</span><span class="valor mejora">{{ resumen.despues.categorias_tipo_evento }}</span></div>
+            <div class="metrica"><span>Progreso</span><span class="valor mejora">{{ resumen.despues.completitud_pct }}%</span></div>
+        </div>
+    </div>
+
+    <h2>Gráficas e indicadores</h2>
+    <div class="chart-wrap">
+        <canvas id="chartComparativo"
+            data-antes-duplicados="{{ resumen.antes.duplicados }}"
+            data-antes-categorias="{{ resumen.antes.categorias_tipo_evento }}"
+            data-antes-completitud="{{ resumen.antes.completitud_pct }}"
+            data-despues-duplicados="{{ resumen.despues.duplicados }}"
+            data-despues-categorias="{{ resumen.despues.categorias_tipo_evento }}"
+            data-despues-completitud="{{ resumen.despues.completitud_pct }}"></canvas>
+    </div>
+
+    <h2>Acciones de tratamiento aplicadas</h2>
+    <ol class="acciones-lista">
+        {% for accion in resumen.acciones_aplicadas %}
+        <li>{{ accion }}</li>
+        {% endfor %}
+    </ol>
+
+    <div class="nota-metodologica">
+        Los indicadores de esta página se calculan ejecutando
+        scripts/aplicar_tratamiento.pysobre
+        <code>data/processed/dataset_consolidado.csv</code>. Los valores atípicos de
+        num_personas y año se marcan para revisión, no se eliminan
+        automáticamente, ya que varios corresponden a eventos agregados legítimos según la fuente
+        , tal como señala el perfilamiento.
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+    const ctx = document.getElementById('chartComparativo');
+    const datos = ctx.dataset;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Duplicados', 'Categorías tipo_evento', 'Progreso (%)'],
+            datasets: [
+                {
+                    label: 'Antes',
+                    backgroundColor: '#4a5d6e',
+                    data: [
+                        Number(datos.antesDuplicados),
+                        Number(datos.antesCategorias),
+                        Number(datos.antesCompletitud)
+                    ]
+                },
+                {
+                    label: 'Después',
+                    backgroundColor: '#7a1f1f',
+                    data: [
+                        Number(datos.despuesDuplicados),
+                        Number(datos.despuesCategorias),
+                        Number(datos.despuesCompletitud)
+                    ]
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
+{% endblock %}

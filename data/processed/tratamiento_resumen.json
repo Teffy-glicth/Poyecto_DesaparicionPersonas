@@ -1,0 +1,23 @@
+{
+  "antes": {
+    "registros": 337444,
+    "duplicados": 28,
+    "categorias_tipo_evento": 11,
+    "completitud_pct": 78.5,
+    "atipicos_num_personas": 13390
+  },
+  "despues": {
+    "registros": 337416,
+    "duplicados": 0,
+    "categorias_tipo_evento": 11,
+    "completitud_pct": 83.48,
+    "atipicos_num_personas_marcados": 13390
+  },
+  "acciones_aplicadas": [
+    "Eliminación de registros duplicados exactos.",
+    "Corrección de codificación de texto y eliminación de espacios invisibles en tipo_evento.",
+    "Homologar de categorías de tipo_evento equivalentes tras la limpieza de texto.",
+    "Marcado explícito de nulos estructurales como 'No aplica' en vez de vacío.",
+    "Marcado de valores atípicos en num_personas y anio para revisión manual, dado que varios corresponden a eventos agregados legítimos según la fuente."
+  ]
+}

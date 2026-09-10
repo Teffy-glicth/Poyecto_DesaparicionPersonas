@@ -24,12 +24,25 @@ ETAPA1_MENU = [
 ]
 ETAPA1_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA1_MENU}
 
+ETAPA2_MENU = [
+    {"numero": 1, "slug": "descripcion", "titulo": "Descripción del conjunto de datos"},
+    {"numero": 2, "slug": "perfilamiento", "titulo": "Resultados del perfilamiento"},
+    {"numero": 3, "slug": "dimensiones", "titulo": "Dimensiones y métricas evaluadas"},
+    {"numero": 4, "slug": "problemas", "titulo": "Problemas identificados"},
+    {"numero": 5, "slug": "tratamiento", "titulo": "Acciones de tratamiento aplicadas"},
+]
+ETAPA2_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA2_MENU}
+
 MUESTRA_MAX_FILAS = 50
 
 
 @app.context_processor
 def inject_menu():
-    return {"etapa1_menu": ETAPA1_MENU, "current_slug": None}
+    return {
+        "etapa1_menu": ETAPA1_MENU,
+        "etapa2_menu": ETAPA2_MENU,
+        "current_slug": None,
+    }
 
 
 @app.route("/")
@@ -37,24 +50,18 @@ def index():
     return render_template("index.html")
 
 
+# ---------- Etapa 1 ----------
+
 def render_problema():
-    return render_template(
-        "etapa1_problema.html",
-        current_slug="problema",
-    )
+    return render_template("etapa1_problema.html", current_slug="problema")
 
 
 def render_preguntas():
-    return render_template(
-        "etapa1_preguntas.html",
-        current_slug="preguntas",
-    )
+    return render_template("etapa1_preguntas.html", current_slug="preguntas")
+
 
 def render_necesidades():
-    return render_template(
-        "etapa1_necesidades.html",
-        current_slug="necesidades",
-    )
+    return render_template("etapa1_necesidades.html", current_slug="necesidades")
 
 
 def render_fuentes():
@@ -83,17 +90,6 @@ def render_diccionario():
         current_slug="diccionario",
     )
 
-def render_calidad():
-    return render_template(
-        "etapa1_calidad.html",
-        current_slug="calidad",
-    )
-
-def render_limitaciones():
-    return render_template(
-        "etapa1_limitaciones.html",
-        current_slug="limitaciones",
-    )
 
 def render_dataset():
     resumen_path = PROCESSED_DIR / "dataset_resumen.json"
@@ -120,6 +116,17 @@ def render_dataset():
         current_slug="dataset",
     )
 
+def render_calidad():
+    return render_template(
+        "etapa1_calidad.html",
+        current_slug="calidad",
+    )
+
+def render_limitaciones():
+    return render_template(
+        "etapa1_limitaciones.html",
+        current_slug="limitaciones",
+    )
 
 @app.route("/etapa1/fuentes/entrevista-audio")
 def entrevista_audio():
@@ -127,7 +134,6 @@ def entrevista_audio():
     if not audio_path.exists():
         abort(404)
     return send_from_directory(PRIMARIAS_DIR, "entrevista_audio.mp4", mimetype="audio/mp4")
-
 
 @app.route("/etapa1/dataset/descargar")
 def descargar_dataset():
@@ -173,5 +179,69 @@ def etapa1_pagina(slug):
     )
 
 
+# ---------- Etapa 2 ----------
+def render_perfilamiento():
+    return render_template(
+        "etapa2_perfilamiento.html",
+        current_slug="perfilamiento",
+    )
+def render_tratamiento():
+    resumen_path = PROCESSED_DIR / "tratamiento_resumen.json"
+    if not resumen_path.exists():
+        abort(500, description=(
+            "Falta data/processed/tratamiento_resumen.json. "
+            "Ejecuta 'python scripts/aplicar_tratamiento.py' antes de iniciar la app "
+            "(requiere que ya exista dataset_consolidado.csv)."
+        ))
+
+    with open(resumen_path, encoding="utf-8") as f:
+        resumen = json.load(f)
+
+    return render_template(
+        "etapa2_tratamiento.html",
+        resumen=resumen,
+        current_slug="tratamiento",
+    )
+
+
+@app.route("/etapa2/<slug>")
+
+def etapa2_pagina(slug):
+    if slug not in ETAPA2_MENU_BY_SLUG:
+        abort(404)
+    if slug == "descripcion":
+        return render_template(
+            "etapa2_descripcion.html",
+            current_slug="descripcion",
+        )
+
+    if slug == "perfilamiento":
+        return render_template(
+            "etapa2_perfilamiento.html",
+            current_slug="perfilamiento",
+        )
+
+    if slug == "dimensiones":
+        return render_template(
+            "etapa2_dimensiones.html",
+            current_slug="dimensiones",
+        )
+
+    if slug == "problemas":
+        return render_template(
+            "etapa2_problemas.html",
+            current_slug="problemas",
+        )
+
+    if slug == "tratamiento":
+        return render_tratamiento()
+
+    item = ETAPA2_MENU_BY_SLUG[slug]
+    return render_template(
+        "etapa1_placeholder.html",
+        numero=item["numero"],
+        titulo=item["titulo"],
+        current_slug=slug,
+    )
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))

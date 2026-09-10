@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Etapa 2 — Problemas identificados{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>4. Problemas identificados (inventario)</h1>
+    <div class="tabla-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Descripción del problema</th>
+                    <th>Registros afectados</th>
+                    <th>Dimensión</th>
+                    <th>Impacto</th>
+                    <th>Evidencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>region</td>
+                    <td>Vacía en fuentes nacionales (no aplica por diseño)</td>
+                    <td>288,439 (85.48%)</td>
+                    <td>Completitud</td>
+                    <td>Medio (estructural)</td>
+                    <td>Perfilamiento</td>
+                </tr>
+                <tr>
+                    <td>latitud / longitud</td>
+                    <td>Vacías en Medicina Legal (SIRDEC)</td>
+                    <td>205,955 (61.03%) c/u</td>
+                    <td>Completitud</td>
+                    <td>Alto</td>
+                    <td>Perfilamiento</td>
+                </tr>
+                <tr>
+                    <td>edad</td>
+                    <td>Casi totalmente vacía; encuesta en recolección</td>
+                    <td>337,431 (99.99%)</td>
+                    <td>Completitud</td>
+                    <td>Alto</td>
+                    <td>Perfilamiento</td>
+                </tr>
+                <tr>
+                    <td>tipo_evento</td>
+                    <td>Errores de codificación y espacios ocultos generan categorías duplicadas</td>
+                    <td>Por cuantificar</td>
+                    <td>Consistencia / Validez</td>
+                    <td>Medio</td>
+                    <td>Valores únicos del perfilamiento</td>
+                </tr>
+                <tr>
+                    <td>id_original + fuente</td>
+                    <td>28 registros duplicados</td>
+                    <td>28 (0.008%)</td>
+                    <td>Unicidad</td>
+                    <td>Bajo</td>
+                    <td>Conteo de duplicados</td>
+                </tr>
+                <tr>
+                    <td>num_personas</td>
+                    <td>13,390 valores atípicos (regla IQR)</td>
+                    <td>13,390 (4.0%)</td>
+                    <td>Exactitud (a validar)</td>
+                    <td>Medio</td>
+                    <td>Perfilamiento</td>
+                </tr>
+                <tr>
+                    <td>anio</td>
+                    <td>665 valores atípicos (regla IQR), dentro del dominio pre-1990</td>
+                    <td>665</td>
+                    <td>Exactitud (a validar)</td>
+                    <td>Bajo</td>
+                    <td>Perfilamiento</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">
+        Este inventario es el insumo directo para el plan de tratamiento aplicado en la
+        <a href="{{ url_for('etapa2_pagina', slug='tratamiento') }}">sección 5</a>.
+    </p>
+</section>
+
+{% endblock %}
