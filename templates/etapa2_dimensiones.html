@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Etapa 2 — Dimensiones y métricas evaluadas{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>3. Dimensiones y métricas evaluadas</h1>
+
+    <h2>3.1 Completitud</h2>
+    <p><strong>Fórmula:</strong> (1 − celdas nulas / celdas totales) × 100</p>
+    <p><strong>Resultado:</strong> 78.50% (1,668,816 celdas nulas de 7,761,212 totales).</p>
+    <p>
+        Interpretación: buena parte de los faltantes corresponde a columnas que por diseño no
+        aplican a todas las fuentes (ej: region solo aplica a nivel global), no a
+        errores de captura.
+    </p>
+
+    <h2>3.2 Exactitud</h2>
+    <p><strong>Fórmula:</strong> % de valores no nulos que caen dentro del rango físico/lógico esperado.</p>
+    <p>
+        <strong>Corrección metodológica:</strong> el cálculo inicial de esta métrica mezclaba
+        nulos con valores fuera de rango, dando resultados artificialmente bajos. Recalculando
+        solo sobre los valores existentes:
+    </p>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Variable</th><th>Válidos / No nulos</th><th>%</th></tr></thead>
+            <tbody>
+                <tr><td>latitud en [-90,90]</td><td>131,489 / 131,489</td><td>100%</td></tr>
+                <tr><td>longitud en [-180,180]</td><td>131,489 / 131,489</td><td>100%</td></tr>
+                <tr><td>mes en [1,12]</td><td>335,687 / 335,687</td><td>100%</td></tr>
+                <tr><td>num_personas > 0</td><td>337,444 / 337,444</td><td>100%</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p>
+        Interpretación: de los datos que existen, ninguno está fuera de rango — la exactitud es
+        alta; el problema real del dataset está concentrado en la dimensión de completitud, no en
+        la exactitud.
+    </p>
+
+    <h2>3.3 Consistencia</h2>
+    <p><strong>Fórmula:</strong> fechas parseables en formato YYYY-MM-DD / total de fechas no nulas.</p>
+    <p><strong>Resultado:</strong> 100% (331,636/331,636).</p>
+    <p>
+        Sin embargo, se detectó inconsistencia en la variable categórica tipo_evento:
+        valores con errores de codificación de texto como "Desaparicion forzada" en vez de
+        "Desaparición forzada" y espacios especiales invisibles como "Desplazamiento" con un
+        carácter oculto al final, que generan categorías duplicadas.
+    </p>
+
+    <h2>3.4 Unicidad</h2>
+    <p><strong>Fórmula:</strong> (1 − duplicados / total registros) × 100</p>
+    <p><strong>Resultado:</strong> 99.99% (28 duplicados de 337,444).</p>
+
+    <h2>3.5 Validez</h2>
+    <p>
+        Se verificó que los valores categóricos de sexo (3), estado_victima
+        (5) correspondan a dominios cerrados y coherentes. En tipo_evento se
+        identificaron 11 valores únicos, cuando conceptualmente deberían ser menos — varios
+        corresponden a la misma categoría con errores de escritura.
+    </p>
+
+    <h2>3.6 Actualidad</h2>
+    <p>
+        El registro más reciente corresponde a 2026 (dato vigente). Sin embargo, solo el 20.40%
+        de los registros corresponde a los últimos 5 años. El dataset tiene un componente
+        histórico amplio que conviene tener presente al interpretar tendencias
+        recientes.
+    </p>
+</section>
+{% endblock %}
