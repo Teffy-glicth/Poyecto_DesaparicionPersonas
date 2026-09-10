@@ -2,19 +2,44 @@
 {% block title %}Proyecto Desaparición de Personas{% endblock %}
 {% block content %}
 <section class="hero">
+    <span class="eyebrow">Minería de datos · Universidad de Cundinamarca</span>
     <h1>Proyecto Desaparición de Personas</h1>
-    <p>Bitácora técnica y plataforma de documentación del proyecto de Minería de Datos.</p>
+    <p>Registro técnico del proceso de análisis: desde la definición del problema hasta la calidad y el tratamiento del conjunto de datos consolidado.</p>
 </section>
 
 <section class="menu-grid">
-    <h2>Etapa 1</h2>
-    <div class="grid">
-        {% for item in etapa1_menu %}
-        <a class="card" href="{{ url_for('etapa1_pagina', slug=item.slug) }}">
-            <span class="card-num">{{ item.numero }}</span>
-            <span class="card-title">{{ item.titulo }}</span>
-        </a>
-        {% endfor %}
-    </div>
+    <details class="etapa-acordeon" open>
+        <summary>
+            <span class="etapa-nombre">Etapa 1</span>
+            <span class="etapa-subtitulo">Problema, datos y contexto</span>
+        </summary>
+        <ul class="indice">
+            {% for item in etapa1_menu %}
+            <li>
+                <a href="{{ url_for('etapa1_pagina', slug=item.slug) }}">
+                    <span class="folio">{{ item.numero }}</span>
+                    <span class="titulo">{{ item.titulo }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </details>
+
+    <details class="etapa-acordeon">
+        <summary>
+            <span class="etapa-nombre">Etapa 2</span>
+            <span class="etapa-subtitulo">Calidad de datos</span>
+        </summary>
+        <ul class="indice">
+            {% for item in etapa2_menu %}
+            <li>
+                <a href="{{ url_for('etapa2_pagina', slug=item.slug) }}">
+                    <span class="folio">{{ item.numero }}</span>
+                    <span class="titulo">{{ item.titulo }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </details>
 </section>
 {% endblock %}
