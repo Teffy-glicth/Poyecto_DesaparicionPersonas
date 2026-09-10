@@ -3,6 +3,8 @@
 {% block content %}
 <section class="page">
     <h1>1. Descripción del conjunto de datos</h1>
+    El conjunto de datos consolidado que se analiza en esta etapa constituye el insumo central del proyecto y resulta de la integración de seis fuentes de información, 
+    distribuidas además en los tres niveles de análisis. El propósito de este conjunto de datos es servir de base empírica para responder la pregunta de investigación planteada en la Etapa 1. 
 
     <h2>1.1 Fuente de los datos</h2>
     <p>
@@ -27,32 +29,123 @@
 
     <h2>1.2 Variables principales</h2>
     <p>
-        23 variables en total, agrupadas en: identificación (<code>id_registro</code>,
-        <code>id_original</code>, <code>fuente</code>), demográficas (<code>sexo</code>,
-        <code>edad</code>), del hecho (<code>tipo_evento</code>, <code>estado_victima</code>,
-        <code>detalle</code>, <code>narrativa</code>), temporales (<code>anio</code>,
-        <code>mes</code>, <code>fecha</code>) y geográficas (<code>pais</code>,
-        <code>region</code>, <code>departamento</code>, <code>municipio</code>,
-        <code>codigo_dane_departamento</code>, <code>codigo_dane_municipio</code>,
-        <code>latitud</code>, <code>longitud</code>).
+    23 variables en total, agrupadas de la siguiente manera: 3 de identificación, 2 demográficas, 4 del hecho, 3 temporales y 8 geográficas:
+        <table>
+  <thead>
+    <tr>
+      <th>Categoría</th>
+      <th>Variable</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="3">Identificación</td>
+      <td><code>id_registro</code></td>
+    </tr>
+    <tr>
+      <td><code>id_original</code></td>
+    </tr>
+    <tr>
+      <td><code>fuente</code></td>
+    </tr>
+    <tr>
+      <td rowspan="2">Demográficas</td>
+      <td><code>sexo</code></td>
+    </tr>
+    <tr>
+      <td><code>edad</code></td>
+    </tr>
+    <tr>
+      <td rowspan="4">Del hecho</td>
+      <td><code>tipo_evento</code></td>
+    </tr>
+    <tr>
+      <td><code>estado_victima</code></td>
+    </tr>
+    <tr>
+      <td><code>detalle</code></td>
+    </tr>
+    <tr>
+      <td><code>narrativa</code></td>
+    </tr>
+    <tr>
+      <td rowspan="3">Temporales</td>
+      <td><code>anio</code></td>
+    </tr>
+    <tr>
+      <td><code>mes</code></td>
+    </tr>
+    <tr>
+      <td><code>fecha</code></td>
+    </tr>
+    <tr>
+      <td rowspan="8">Geográficas</td>
+      <td><code>pais</code></td>
+    </tr>
+    <tr>
+      <td><code>region</code></td>
+    </tr>
+    <tr>
+      <td><code>departamento</code></td>
+    </tr>
+    <tr>
+      <td><code>municipio</code></td>
+    </tr>
+    <tr>
+      <td><code>codigo_dane_departamento</code></td>
+    </tr>
+    <tr>
+      <td><code>codigo_dane_municipio</code></td>
+    </tr>
+    <tr>
+      <td><code>latitud</code></td>
+    </tr>
+    <tr>
+      <td><code>longitud</code></td>
+    </tr>
+  </tbody>
+</table>
     </p>
 
     <h2>1.3 Cantidad de registros</h2>
     <p>
-        337,444 registros consolidados: 288,424 de nivel nacional, 49,005 de nivel global, y 15
-        de nivel regional. Este último nivel se incorporó recientemente a partir de las dos
-        fuentes primarias como encuesta y entrevista, atendiendo la observación
-        del docente sobre fortalecer la delimitación regional e identificar fuentes específicas
-        para ese nivel.
+        <table>
+  <thead>
+    <tr>
+      <th>Nivel</th>
+      <th>Registros</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Nacional</td>
+      <td>288.424</td>
+    </tr>
+    <tr>
+      <td>Global</td>
+      <td>49.005</td>
+    </tr>
+    <tr>
+      <td>Regional</td>
+      <td>15</td>
+    </tr>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td><strong>337.444</strong></td>
+    </tr>
+  </tbody>
+</table>
+<p>El nivel regional se incorporó recientemente a partir de las dos fuentes primarias.</p>
     </p>
 
     <h2>1.4 Uso esperado de la información</h2>
     <p>
-        Responder la pregunta de investigación planteada en la Etapa 1: identificar patrones
-        temporales, geográficos, demográficos y por tipo de hecho en los casos de desaparición de
-        personas, permitiendo comparar los niveles global, nacional y regional. El componente
-        regional se espera que crezca conforme continúe
-        la recolección de la encuesta y las entrevistas.
+        El propósito de la información recolectada es servir de base empírica para responder la pregunta de investigación de la Etapa 1,
+         permitiendo analizar los patrones temporales, geográficos y demográficos de la desaparición de personas, 
+         contrastar el comportamiento del fenómeno entre los niveles global, nacional y regional, y relacionar el tipo 
+         de hecho con el contexto en que ocurre. Asimismo, se espera que este conjunto de datos, una vez depurado y homologadi, 
+         sirva de insumo para etapas posteriores del proyecto, donde se apliquen técnicas de minería de datos como análisis
+          multidimensional, asociación, clustering y predicción.
     </p>
 
     <div class="nota">
