@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Etapa 2 — Resultados del perfilamiento{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>2. Resultados del perfilamiento</h1>
+    <p class="lead">
+        El dataset consolidado cuenta con 337,444 registros y 23 variables.
+    </p>
+
+    <h2>2.1 Variables sin problemas de completitud (0 nulos)</h2>
+    <p>
+        <code>id_registro</code>, <code>id_original</code>, <code>fuente</code>,
+        <code>nivel_fuente</code>, <code>unidad_de_analisis</code>, <code>num_personas</code>,
+        <code>tipo_evento</code>, <code>estado_victima</code>, <code>sexo</code>,
+        <code>pais</code>, <code>detalle</code>.
+    </p>
+
+    <h2>2.2 Variables numéricas — estadísticos principales</h2>
+    <div class="tabla-scroll">
+        <table>
+            <thead>
+                <tr><th>Variable</th><th>Min</th><th>Max</th><th>Promedio</th><th>Atípicos</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>num_personas</td><td>1</td><td>1,022</td><td>1.25</td><td>13,390</td></tr>
+                <tr><td>anio</td><td>1930</td><td>2026</td><td>2009.22</td><td>665</td></tr>
+                <tr><td>mes</td><td>1</td><td>12</td><td>6.20</td><td>0</td></tr>
+                <tr><td>latitud</td><td>-42.60</td><td>66.93</td><td>11.40</td><td>21,984</td></tr>
+                <tr><td>longitud</td><td>-144.77</td><td>148.09</td><td>-45.19</td><td>103</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="nota">
+        Nota sobre atípicos: el alto número en num_personas (13,390) no
+        necesariamente son errores — dado que algunas fuentes registran eventos
+        agregados, es esperable que existan valores altos legítimos; se debe revisar caso por
+        caso antes de tratarlos como error.
+    </div>
+
+    <h2>2.3 Variables con mayor proporción de nulos</h2>
+    <div class="tabla-scroll">
+        <table>
+            <thead>
+                <tr><th>Variable</th><th>% nulos</th><th>Observación</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>edad</td><td>100.00%</td><td>Solo ~13 registros con dato — la encuesta primaria apenas está en recolección</td></tr>
+                <tr><td>narrativa</td><td>100.00%</td><td>Variable aún sin datos capturados</td></tr>
+                <tr><td>region</td><td>85.48%</td><td>No aplica a fuentes nacionales por diseño</td></tr>
+                <tr><td>latitud / longitud</td><td>61.03% c/u</td><td>Ausentes en Medicina Legal</td></tr>
+                <tr><td>codigo_dane_departamento</td><td>39.44%</td><td>No aplica a fuentes globales</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>2.4 Duplicados</h2>
+    <p>
+        28 registros duplicados por combinación;
+        1 fila 100% idéntica en todas las columnas.
+    </p>
+</section>
+{% endblock %}
