@@ -157,7 +157,11 @@ def etapa1_pagina(slug):
 
 
 # ---------- Etapa 2 ----------
-
+def render_perfilamiento():
+    return render_template(
+        "etapa2_perfilamiento.html",
+        current_slug="perfilamiento",
+    )
 def render_tratamiento():
     resumen_path = PROCESSED_DIR / "tratamiento_resumen.json"
     if not resumen_path.exists():
@@ -178,9 +182,12 @@ def render_tratamiento():
 
 
 @app.route("/etapa2/<slug>")
+
 def etapa2_pagina(slug):
     if slug not in ETAPA2_MENU_BY_SLUG:
         abort(404)
+    if slug == "perfilamiento":
+        return render_perfilamiento()
     if slug == "tratamiento":
         return render_tratamiento()
 
