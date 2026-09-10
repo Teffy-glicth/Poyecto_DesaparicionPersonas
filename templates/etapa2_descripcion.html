@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Etapa 2 — Descripción del conjunto de datos{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>1. Descripción del conjunto de datos</h1>
+
+    <h2>1.1 Fuente de los datos</h2>
+    <p>
+        El conjunto de datos se construye integrando 6 fuentes de tres tipos, cumpliendo el
+        requisito de usar fuentes primarias, secundarias y terciarias.
+    </p>
+    <div class="tabla-scroll">
+        <table>
+            <thead>
+                <tr><th>Fuente</th><th>Tipo</th><th>Nivel</th><th>Registros</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>IOM Missing Migrants</td><td>Secundaria</td><td>Global</td><td>22,299</td></tr>
+                <tr><td>ACLED</td><td>Secundaria</td><td>Global</td><td>26,706</td></tr>
+                <tr><td>Medicina Legal</td><td>Secundaria</td><td>Nacional</td><td>205,938</td></tr>
+                <tr><td>SIEVCAC</td><td>Secundaria/Terciaria</td><td>Nacional</td><td>82,486</td></tr>
+                <tr><td>Encuesta propia de caracterización</td><td>Primaria</td><td>Regional</td><td>14</td></tr>
+                <tr><td>Entrevista familiar anónima</td><td>Primaria</td><td>Regional</td><td>1</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>1.2 Variables principales</h2>
+    <p>
+        23 variables en total, agrupadas en: identificación (<code>id_registro</code>,
+        <code>id_original</code>, <code>fuente</code>), demográficas (<code>sexo</code>,
+        <code>edad</code>), del hecho (<code>tipo_evento</code>, <code>estado_victima</code>,
+        <code>detalle</code>, <code>narrativa</code>), temporales (<code>anio</code>,
+        <code>mes</code>, <code>fecha</code>) y geográficas (<code>pais</code>,
+        <code>region</code>, <code>departamento</code>, <code>municipio</code>,
+        <code>codigo_dane_departamento</code>, <code>codigo_dane_municipio</code>,
+        <code>latitud</code>, <code>longitud</code>).
+    </p>
+
+    <h2>1.3 Cantidad de registros</h2>
+    <p>
+        337,444 registros consolidados: 288,424 de nivel nacional, 49,005 de nivel global, y 15
+        de nivel regional. Este último nivel se incorporó recientemente a partir de las dos
+        fuentes primarias como encuesta y entrevista, atendiendo la observación
+        del docente sobre fortalecer la delimitación regional e identificar fuentes específicas
+        para ese nivel.
+    </p>
+
+    <h2>1.4 Uso esperado de la información</h2>
+    <p>
+        Responder la pregunta de investigación planteada en la Etapa 1: identificar patrones
+        temporales, geográficos, demográficos y por tipo de hecho en los casos de desaparición de
+        personas, permitiendo comparar los niveles global, nacional y regional. El componente
+        regional se espera que crezca conforme continúe
+        la recolección de la encuesta y las entrevistas.
+    </p>
+
+    <div class="nota">
+        Nota: el nivel regional todavía tiene una muestra pequeña. Es coherente con lo documentado en la sección de necesidades de
+        información sobre el estado de la recolección, pero se deja explícito como limitación
+        actual del componente regional.
+    </div>
+</section>
+{% endblock %}
