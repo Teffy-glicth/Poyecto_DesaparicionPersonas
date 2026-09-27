@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Etapa 3 — Video de demostración{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>5. Video de demostración</h1>
+    <p class="lead">
+        Los cuatro integrantes presentan el paquete de SSIS, ejecutan el tratamiento, explican los
+        resultados y ajustes de las tres iteraciones y muestran un dato corregido y un registro
+        enviado a revisión.
+    </p>
+
+    {% if video_local_url %}
+    <div class="video-wrap video-local">
+        <video controls preload="metadata" src="{{ video_local_url }}">
+            Tu navegador no reproduce video. <a href="{{ video_local_url }}">Descárgalo aquí</a>.
+        </video>
+    </div>
+    {% elif video_embed %}
+    <div class="video-wrap">
+        <iframe src="{{ video_embed }}" title="Video de demostración del proceso ETL"
+                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowfullscreen loading="lazy"></iframe>
+    </div>
+    <p class="nota">
+        Si el video no carga, <a href="{{ video_url }}" target="_blank" rel="noopener">ábrelo directamente</a>.
+    </p>
+    {% else %}
+    <p class="placeholder-note">
+        El video todavía no se ha publicado. Define su enlace en <code>ETAPA3_VIDEO_URL</code>
+        (YouTube no listado o Google Drive con acceso para cualquier persona con el enlace).
+    </p>
+    {% endif %}
+
+    <h2>Contenido del video</h2>
+    <table>
+        <thead><tr><th>Parte</th><th>Tema</th></tr></thead>
+        <tbody>
+            <tr><td>1</td><td>Problema, diagnóstico y reglas de tratamiento; estructura de la base de datos.</td></tr>
+            <tr><td>2</td><td>Paquete de SSIS: Control Flow y componentes del Data Flow.</td></tr>
+            <tr><td>3</td><td>Ejecución del tratamiento, dato corregido y registro enviado a revisión.</td></tr>
+            <tr><td>4</td><td>Resultados y ajustes de las tres iteraciones; prueba de idempotencia.</td></tr>
+        </tbody>
+    </table>
+</section>
+{% endblock %}

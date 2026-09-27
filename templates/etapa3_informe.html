@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Etapa 3 — Informe técnico{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>4. Informe técnico (PDF)</h1>
+    <p class="lead">
+        Documenta el proceso ETL construido en SQL Server Integration Services: diagnóstico y reglas
+        de tratamiento, diseño del Control Flow y del Data Flow, configuración de cada componente,
+        evidencias de las tres iteraciones, manejo de registros en revisión, comparación de
+        resultados y prueba de idempotencia.
+    </p>
+
+    {% if hay_informe %}
+    <a class="btn-descarga" href="{{ informe_url }}" download>⬇ Descargar informe técnico (PDF)</a>
+    <a class="btn-secundario" href="{{ informe_url }}" target="_blank" rel="noopener">Abrir en otra pestaña</a>
+
+    <div class="visor-pdf">
+        <object data="{{ informe_url }}#view=FitH" type="application/pdf" width="100%" height="100%">
+            <p class="nota">
+                Tu navegador no muestra PDF incrustados.
+                <a href="{{ informe_url }}">Abre el informe aquí</a>.
+            </p>
+        </object>
+    </div>
+    {% else %}
+    <p class="placeholder-note">
+        El informe todavía no se ha publicado. Debe ubicarse en
+        <code>static/etapa3/informe_tecnico_etl.pdf</code>.
+    </p>
+    {% endif %}
+
+    <h2>Recursos para reproducir el proceso</h2>
+    <ul class="lista-recursos">
+        <li><code>etl/ssis/ETL_Principal.dtsx</code> — paquete de SSIS</li>
+        <li><code>etl/sql/01_crear_esquema.sql</code> a <code>05_final_y_revision.sql</code> — base de datos, staging, catálogo, control, tabla final y revisión</li>
+        <li><code>etl/sql/03_referencia_tipo_evento.sql</code> — catálogo de homologación de <code>tipo_evento</code></li>
+        <li><code>etl/resultados/iteraciones.json</code> — conteos de las tres iteraciones</li>
+        <li><code>etl/README.md</code> — pasos para ejecutar el proceso</li>
+    </ul>
+    {% if repo_url %}
+    <p><a href="{{ repo_url }}" target="_blank" rel="noopener">Ver el repositorio en GitHub →</a></p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -4,7 +4,7 @@
 <section class="hero">
     <span class="eyebrow">Minería de datos · Universidad de Cundinamarca</span>
     <h1>Proyecto Desaparición de Personas</h1>
-    <p>Registro técnico del proceso de análisis: desde la definición del problema hasta la calidad y el tratamiento del conjunto de datos consolidado.</p>
+    <p>Registro técnico del proceso de análisis: desde la definición del problema hasta la calidad, el tratamiento y el proceso ETL del conjunto de datos consolidado.</p>
 </section>
 
 <section class="menu-grid">
@@ -41,5 +41,22 @@
             {% endfor %}
         </ul>
     </details>
+
+    <details class="etapa-acordeon">
+        <summary>
+            <span class="etapa-nombre">Etapa 3</span>
+            <span class="etapa-subtitulo">Proceso ETL con SSIS</span>
+        </summary>
+        <ul class="indice">
+            {% for item in etapa3_menu %}
+            <li>
+                <a href="{{ url_for('etapa3_pagina', slug=item.slug) }}">
+                    <span class="folio">{{ item.numero }}</span>
+                    <span class="titulo">{{ item.titulo }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </details>
 </section>
-{% endblock %}
+{% endblock %}

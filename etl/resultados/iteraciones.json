@@ -1,0 +1,90 @@
+{
+  "fuente": "control.control_cargas (base DesaparicionPersonasETL) y contadores RC_* del Data Flow",
+  "ejecuciones": [
+    {
+      "id_carga": 1,
+      "iteracion": 1,
+      "ejecucion": "Única",
+      "flujo": "ETL Iteracion 1",
+      "recibidos": 337444,
+      "aceptados": 337416,
+      "duplicados": 28,
+      "revision": 0,
+      "ya_existian": 0
+    },
+    {
+      "id_carga": 2,
+      "iteracion": 2,
+      "ejecucion": "Única",
+      "flujo": "ETL Principal",
+      "recibidos": 337444,
+      "aceptados": 331611,
+      "duplicados": 28,
+      "revision": 5805,
+      "ya_existian": 0
+    },
+    {
+      "id_carga": 3,
+      "iteracion": 3,
+      "ejecucion": "1.ª",
+      "flujo": "ETL Principal",
+      "recibidos": 337444,
+      "aceptados": 331611,
+      "duplicados": 28,
+      "revision": 5805,
+      "ya_existian": 0
+    },
+    {
+      "id_carga": 4,
+      "iteracion": 3,
+      "ejecucion": "2.ª (mismo lote)",
+      "flujo": "ETL Principal",
+      "recibidos": 337444,
+      "aceptados": 0,
+      "duplicados": 28,
+      "revision": 5805,
+      "ya_existian": 331611
+    }
+  ],
+  "iteraciones": [
+    {
+      "numero": 1,
+      "titulo": "Línea base: tipos y duplicados",
+      "objetivo": "Cargar el dataset con tipos correctos y sin duplicados usando el flujo simplificado ETL Iteracion 1.",
+      "ajustes": [
+        "En el primer intento todas las filas iban a revisión porque los campos vacíos llegaban como texto vacío. Se activó 'Retain null values' en ORIGEN_CSV.",
+        "El Sort tardaba demasiado porque todas las columnas tenían ancho 4000. Se midió el largo real en staging y se ajustaron los anchos en el administrador de conexión."
+      ],
+      "resultado": "337.416 registros aceptados, 28 duplicados eliminados y 0 en revisión."
+    },
+    {
+      "numero": 2,
+      "titulo": "Reglas completas",
+      "objetivo": "Aplicar todas las reglas de tratamiento con el flujo ETL Principal.",
+      "ajustes": [
+        "Se habilitó ETL Principal y se deshabilitó ETL Iteracion 1.",
+        "Se agregaron DER_Atipicos (num_personas > 1, anio < 1974), LKP_TipoEvento con el catálogo ref.tipo_evento_homologado y CSPL_FechaFaltante.",
+        "Se agregó la rama de revisión con motivo por regla (Derived Column + Union All)."
+      ],
+      "resultado": "331.611 registros en la tabla final y 5.805 en revisión por fecha faltante; 13.390 y 606 atípicos marcados; 8 categorías de tipo_evento."
+    },
+    {
+      "numero": 3,
+      "titulo": "Repetibilidad e idempotencia",
+      "objetivo": "Comprobar que el proceso da el mismo resultado y que cargar dos veces el mismo lote no duplica la tabla final.",
+      "ajustes": [
+        "Se vaciaron las tablas de datos y se cambió la variable User::Iteracion a 3.",
+        "Se ejecutó el paquete dos veces seguidas sin limpiar la base entre ejecuciones."
+      ],
+      "resultado": "Primera ejecución igual a la iteración 2. En la segunda, LKP_Idempotencia encontró las 331.611 filas y no insertó ninguna; la tabla final sigue con 331.611."
+    }
+  ],
+  "indicadores": [
+    {"indicador": "Registros", "antes": "337.444", "despues": "331.611 (+ 5.805 en revisión)"},
+    {"indicador": "Duplicados (id_original + fuente)", "antes": "28", "despues": "0"},
+    {"indicador": "Registros sin fecha", "antes": "5.808", "despues": "0"},
+    {"indicador": "Valores únicos de tipo_evento", "antes": "11", "despues": "8"},
+    {"indicador": "Atípicos marcados", "antes": "Sin marca", "despues": "13.390 (num_personas) · 606 (anio)"},
+    {"indicador": "Conciliación recibidos = aceptados + duplicados + revisión", "antes": "—", "despues": "SI en todas las cargas"}
+  ]
+}

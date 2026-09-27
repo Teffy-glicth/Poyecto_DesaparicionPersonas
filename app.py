@@ -1,9 +1,11 @@
 import csv
+import io
 import json
 import os
+import re
 from pathlib import Path
 
-from flask import Flask, abort, render_template, send_from_directory
+from flask import Flask, Response, abort, render_template, send_from_directory, url_for
 
 app = Flask(__name__)
 
@@ -33,6 +35,25 @@ ETAPA2_MENU = [
 ]
 ETAPA2_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA2_MENU}
 
+ETAPA3_MENU = [
+    {"numero": 1, "slug": "reglas", "titulo": "Reglas de tratamiento"},
+    {"numero": 2, "slug": "diseno", "titulo": "Diseño del ETL en SSIS"},
+    {"numero": 3, "slug": "iteraciones", "titulo": "Resultados de las tres iteraciones"},
+    {"numero": 4, "slug": "informe", "titulo": "Informe técnico (PDF)"},
+    {"numero": 5, "slug": "video", "titulo": "Video de demostración"},
+]
+ETAPA3_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA3_MENU}
+
+ETAPA3_STATIC = BASE_DIR / "static" / "etapa3"
+ETAPA3_INFORME = "informe_tecnico_etl.pdf"
+ETAPA3_VIDEO_LOCAL = "video_demostracion.mp4"
+RESULTADOS_ETL_PATH = BASE_DIR / "etl" / "resultados" / "iteraciones.json"
+# Enlace publico del video (YouTube "no listado" o Google Drive con permiso
+# "cualquier persona con el enlace"). Se puede definir aqui o con la variable
+# de entorno ETAPA3_VIDEO_URL en el servicio donde se publique la app.
+ETAPA3_VIDEO_URL = os.environ.get("ETAPA3_VIDEO_URL", "")
+REPO_URL = os.environ.get("REPO_URL", "")
+
 MUESTRA_MAX_FILAS = 50
 
 
@@ -41,6 +62,7 @@ def inject_menu():
     return {
         "etapa1_menu": ETAPA1_MENU,
         "etapa2_menu": ETAPA2_MENU,
+        "etapa3_menu": ETAPA3_MENU,
         "current_slug": None,
     }
 
@@ -243,5 +265,77 @@ def etapa2_pagina(slug):
         titulo=item["titulo"],
         current_slug=slug,
     )
+
+# ---------- Etapa 3 ----------
+
+def video_embed_url(url):
+    """Convierte un enlace de YouTube o Google Drive en su URL de inserción."""
+    if not url:
+        return None
+    m = re.search(r"(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/shorts/)([\w-]{11})", url)
+    if m:
+        return f"https://www.youtube.com/embed/{m.group(1)}"
+    m = re.search(r"drive\.google\.com/file/d/([\w-]+)", url)
+    if m:
+        return f"https://drive.google.com/file/d/{m.group(1)}/preview"
+    return url
+
+
+def cargar_resultados_etl():
+    if not RESULTADOS_ETL_PATH.exists():
+        abort(500, description="Falta etl/resultados/iteraciones.json.")
+    with open(RESULTADOS_ETL_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.route("/etapa3/iteraciones.csv")
+def descargar_iteraciones():
+    datos = cargar_resultados_etl()
+    campos = ["id_carga", "iteracion", "ejecucion", "flujo", "recibidos", "aceptados",
+              "duplicados", "revision", "ya_existian"]
+    salida = io.StringIO()
+    writer = csv.DictWriter(salida, fieldnames=campos, extrasaction="ignore")
+    writer.writeheader()
+    writer.writerows(datos["ejecuciones"])
+    return Response(
+        "\ufeff" + salida.getvalue(), mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=iteraciones_etl.csv"},
+    )
+
+
+@app.route("/etapa3/<slug>")
+def etapa3_pagina(slug):
+    if slug not in ETAPA3_MENU_BY_SLUG:
+        abort(404)
+
+    if slug in ("reglas", "diseno"):
+        return render_template(f"etapa3_{slug}.html", current_slug=slug)
+
+    if slug == "informe":
+        return render_template(
+            "etapa3_informe.html",
+            hay_informe=(ETAPA3_STATIC / ETAPA3_INFORME).exists(),
+            informe_url=url_for("static", filename=f"etapa3/{ETAPA3_INFORME}"),
+            repo_url=REPO_URL,
+            current_slug=slug,
+        )
+
+    if slug == "iteraciones":
+        return render_template(
+            "etapa3_iteraciones.html",
+            datos=cargar_resultados_etl(),
+            current_slug=slug,
+        )
+
+    video_local = (ETAPA3_STATIC / ETAPA3_VIDEO_LOCAL).exists()
+    return render_template(
+        "etapa3_video.html",
+        video_url=ETAPA3_VIDEO_URL,
+        video_embed=video_embed_url(ETAPA3_VIDEO_URL),
+        video_local_url=url_for("static", filename=f"etapa3/{ETAPA3_VIDEO_LOCAL}") if video_local else None,
+        current_slug=slug,
+    )
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
