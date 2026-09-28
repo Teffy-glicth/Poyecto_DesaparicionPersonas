@@ -51,7 +51,7 @@ RESULTADOS_ETL_PATH = BASE_DIR / "etl" / "resultados" / "iteraciones.json"
 # Enlace publico del video (YouTube "no listado" o Google Drive con permiso
 # "cualquier persona con el enlace"). Se puede definir aqui o con la variable
 # de entorno ETAPA3_VIDEO_URL en el servicio donde se publique la app.
-ETAPA3_VIDEO_URL = os.environ.get("ETAPA3_VIDEO_URL", "")
+ETAPA3_VIDEO_URL = os.environ.get("ETAPA3_VIDEO_URL", "https://www.youtube.com/watch?v=A8Gn9X58u3g")
 REPO_URL = os.environ.get("REPO_URL", "")
 
 MUESTRA_MAX_FILAS = 50
@@ -338,4 +338,4 @@ def etapa3_pagina(slug):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
