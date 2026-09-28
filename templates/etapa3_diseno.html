@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Etapa 3 — Diseño del ETL{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>2. Diseño del ETL en SSIS</h1>
+    <p class="lead">
+        El proceso se construyó en SQL Server Integration Services sobre una instancia SQL Server
+        LocalDB. El paquete <code>etl/ssis/ETL_Principal.dtsx</code> contiene dos flujos de datos:
+        <code>ETL Iteracion 1</code> (línea base) y <code>ETL Principal</code> (reglas completas).
+    </p>
+
+    <h2>Base de datos</h2>
+    <table>
+        <thead><tr><th>Objeto</th><th>Función</th></tr></thead>
+        <tbody>
+            <tr><td><code>staging.desaparecidos_raw</code></td><td>Copia cruda del CSV, sin tipos ni validaciones. Es la zona de trazabilidad.</td></tr>
+            <tr><td><code>ref.tipo_evento_homologado</code></td><td>Catálogo para homologar <code>tipo_evento</code> (Lookup).</td></tr>
+            <tr><td><code>dbo.desaparecidos_final</code></td><td>Registros aceptados, con tipos correctos y <code>id_registro</code> único.</td></tr>
+            <tr><td><code>revision.desaparecidos_pendientes</code></td><td>Registros que requieren revisión, con valor original y motivo.</td></tr>
+            <tr><td><code>control.control_cargas</code></td><td>Una fila por ejecución con recibidos, aceptados, duplicados y revisión.</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Control Flow</h2>
+    <ol class="acciones-lista">
+        <li><strong>Iniciar carga</strong> (Execute SQL Task): inserta la ejecución en <code>control.control_cargas</code> y guarda su <code>id_carga</code> en una variable.</li>
+        <li><strong>ETL Principal</strong> o <strong>ETL Iteracion 1</strong> (Data Flow Task): extrae, transforma y carga los datos.</li>
+        <li><strong>Calcular duplicados</strong> (Expression Task): duplicados = filas antes del Sort − filas después del Sort.</li>
+        <li><strong>Cerrar carga</strong> (Execute SQL Task): actualiza la ejecución con los conteos finales.</li>
+    </ol>
+
+    <h2>Data Flow (ETL Principal)</h2>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>#</th><th>Componente</th><th>Tipo</th><th>Función</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td><code>ORIGEN_CSV</code></td><td>Flat File Source</td><td>Lee <code>dataset_consolidado.csv</code> (UTF-8, 23 columnas).</td></tr>
+                <tr><td>2</td><td><code>DER_IdCarga</code></td><td>Derived Column</td><td>Agrega el <code>id_carga</code> de la ejecución a cada fila.</td></tr>
+                <tr><td>3</td><td><code>MC_Bifurcar</code></td><td>Multicast</td><td>Separa el flujo: una copia va a staging y otra al tratamiento.</td></tr>
+                <tr><td>4</td><td><code>DEST_Staging</code></td><td>OLE DB Destination</td><td>Guarda la copia cruda en <code>staging.desaparecidos_raw</code>.</td></tr>
+                <tr><td>5</td><td><code>DER_NoAplica</code></td><td>Derived Column</td><td>Marca “No aplica” en <code>region</code>, <code>departamento</code> y <code>municipio</code> cuando corresponde.</td></tr>
+                <tr><td>6</td><td><code>RC_AntesSort</code></td><td>Row Count</td><td>Cuenta los registros recibidos.</td></tr>
+                <tr><td>7</td><td><code>CONV_Tipos</code></td><td>Data Conversion</td><td>Convierte texto a entero, fecha y decimal; las filas inválidas salen por la salida de error.</td></tr>
+                <tr><td>8</td><td><code>DER_Atipicos</code></td><td>Derived Column</td><td>Calcula <code>num_personas_atipico</code> y <code>anio_atipico</code>.</td></tr>
+                <tr><td>9</td><td><code>LKP_TipoEvento</code></td><td>Lookup</td><td>Homologa <code>tipo_evento</code>; sin coincidencia va a revisión.</td></tr>
+                <tr><td>10</td><td><code>SORT_Duplicados</code></td><td>Sort</td><td>Ordena por <code>id_original</code> y <code>fuente</code> y elimina duplicados.</td></tr>
+                <tr><td>11</td><td><code>RC_DespuesSort</code></td><td>Row Count</td><td>Cuenta los registros tras quitar duplicados.</td></tr>
+                <tr><td>12</td><td><code>CSPL_FechaFaltante</code></td><td>Conditional Split</td><td>Separa las filas sin fecha (<code>SinFecha</code>) de las que continúan.</td></tr>
+                <tr><td>13</td><td><code>LKP_Idempotencia</code></td><td>Lookup</td><td>Detecta filas que ya existen en la tabla final por <code>id_registro</code>.</td></tr>
+                <tr><td>14</td><td><code>RC_YaExistian</code>, <code>RC_Aceptadas</code></td><td>Row Count</td><td>Cuentan las filas que ya existían y las nuevas.</td></tr>
+                <tr><td>15</td><td><code>DEST_Final</code></td><td>OLE DB Destination</td><td>Inserta las filas nuevas en <code>dbo.desaparecidos_final</code>.</td></tr>
+                <tr><td>16</td><td><code>DER_MotivoConversion</code>, <code>DER_MotivoTipoEvento</code>, <code>DER_MotivoFecha</code></td><td>Derived Column</td><td>Asignan campo conflictivo, valor original y motivo a cada rama de revisión.</td></tr>
+                <tr><td>17</td><td><code>Union All</code>, <code>RC_Revision</code>, <code>DEST_Revision</code></td><td>Union All, Row Count, OLE DB Destination</td><td>Reúnen las tres ramas y las guardan en <code>revision.desaparecidos_pendientes</code>.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">
+        La iteración 1 usa el flujo <code>ETL Iteracion 1</code>, que solo convierte tipos y elimina
+        duplicados. Las iteraciones 2 y 3 usan <code>ETL Principal</code>.
+        Los resultados están en <a href="{{ url_for('etapa3_pagina', slug='iteraciones') }}">Resultados de las tres iteraciones</a>.
+    </p>
+</section>
+{% endblock %}

@@ -48,9 +48,7 @@ ETAPA3_STATIC = BASE_DIR / "static" / "etapa3"
 ETAPA3_INFORME = "informe_tecnico_etl.pdf"
 ETAPA3_VIDEO_LOCAL = "video_demostracion.mp4"
 RESULTADOS_ETL_PATH = BASE_DIR / "etl" / "resultados" / "iteraciones.json"
-# Enlace publico del video (YouTube "no listado" o Google Drive con permiso
-# "cualquier persona con el enlace"). Se puede definir aqui o con la variable
-# de entorno ETAPA3_VIDEO_URL en el servicio donde se publique la app.
+
 ETAPA3_VIDEO_URL = os.environ.get("ETAPA3_VIDEO_URL", "https://www.youtube.com/watch?v=A8Gn9X58u3g")
 REPO_URL = os.environ.get("REPO_URL", "")
 
