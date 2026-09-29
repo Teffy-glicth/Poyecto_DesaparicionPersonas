@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Etapa 3 — Resultados de las tres iteraciones{% endblock %}
+{% block content %}
+{% set it2 = datos.ejecuciones[1] %}
+<section class="page">
+    <h1>3. Resultados de las tres iteraciones</h1>
+    <p class="lead">
+        Cada ejecución del paquete queda registrada en <code>control.control_cargas</code>. En todas
+        se cumple que los registros recibidos son iguales a los aceptados más los duplicados, los
+        enviados a revisión y los que ya existían.
+    </p>
+
+    <div class="kpis">
+        <div class="kpi"><span class="kpi-valor">{{ "{:,}".format(it2.recibidos).replace(",", ".") }}</span><span class="kpi-label">recibidos del CSV</span></div>
+        <div class="kpi"><span class="kpi-valor">{{ "{:,}".format(it2.aceptados).replace(",", ".") }}</span><span class="kpi-label">en la tabla final</span></div>
+        <div class="kpi kpi-rev"><span class="kpi-valor">{{ "{:,}".format(it2.revision).replace(",", ".") }}</span><span class="kpi-label">enviados a revisión</span></div>
+        <div class="kpi"><span class="kpi-valor">{{ it2.duplicados }}</span><span class="kpi-label">duplicados eliminados</span></div>
+    </div>
+
+    <h2>Conteos por ejecución</h2>
+    <div class="tabla-scroll">
+        <table class="tabla-numeros">
+            <thead>
+                <tr>
+                    <th>Carga</th><th>Iteración</th><th>Ejecución</th><th>Recibidos</th>
+                    <th>Aceptados</th><th>Duplicados</th><th>Revisión</th><th>Ya<br>existían</th><th>Cuadra</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in datos.ejecuciones %}
+                {% set total = e.aceptados + e.duplicados + e.revision + e.ya_existian %}
+                <tr>
+                    <td>{{ e.id_carga }}</td>
+                    <td>{{ e.iteracion }}</td>
+                    <td class="texto">{{ e.ejecucion }}</td>
+                    <td>{{ "{:,}".format(e.recibidos).replace(",", ".") }}</td>
+                    <td>{{ "{:,}".format(e.aceptados).replace(",", ".") }}</td>
+                    <td>{{ e.duplicados }}</td>
+                    <td>{{ "{:,}".format(e.revision).replace(",", ".") }}</td>
+                    <td>{{ "{:,}".format(e.ya_existian).replace(",", ".") }}</td>
+                    <td>{{ "SI" if total == e.recibidos else "NO" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">
+        "Ya existían" proviene del contador RC_YaExistian del Data Flow.
+        <a href="{{ url_for('descargar_iteraciones') }}">Descargar conteos (.csv)</a>
+    </p>
+
+    <h2>Ajustes y resultado de cada iteración</h2>
+    {% for it in datos.iteraciones %}
+    <article class="iteracion-card">
+        <h3>Iteración {{ it.numero }} · {{ it.titulo }}</h3>
+        <p><strong>Objetivo.</strong> {{ it.objetivo }}</p>
+        <p class="sub">Ajustes realizados</p>
+        <ul>
+            {% for a in it.ajustes %}<li>{{ a }}</li>{% endfor %}
+        </ul>
+        <p class="resultado"><strong>Resultado.</strong> {{ it.resultado }}</p>
+    </article>
+    {% endfor %}
+
+    <h2>Indicadores antes y después</h2>
+    <table>
+        <thead><tr><th>Indicador</th><th>CSV consolidado</th><th>Tabla final (iter. 2)</th></tr></thead>
+        <tbody>
+            {% for i in datos.indicadores %}
+            <tr><td>{{ i.indicador }}</td><td>{{ i.antes }}</td><td>{{ i.despues }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Evidencias</h2>
+    <figure class="evidencia">
+        <img src="{{ url_for('static', filename='etapa3/capturas/conciliacion_iteraciones.png') }}"
+             alt="Consulta SQL que concilia recibidos, aceptados, duplicados y revisión de las iteraciones 1 y 2">
+        <figcaption>Conciliación de conteos de las iteraciones 1 y 2 (columna "cuadra" = SI).</figcaption>
+    </figure>
+    <figure class="evidencia">
+        <img src="{{ url_for('static', filename='etapa3/capturas/calidad_tabla_final.png') }}"
+             alt="Consulta de calidad sobre la tabla final">
+        <figcaption>Calidad de la tabla final: 8 categorías, atípicos marcados y 0 duplicados.</figcaption>
+    </figure>
+    <figure class="evidencia">
+        <img src="{{ url_for('static', filename='etapa3/capturas/idempotencia_lookup.png') }}"
+             alt="LKP_Idempotencia enviando 331.611 filas a RC_YaExistian">
+        <figcaption>Segunda ejecución del mismo lote: las 331.611 filas ya existían y no se insertan.</figcaption>
+    </figure>
+    <figure class="evidencia">
+        <img src="{{ url_for('static', filename='etapa3/capturas/idempotencia_sqlcmd.png') }}"
+             alt="sqlcmd mostrando 331.611 filas en la tabla final y las cuatro cargas">
+        <figcaption>La tabla final conserva 331.611 filas tras repetir la carga.</figcaption>
+    </figure>
+</section>
+{% endblock %}
