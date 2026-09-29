@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Etapa 3 — Reglas de tratamiento{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>1. Reglas de tratamiento</h1>
+    <p class="lead">
+        Las reglas parten del diagnóstico de calidad de la Etapa 2 sobre el dataset consolidado
+        (337.444 registros, 23 variables). Para cada problema se indica el campo afectado, la acción
+        que realiza el paquete de SSIS, el componente que la implementa y su justificación.
+    </p>
+
+    <div class="tabla-scroll">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Problema (Etapa 2)</th><th>Acción</th><th>Componente</th><th>Justificación</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>id_original</code> + <code>fuente</code></td>
+                    <td>28 registros duplicados por esa combinación.</td>
+                    <td>Se conserva la primera aparición y se eliminan las demás.</td>
+                    <td>Sort (<code>SORT_Duplicados</code>) con “Remove rows with duplicate sort values”</td>
+                    <td>Evita contar dos veces el mismo caso.</td>
+                </tr>
+                <tr>
+                    <td><code>tipo_evento</code></td>
+                    <td>Variantes de una misma categoría (por ejemplo “Desplazamiento” con un espacio invisible al final).</td>
+                    <td>Se homologa contra un catálogo; lo que no esté en el catálogo va a revisión.</td>
+                    <td>Lookup (<code>LKP_TipoEvento</code>) sobre <code>ref.tipo_evento_homologado</code></td>
+                    <td>Unifica categorías equivalentes sin inventar redacciones nuevas.</td>
+                </tr>
+                <tr>
+                    <td><code>region</code>, <code>departamento</code>, <code>municipio</code></td>
+                    <td>Vacíos porque el campo no aplica a ese nivel de fuente.</td>
+                    <td>Se reemplaza el vacío por “No aplica” solo cuando corresponde al nivel de la fuente.</td>
+                    <td>Derived Column (<code>DER_NoAplica</code>)</td>
+                    <td>Distingue un vacío estructural de un dato faltante real.</td>
+                </tr>
+                <tr>
+                    <td><code>codigo_dane_departamento</code>, <code>codigo_dane_municipio</code></td>
+                    <td>Vacíos en las fuentes globales.</td>
+                    <td>Se dejan como NULL.</td>
+                    <td>Data Conversion (<code>CONV_Tipos</code>) a entero</td>
+                    <td>Son numéricos; NULL ya significa “sin dato” y no se inventa un valor.</td>
+                </tr>
+                <tr>
+                    <td><code>latitud</code>, <code>longitud</code></td>
+                    <td>Vacías en toda la fuente Medicina Legal.</td>
+                    <td>Se convierten a decimal y se permiten NULL.</td>
+                    <td>Data Conversion (<code>CONV_Tipos</code>)</td>
+                    <td>No se imputan coordenadas que la fuente no tiene.</td>
+                </tr>
+                <tr>
+                    <td>Tipos de todas las columnas</td>
+                    <td>El CSV llega como texto.</td>
+                    <td>Se convierte a entero, fecha o decimal; las filas que no convierten salen por la salida de error hacia revisión.</td>
+                    <td>Data Conversion (<code>CONV_Tipos</code>) + <code>DER_MotivoConversion</code></td>
+                    <td>Una fila mal formada no detiene la carga ni se pierde.</td>
+                </tr>
+                <tr>
+                    <td><code>fecha</code></td>
+                    <td>Faltante real en una parte de los registros.</td>
+                    <td>Se envía a revisión con el motivo “fecha faltante”.</td>
+                    <td>Conditional Split (<code>CSPL_FechaFaltante</code>) + <code>DER_MotivoFecha</code></td>
+                    <td>No se inventa una fecha; el caso queda para revisión manual.</td>
+                </tr>
+                <tr>
+                    <td><code>num_personas</code></td>
+                    <td>Valores mayores que 1 detectados como atípicos (regla IQR).</td>
+                    <td>Se marca <code>num_personas_atipico</code> y se sigue cargando.</td>
+                    <td>Derived Column (<code>DER_Atipicos</code>): <code>num_personas &gt; 1</code></td>
+                    <td>Corresponden a eventos agregados legítimos de ACLED e IOM.</td>
+                </tr>
+                <tr>
+                    <td><code>anio</code></td>
+                    <td>Años anteriores a 1974 detectados como atípicos (regla IQR).</td>
+                    <td>Se marca <code>anio_atipico</code> y se sigue cargando.</td>
+                    <td>Derived Column (<code>DER_Atipicos</code>): <code>anio &lt; 1974</code></td>
+                    <td>Es información histórica legítima de Medicina Legal y SIEVCAC.</td>
+                </tr>
+                <tr>
+                    <td><code>id_registro</code></td>
+                    <td>Riesgo de duplicar el lote al repetir la ejecución.</td>
+                    <td>Solo se insertan las filas cuyo <code>id_registro</code> no existe en la tabla final.</td>
+                    <td>Lookup (<code>LKP_Idempotencia</code>) sobre <code>dbo.desaparecidos_final</code></td>
+                    <td>Repetir el mismo lote no genera duplicados.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Registros enviados a revisión</h2>
+    <p>
+        Los registros que no cumplen una regla no se descartan: se guardan en
+        <code>revision.desaparecidos_pendientes</code> con el campo que causó el problema
+        (<code>campo_conflictivo</code>), el valor tal como llegó (<code>valor_original</code>) y el
+        motivo (<code>motivo_revision</code>). Hay tres ramas que llegan a esa tabla:
+    </p>
+    <table>
+        <thead><tr><th>Rama</th><th>Campo conflictivo</th><th>Motivo</th></tr></thead>
+        <tbody>
+            <tr><td>Salida de error de <code>CONV_Tipos</code></td><td>conversion_tipos</td><td>Error de conversión de tipo en una columna</td></tr>
+            <tr><td>Sin coincidencia en <code>LKP_TipoEvento</code></td><td>tipo_evento</td><td>Valor no encontrado en el catálogo de homologación</td></tr>
+            <tr><td>Salida <code>SinFecha</code> de <code>CSPL_FechaFaltante</code></td><td>fecha</td><td>Fecha faltante</td></tr>
+        </tbody>
+    </table>
+    <p class="nota">
+        Los datos originales se conservan sin cambios en <code>staging.desaparecidos_raw</code>, lo que
+        permite repetir el proceso y rastrear cualquier valor hasta el CSV.
+    </p>
+</section>
+{% endblock %}
