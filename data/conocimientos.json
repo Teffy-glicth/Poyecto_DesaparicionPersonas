@@ -10,7 +10,7 @@
       "slug": "poblacion",
       "nombre": "Composición de la población",
       "pregunta": "¿Cómo se distribuyen las personas registradas como desaparecidas en Colombia según sexo, estado de la víctima y fuente, y qué grupos son predominantes y cuáles minoritarios?",
-      "pagina_powerbi": "",
+      "pagina_powerbi": "https://app.powerbi.com/view?r=eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9&pageName=9897ca544da6e7d48a25&pageName=9897ca544da6e7d48a25",
       "conocimientos": [
         {
           "titulo": "Predominio masculino",
@@ -54,7 +54,7 @@
       "slug": "territorio",
       "nombre": "El sur frente al resto del país",
       "pregunta": "¿Cómo se diferencia el sur del país (Nariño, Cauca, Putumayo, Caquetá y Huila) del resto de regiones en número de personas desaparecidas, participación porcentual, municipios con más casos y desenlace de los casos?",
-      "pagina_powerbi": "",
+      "pagina_powerbi": "https://app.powerbi.com/view?r=eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9&pageName=9897ca544da6e7d48a25&pageName=b99a6b0d7b8f2b7f052e",
       "conocimientos": [
         {
           "titulo": "El sur pesa más en el registro del conflicto",
@@ -98,7 +98,7 @@
       "slug": "tiempo",
       "nombre": "Comportamiento temporal",
       "pregunta": "¿Cómo evolucionó el número anual de personas desaparecidas registradas en Colombia entre 2007 y 2025, en qué años se dieron los máximos y mínimos, y cómo cambió el registro antes y después del Acuerdo de Paz de 2016?",
-      "pagina_powerbi": "",
+      "pagina_powerbi": "https://app.powerbi.com/view?r=eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9&pageName=9897ca544da6e7d48a25&pageName=29f24126fb3c3b4291ab",
       "conocimientos": [
         {
           "titulo": "Pico en 2011 y descenso hasta 2025",
@@ -142,7 +142,7 @@
       "slug": "perfiles",
       "nombre": "Perfiles multivariados",
       "pregunta": "¿Qué perfiles resultan de cruzar sexo, zona del hecho (cabecera, centro poblado o rural), macrorregión (sur o resto) y estado de la víctima, y qué combinaciones tienen la mayor proporción de personas que siguen desaparecidas o aparecieron sin vida?",
-      "pagina_powerbi": "",
+      "pagina_powerbi": "https://app.powerbi.com/view?r=eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9&pageName=9897ca544da6e7d48a25&pageName=ee251637d064869a4a74",
       "conocimientos": [
         {
           "titulo": "La brecha por sexo se repite en todas las zonas y regiones",
