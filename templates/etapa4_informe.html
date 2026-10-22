@@ -1,4 +1,56 @@
 {% extends "base.html" %}
 {% block title %}Informe técnico (PDF){% endblock %}
 {% block content %}
+<section class="page informe">
+    <h1>5. Informe técnico (PDF)</h1>
+    <p class="lead">Documento que consolida el análisis exploratorio de la etapa 4, tratamiento previo de los datos, modelo de Power BI, medidas DAX, los cuatro tableros, los doce conocimientos evidentes, las limitaciones, las decisiones y las conclusiones.</p>
+
+    {% if hay_informe %}
+    <a class="btn-secundario" href="{{ informe_url }}" target="_blank" rel="noopener">Abrir o descargar el informe técnico (PDF)</a>
+    {% else %}
+    <p class="placeholder-note">El informe técnico en PDF se publicará aquí cuando esté terminado.</p>
+    {% endif %}
+
+    <div class="contexto-datos">
+        <p><strong>Periodo analizado:</strong> registros de 1930 a 2026 (2026 llega hasta junio); el análisis temporal usa 2007-2025.</p>
+        <p><strong>Unidad de análisis:</strong> persona registrada como desaparecida; una persona puede aparecer en ambas fuentes.</p>
+    </div>
+
+    <h2>Enlaces del proyecto</h2>
+    <ul>
+        {% if powerbi_url %}
+        <li><strong>Informe interactivo de Power BI:</strong>
+            <a href="{{ powerbi_url }}" target="_blank" rel="noopener">Abrir en Power BI</a></li>
+        {% endif %}
+        {% if repo_url %}
+        <li><strong>Repositorio público:</strong>
+            <a href="{{ repo_url }}" target="_blank" rel="noopener">Ver en GitHub</a></li>
+        {% endif %}
+        {% if app_url %}
+        <li><strong>Aplicación publicada:</strong>
+            <a href="{{ app_url }}" target="_blank" rel="noopener">Abrir la aplicación</a></li>
+        {% endif %}
+        {% if pbix_url %}
+        <li><strong>Archivo PBIX:</strong>
+            <a href="{{ pbix_url }}" target="_blank" rel="noopener">Descargar</a></li>
+        {% endif %}
+    </ul>
+
+    <h2>Contenido del informe</h2>
+    <ol>
+        <li>Tema, propósito y población estudiada.</li>
+        <li>Fuente y URL original del conjunto de datos.</li>
+        <li>Unidad de análisis, cantidad de registros y variables utilizadas.</li>
+        <li>Resumen del tratamiento previo de los datos.</li>
+        <li>Cuatro preguntas de análisis y su justificación.</li>
+        <li>Modelo de datos de Power BI.</li>
+        <li>Procedimientos y medidas DAX principales.</li>
+        <li>Evidencias de los cuatro tableros: indicadores, visualizaciones y filtros.</li>
+        <li>Doce conocimientos evidentes, con los ocho elementos solicitados.</li>
+        <li>Limitaciones y decisiones sustentadas en los datos.</li>
+        <li>Conclusiones relacionadas con el propósito del proyecto.</li>
+        <li>Evidencias del trabajo en el repositorio.</li>
+        <li>Enlaces del repositorio, del informe de Power BI y de la aplicación publicada.</li>
+    </ol>
+</section>
 {% endblock %}
