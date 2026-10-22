@@ -1,4 +1,129 @@
 {% extends "base.html" %}
 {% block title %}Continuidad del proyecto{% endblock %}
 {% block content %}
+<section class="page">
+    <h1>1. Continuidad del proyecto</h1>
+    <p class="lead">
+        Este análisis exploratorio se realiza sobre el mismo tema, la misma población y el mismo
+        conjunto de datos trabajado desde la Etapa 1: la desaparición de personas en Colombia, a
+        partir de la consolidación de 6 fuentes (IOM, ACLED, Medicina Legal, SIEVCAC, una encuesta
+        propia y una entrevista propia). No se seleccionó ningún conjunto de datos nuevo.
+    </p>
+
+    <h2>Dataset base para este análisis</h2>
+    <p>
+        Power BI se conecta a <code>data/processed/dataset_tratado.csv</code>, el resultado del
+        tratamiento de la <strong>Etapa 2</strong> (<code>scripts/aplicar_tratamiento.py</code>),
+        no al de la Etapa 3 (el proceso ETL en SSIS). Se eligió así porque el flujo de SSIS separa
+        hacia una tabla de revisión cualquier registro sin fecha completa —incluidos casos donde el
+        año sí se conoce y solo falta el mes o el día—, lo que habría descartado información
+        aprovechable para la pregunta temporal (pregunta 3). El dataset de Etapa 2 conserva
+        <code>anio</code> y <code>mes</code> aunque falte la fecha exacta, y solo elimina los
+        duplicados exactos.
+    </p>
+
+    <h2>Tratamientos aplicados previamente</h2>
+    <p>Sobre los 337.444 registros consolidados de la Etapa 1, la Etapa 2 aplicó:</p>
+    <ul class="acciones-lista">
+        <li>Eliminación de registros duplicados exactos (28 filas, todas de SIEVCAC).</li>
+        <li>Corrección de codificación de texto y eliminación de espacios invisibles en <code>tipo_evento</code>.</li>
+        <li>Homologación de categorías de <code>tipo_evento</code> equivalentes tras la limpieza de texto.</li>
+        <li>Marcado explícito de nulos estructurales como "No aplica" en vez de vacío silencioso (por ejemplo <code>region</code> en fuentes nacionales).</li>
+        <li>Marcado de valores atípicos en <code>num_personas</code> y <code>anio</code> para revisión manual, sin eliminarlos, porque varios corresponden a eventos agregados legítimos según la fuente.</li>
+    </ul>
+
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Indicador</th><th>Antes del tratamiento</th><th>Después del tratamiento</th></tr></thead>
+            <tbody>
+                <tr><td>Registros</td><td>337.444</td><td>337.416</td></tr>
+                <tr><td>Duplicados (id_original + fuente)</td><td>28</td><td>0</td></tr>
+                <tr><td>Categorías únicas de <code>tipo_evento</code></td><td>11</td><td>11</td></tr>
+                <tr><td>Completitud global</td><td>78,50 %</td><td>83,48 %</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Registros disponibles por fuente</h2>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Fuente</th><th>Registros</th><th>Nivel</th></tr></thead>
+            <tbody>
+                <tr><td>Medicina Legal (SIRDEC)</td><td>205.938</td><td>Nacional</td></tr>
+                <tr><td>SIEVCAC (CNMH)</td><td>82.458</td><td>Nacional</td></tr>
+                <tr><td>ACLED</td><td>26.706</td><td>Global</td></tr>
+                <tr><td>IOM Missing Migrants</td><td>22.299</td><td>Global</td></tr>
+                <tr><td>Encuesta propia de caracterización</td><td>14</td><td>Nacional*</td></tr>
+                <tr><td>Entrevista familiar anónima</td><td>1</td><td>Nacional*</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">
+        *En este archivo, la encuesta y la entrevista propias todavía aparecen etiquetadas como
+        "Nacional" en vez de "Regional" (ver limitaciones abajo); sus 15 registros se pueden
+        identificar igualmente por la columna <code>fuente</code>.
+    </p>
+
+    <h2>Problemas de calidad que todavía pueden afectar los resultados</h2>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Problema</th><th>Alcance</th><th>Por qué importa para este análisis</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>Fecha incompleta</td>
+                    <td>5.807 registros (1,72 %); de estos, 1.544 sí tienen <code>anio</code> conocido pero no mes ni día</td>
+                    <td>La pregunta temporal debe filtrar por <code>anio</code> y no asumir que todos los registros tienen fecha exacta</td>
+                </tr>
+                <tr>
+                    <td>Valores atípicos marcados, no eliminados</td>
+                    <td><code>num_personas_atipico</code>: 13.390 · <code>anio_atipico</code>: 665</td>
+                    <td>Corresponden sobre todo a eventos agregados de ACLED/IOM; sumarlos como "personas únicas" sin usar <code>num_personas</code> sobreestimaría el conteo</td>
+                </tr>
+                <tr>
+                    <td>Nivel de fuente desactualizado</td>
+                    <td>15 registros (encuesta + entrevista) etiquetados "Nacional" en vez de "Regional"</td>
+                    <td>Si el modelo de Power BI agrupa por <code>nivel_fuente</code>, estos 15 casos quedan mezclados con Medicina Legal/SIEVCAC en vez de aparecer como su propia categoría</td>
+                </tr>
+                <tr>
+                    <td>Posible doble registro entre fuentes</td>
+                    <td>No cuantificado</td>
+                    <td>Una misma persona desaparecida podría estar registrada tanto en Medicina Legal como en SIEVCAC; el dataset no tiene una llave para identificarlo, así que los conteos agregados por fuente no deben leerse como personas distintas entre sí</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Unidad de análisis</h2>
+    <p>
+        El dataset <strong>no tiene una unidad de análisis homogénea</strong>: cada fila puede
+        representar una persona o un evento que agrupa a varias personas, según la fuente de
+        origen. Esto se identifica con la columna <code>unidad_de_analisis</code>:
+    </p>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Unidad de análisis</th><th>Registros</th><th>Qué representa cada fila</th><th>Fuentes</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><code>persona</code></td>
+                    <td>288.411</td>
+                    <td>Una persona desaparecida específica, reportada individualmente</td>
+                    <td>Medicina Legal, SIEVCAC, encuesta propia, entrevista propia</td>
+                </tr>
+                <tr>
+                    <td><code>evento_agregado</code></td>
+                    <td>49.005</td>
+                    <td>Un incidente o un conjunto de eventos agregados (por semana y región, o por incidente puntual), que puede involucrar a más de una persona a la vez</td>
+                    <td>IOM Missing Migrants, ACLED</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">
+        Consecuencia práctica para los tableros: contar filas (<code>COUNTROWS</code>) responde
+        "¿cuántos registros hay?", pero no equivale a "¿cuántas personas hay?" cuando se incluyen
+        fuentes de <code>evento_agregado</code> — para eso debe sumarse la columna
+        <code>num_personas</code>. Las medidas DAX de los tableros deben dejar claro cuál de las
+        dos cosas están mostrando.
+    </p>
+</section>
 {% endblock %}
