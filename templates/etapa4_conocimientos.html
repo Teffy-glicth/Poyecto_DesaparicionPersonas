@@ -1,4 +1,98 @@
 {% extends "base.html" %}
 {% block title %}Conocimientos evidentes{% endblock %}
 {% block content %}
+<section class="page conocimientos">
+    <h1>4. Conocimientos evidentes</h1>
+    <p class="lead">{{ datos.proposito }}</p>
+
+    <div class="contexto-datos">
+        <p><strong>Fuente de los datos:</strong> {{ datos.fuente }}.</p>
+        <p><strong>Periodo analizado:</strong> {{ datos.periodo }}.</p>
+        <p><strong>Base del análisis:</strong> {{ datos.base }}.</p>
+        <p class="nota">{{ datos.nota_conjunto }}</p>
+    </div>
+
+    <nav class="tablero-nav" aria-label="Tableros">
+        {% for t in datos.tableros %}
+        <a href="#{{ t.slug }}"><span class="folio">{{ t.numero }}</span>{{ t.nombre }}</a>
+        {% endfor %}
+        <a href="#condiciones"><span class="folio">✓</span>Condiciones del análisis</a>
+    </nav>
+
+    <h2>Resumen de hallazgos</h2>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <thead><tr><th>#</th><th>Conocimiento</th><th>Hallazgo</th></tr></thead>
+            <tbody>
+            {% for t in datos.tableros %}
+                {% for c in t.conocimientos %}
+                <tr>
+                    <td>{{ t.numero }}.{{ loop.index }}</td>
+                    <td><a href="#{{ t.slug }}-{{ loop.index }}">{{ c.titulo }}</a></td>
+                    <td>{{ c.hallazgo }}</td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% for t in datos.tableros %}
+    <section class="bloque-tablero" id="{{ t.slug }}">
+        <span class="badge">Tablero {{ t.numero }} · {{ t.nombre }}</span>
+        <h2>Pregunta {{ t.numero }}</h2>
+        <p class="pregunta-tablero">{{ t.pregunta }}</p>
+
+        {% if t.conocimientos %}
+        <div class="conocimientos-grid">
+            {% for c in t.conocimientos %}
+            <article class="conocimiento-card" id="{{ t.slug }}-{{ loop.index }}">
+                <h3><span class="num">{{ t.numero }}.{{ loop.index }}</span> {{ c.titulo }}</h3>
+                <dl>
+                    {% for clave, etiqueta in elementos %}
+                    <dt>{{ etiqueta }}</dt>
+                    <dd>{{ c[clave] }}</dd>
+                    {% endfor %}
+                </dl>
+            </article>
+            {% endfor %}
+        </div>
+
+        <div class="lim-dec">
+            <div class="caja-limitacion">
+                <p class="sub">Limitación del análisis</p>
+                <p>{{ t.limitacion }}</p>
+            </div>
+            <div class="caja-decision">
+                <p class="sub">Decisión sustentada en los datos</p>
+                <p>{{ t.decision }}</p>
+            </div>
+        </div>
+        {% else %}
+        <p class="placeholder-note">Los conocimientos de este tablero se agregarán cuando esté terminada su página en Power BI.</p>
+        {% endif %}
+
+        {% if t.pagina_powerbi %}
+        <a class="btn-secundario" href="{{ t.pagina_powerbi }}" target="_blank" rel="noopener">Ver el tablero {{ t.numero }} en Power BI</a>
+        {% elif informe_url %}
+        <a class="btn-secundario" href="{{ informe_url }}" target="_blank" rel="noopener">Abrir el informe de Power BI</a>
+        {% endif %}
+    </section>
+    {% endfor %}
+
+    <section class="bloque-tablero" id="condiciones">
+        <h2>Condiciones del análisis aplicadas</h2>
+        <p>Los conocimientos respetan las condiciones definidas para esta etapa:</p>
+        <div class="tabla-scroll">
+            <table>
+                <thead><tr><th>Condición</th><th>Cómo se cumple</th></tr></thead>
+                <tbody>
+                {% for c in datos.condiciones %}
+                    <tr><td>{{ c.condicion }}</td><td>{{ c.como }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
 {% endblock %}
