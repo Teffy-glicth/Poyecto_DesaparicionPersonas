@@ -61,6 +61,20 @@ ETAPA4_MENU = [
 ]
 ETAPA4_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA4_MENU}
 
+CONOCIMIENTOS_PATH = DATA_DIR / "conocimientos.json"
+POWERBI_REPORT_URL = os.environ.get("POWERBI_REPORT_URL", "")
+
+ELEMENTOS_CONOCIMIENTO = [
+    ("pregunta", "Pregunta"),
+    ("variables", "Variables"),
+    ("procedimiento", "Procedimiento"),
+    ("evidencia", "Evidencia"),
+    ("hallazgo", "Hallazgo"),
+    ("interpretacion", "Interpretación"),
+    ("utilidad", "Utilidad"),
+    ("limitacion", "Limitación"),
+]
+
 MUESTRA_MAX_FILAS = 50
 
 
@@ -352,7 +366,24 @@ def etapa4_pagina(slug):
     if slug not in ETAPA4_MENU_BY_SLUG:
         abort(404)
 
+    if slug == "conocimientos":
+        return render_conocimientos()
+
     return render_template(f"etapa4_{slug}.html", current_slug=slug)
+
+
+def render_conocimientos():
+    if not CONOCIMIENTOS_PATH.exists():
+        abort(500, description="Falta el archivo data/conocimientos.json.")
+    with open(CONOCIMIENTOS_PATH, encoding="utf-8") as f:
+        datos = json.load(f)
+    return render_template(
+        "etapa4_conocimientos.html",
+        datos=datos,
+        elementos=ELEMENTOS_CONOCIMIENTO,
+        informe_url=POWERBI_REPORT_URL,
+        current_slug="conocimientos",
+    )
 
 
 if __name__ == "__main__":
