@@ -1,0 +1,223 @@
+{
+  "proposito": "Esta sección reúne los 12 conocimientos evidentes que resultan de los cuatro tableros de Power BI. Cada conocimiento es un hallazgo respaldado por cifras verificables y se documenta con ocho elementos: pregunta, variables, procedimiento, evidencia, hallazgo, interpretación, utilidad y limitación.",
+  "fuente": "Instituto Nacional de Medicina Legal y Ciencias Forenses (SIRDEC) y Centro Nacional de Memoria Histórica (SIEVCAC), publicados en datos.gov.co",
+  "periodo": "Registros de 1930 a junio de 2026; el análisis temporal usa los años completos 2007-2025",
+  "base": "282.597 personas registradas en Colombia (205.812 de Medicina Legal y 76.785 de SIEVCAC), una fila por persona en su fuente",
+  "nota_conjunto": "Salvo que se indique lo contrario, las cifras describen el conjunto completo, sin filtros. En el tablero de Power BI los indicadores cambian al usar los segmentadores.",
+  "tableros": [
+    {
+      "numero": 1,
+      "slug": "poblacion",
+      "nombre": "Composición de la población",
+      "pregunta": "¿Cómo se distribuyen las personas registradas como desaparecidas en Colombia según sexo, estado de la víctima y fuente, y qué grupos son predominantes y cuáles minoritarios?",
+      "pagina_powerbi": "https://app.powerbi.com/view?r=eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9&pageName=9897ca544da6e7d48a25&pageName=9897ca544da6e7d48a25",
+      "conocimientos": [
+        {
+          "titulo": "Predominio masculino",
+          "pregunta": "¿Qué sexo predomina entre las personas registradas?",
+          "variables": "sexo, fuente.",
+          "procedimiento": "Conteo de personas por sexo dentro de cada fuente. Denominador: total de personas de esa fuente.",
+          "evidencia": "Indicador % Hombres y visual 1.",
+          "hallazgo": "Hombres: 69,8 % en Medicina Legal (143.634 de 205.812) y 85,3 % en SIEVCAC (65.517 de 76.785).",
+          "interpretacion": "7 de cada 10 personas reportadas son hombres; en el conflicto armado son más de 8 de cada 10.",
+          "utilidad": "Dimensionar los protocolos de búsqueda y de acompañamiento a familias según el perfil predominante.",
+          "limitacion": "No explica por qué hay más hombres. Las 2.671 personas de SIEVCAC sin sexo registrado no se reparten entre hombres y mujeres."
+        },
+        {
+          "titulo": "Las mujeres aparecen con vida el doble de veces",
+          "pregunta": "¿El desenlace del caso cambia según el sexo?",
+          "variables": "sexo, estado_victima (Medicina Legal).",
+          "procedimiento": "Barras al 100 % por sexo. Denominador: personas de cada sexo.",
+          "evidencia": "Visual 2.",
+          "hallazgo": "Aparecidas con vida: 46,5 % de las mujeres (28.928 de 62.178) frente a 23,0 % de los hombres (33.011 de 143.634). Sin vida: 2,7 % frente a 7,7 %.",
+          "interpretacion": "Los casos de mujeres terminan con la persona viva el doble de veces. Hipótesis: los hechos detrás de cada caso difieren, pero el dataset no trae la circunstancia para comprobarlo.",
+          "utilidad": "Orientar la identificación forense hacia los casos de hombres.",
+          "limitacion": "Es una asociación, no una causa. El estado puede cambiar después del corte de los datos."
+        },
+        {
+          "titulo": "Los casos del conflicto casi nunca se resuelven",
+          "pregunta": "¿En qué se distingue la situación de los casos del conflicto armado?",
+          "variables": "estado_victima, fuente, calidad_victima.",
+          "procedimiento": "Porcentaje por estado dentro de cada fuente, comparado lado a lado sin sumar fuentes.",
+          "evidencia": "Visual 3 e indicador % Siguen desaparecidas.",
+          "hallazgo": "Siguen desaparecidas: 86,9 % en SIEVCAC frente a 63,7 % en Medicina Legal. El 98,3 % de las víctimas de SIEVCAC son civiles.",
+          "interpretacion": "La desaparición forzada del conflicto deja a casi 9 de cada 10 familias sin respuesta, y sus víctimas son casi todas civiles.",
+          "utilidad": "Sustenta priorizar estos casos en la búsqueda humanitaria (UBPD).",
+          "limitacion": "Las fuentes registran hechos distintos y pueden compartir personas, por eso no se comparan como tasas de una misma población."
+        }
+      ],
+      "limitacion": "Las fuentes grandes no traen edad ni ocupación (solo 13 registros de la encuesta tienen edad), así que el perfil demográfico se limita al sexo.",
+      "decision": "Concentrar la identificación forense en los casos de hombres, que son 69,8 % de los registros de Medicina Legal y aparecen sin vida 2,9 veces más que las mujeres."
+    },
+    {
+      "numero": 2,
+      "slug": "territorio",
+      "nombre": "El sur frente al resto del país",
+      "pregunta": "¿Cómo se diferencia el sur del país (Nariño, Cauca, Putumayo, Caquetá y Huila) del resto de regiones en número de personas desaparecidas, participación porcentual, municipios con más casos y desenlace de los casos?",
+      "pagina_powerbi": "https://app.powerbi.com/view?r=eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9&pageName=9897ca544da6e7d48a25&pageName=b99a6b0d7b8f2b7f052e",
+      "conocimientos": [
+        {
+          "titulo": "El sur pesa más en el registro del conflicto",
+          "pregunta": "¿Qué parte de los casos ocurre en el sur?",
+          "variables": "macro_region, fuente.",
+          "procedimiento": "Personas con macro_region = Sur sobre el total de personas de la fuente, incluidos los registros sin ubicación.",
+          "evidencia": "Indicadores Personas en el Sur y % Sur sobre el total.",
+          "hallazgo": "Sur: 8,8 % en Medicina Legal (18.087 de 205.812) y 13,9 % en SIEVCAC (10.701 de 76.785).",
+          "interpretacion": "En el registro del conflicto armado el sur pesa 1,6 veces más que en el registro general, lo que coincide con la presencia histórica de grupos armados descrita en la Etapa 1.",
+          "utilidad": "Justifica analizar el sur como una región con un patrón propio de desaparición forzada.",
+          "limitacion": "Sin población del DANE no se calculan tasas por 100.000 habitantes; un porcentaje bajo puede deberse solo a que el sur tiene menos habitantes."
+        },
+        {
+          "titulo": "En el sur los casos se resuelven menos",
+          "pregunta": "¿El desenlace de los casos es distinto en el sur?",
+          "variables": "macro_region, estado_victima.",
+          "procedimiento": "Porcentaje por estado dentro de cada región. Denominador: personas de la región en la fuente elegida.",
+          "evidencia": "Visual 2 e indicador Brecha desaparecidas Sur vs Resto.",
+          "hallazgo": "Medicina Legal: 78,4 % siguen desaparecidas en el sur frente a 62,0 % en el resto (+16,4 pp). SIEVCAC: 89,1 % frente a 86,3 % (+2,7 pp).",
+          "interpretacion": "En el registro general, una persona desaparecida en el sur tiene la mitad de probabilidad de aparecer con vida (15,5 % frente a 31,7 %). En el conflicto la brecha casi desaparece porque en todo el país casi nadie aparece.",
+          "utilidad": "Sustenta reforzar la capacidad de búsqueda en el sur.",
+          "limitacion": "No muestra por qué se resuelven menos; puede influir la ruralidad (ver tablero 4) o la capacidad institucional, que no está en los datos."
+        },
+        {
+          "titulo": "Huila es la excepción dentro del sur",
+          "pregunta": "¿Los cinco departamentos del sur se comportan igual?",
+          "variables": "depto, municipio_norm, estado_victima.",
+          "procedimiento": "Porcentaje de personas que siguen desaparecidas por departamento del sur, con el detalle por municipio.",
+          "evidencia": "Visual 3.",
+          "hallazgo": "Medicina Legal: Putumayo 90,3 %, Caquetá 88,2 %, Cauca 83,8 %, Nariño 78,5 % y Huila 55,7 %. En Huila, 38,6 % aparece con vida; en Putumayo, 2,3 %.",
+          "interpretacion": "Huila se parece más al promedio nacional que a sus vecinos. Hipótesis: pesan los casos urbanos de Neiva (2.130), el municipio del sur con más registros. Es un valor inusual que se debe revisar, no un error.",
+          "utilidad": "Evita tratar el sur como un bloque homogéneo al asignar recursos.",
+          "limitacion": "La hipótesis urbana no se puede confirmar sin cruzar con la zona (tablero 4)."
+        }
+      ],
+      "limitacion": "No hay población por departamento, así que se comparan conteos y proporciones, no tasas. La concentración en Bogotá podría reflejar dónde se denuncia y no dónde ocurre (hipótesis). Los 4.037 registros sin ubicación cuentan en el denominador del % Sur pero no en las comparaciones.",
+      "decision": "Dentro del sur, priorizar la búsqueda en Putumayo y Caquetá, donde más de 88 % de las personas registradas por Medicina Legal sigue sin aparecer."
+    },
+    {
+      "numero": 3,
+      "slug": "tiempo",
+      "nombre": "Comportamiento temporal",
+      "pregunta": "¿Cómo evolucionó el número anual de personas desaparecidas registradas en Colombia entre 2007 y 2025, en qué años se dieron los máximos y mínimos, y cómo cambió el registro antes y después del Acuerdo de Paz de 2016?",
+      "pagina_powerbi": "https://app.powerbi.com/view?r=eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9&pageName=9897ca544da6e7d48a25&pageName=29f24126fb3c3b4291ab",
+      "conocimientos": [
+        {
+          "titulo": "Pico en 2011 y descenso hasta 2025",
+          "pregunta": "¿Cómo evolucionó el registro anual entre 2007 y 2025?",
+          "variables": "anio, fuente, Personas.",
+          "procedimiento": "Conteo de personas por año (ambas fuentes) y cambio frente a 2011 (denominador: 9.532).",
+          "evidencia": "Gráfico de líneas «Personas desaparecidas registradas por año y fuente».",
+          "hallazgo": "Sube de 7.814 (2008) a 9.532 (2011); baja a 7.913 en 2015 (−17,0 %) y a 5.883 en 2025 (−38,3 %).",
+          "interpretacion": "El registro anual actual es mucho menor que el del pico de 2011, con un descenso gradual.",
+          "utilidad": "Sirve para dimensionar la carga de registro y usar 2011 como referencia al planear recursos.",
+          "limitacion": "Describe registros, no desapariciones reales. Los cambios de cobertura y el registro tardío pueden explicar parte de la baja."
+        },
+        {
+          "titulo": "−23,0 % antes vs después del Acuerdo, con cambio de cobertura",
+          "pregunta": "¿Cómo cambió el registro antes y después del Acuerdo de 2016?",
+          "variables": "periodo_acuerdo, anio, fuente y Personas.",
+          "procedimiento": "Se calculó el promedio anual de 2007-2015 y de 2017-2025 (9 años cada uno, sin 2016). La variación es (después − antes) ÷ antes, con el promedio «antes» como denominador. Se repitió con el segmentador de fuente.",
+          "evidencia": "Tarjeta de −23,0 %, columnas 8.602 / 7.437 / 6.624 y los resultados por fuente (Medicina Legal −14,3 %, SIEVCAC −95,4 %).",
+          "hallazgo": "El promedio pasa de 8.602 a 6.624 registros por año. En Medicina Legal baja 14,3 %. En SIEVCAC baja de 923 a 43, aproximadamente el 44 % de la diferencia total.",
+          "interpretacion": "El descenso posterior a 2016 existe en Medicina Legal, pero es menor. Una parte importante viene de que SIEVCAC casi deja de aportar registros.",
+          "utilidad": "Para evaluar la tendencia conviene usar Medicina Legal como serie base y no citar el −23 % como reducción de desapariciones.",
+          "limitacion": "Es una asociación temporal, no causalidad. El periodo posterior incluye 2020, 2025 puede estar incompleto y una persona puede aparecer en ambas fuentes."
+        },
+        {
+          "titulo": "Máximo en 2011, mínimo en 2020 y rebote en 2021",
+          "pregunta": "¿En qué años se dieron el máximo y el mínimo?",
+          "variables": "anio, Personas, variación interanual.",
+          "procedimiento": "Cada año se comparó con el anterior, (año − año anterior) ÷ año anterior, y se identificaron los extremos entre 2007 y 2025.",
+          "evidencia": "Tarjetas «Año con más registros: 2011 (9.532)» y «Año con menos registros: 2020 (5.289)», más el gráfico de variación porcentual anual del registro.",
+          "hallazgo": "El mínimo está 44,5 % por debajo del máximo. 2020 cayó −27,5 % y 2021 subió +31,4 % (6.952). En los demás años la variación estuvo entre −14,1 % y +10,0 %.",
+          "interpretacion": "2020 es un año atípico aislado. En 2021 el registro quedó solo 4,7 % por debajo de 2019 (7.295).",
+          "utilidad": "Tratar 2020-2021 como atípicos al comparar o proyectar, y no usar 2020 como base para medir mejoras.",
+          "limitacion": "Los datos no explican la causa. Que coincida con la pandemia es solo una hipótesis. El máximo es solo dentro de 2007-2025."
+        }
+      ],
+      "limitacion": "Los datos son registros por año en dos fuentes cuya cobertura cambió (SIEVCAC casi desaparece desde 2014), y una persona puede estar en ambas. Por eso no se puede separar una baja real de desapariciones de una baja del registro, ni atribuir el cambio al Acuerdo de 2016. 2026 se excluye por ser parcial (hasta junio).",
+      "decision": "Usar Medicina Legal, que tiene cobertura continua 2007-2025, como serie base para seguir la tendencia, y reportar SIEVCAC por separado. Revisar 2025-2026 cuando el registro se complete, porque 2025 (5.883) es el segundo valor más bajo, antes de afirmar que el descenso continúa."
+    },
+    {
+      "numero": 4,
+      "slug": "perfiles",
+      "nombre": "Perfiles multivariados",
+      "pregunta": "¿Qué perfiles resultan de cruzar sexo, zona del hecho (cabecera, centro poblado o rural), macrorregión (sur o resto) y estado de la víctima, y qué combinaciones tienen la mayor proporción de personas que siguen desaparecidas o aparecieron sin vida?",
+      "pagina_powerbi": "https://app.powerbi.com/view?r=eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9&pageName=9897ca544da6e7d48a25&pageName=ee251637d064869a4a74",
+      "conocimientos": [
+        {
+          "titulo": "La brecha por sexo se repite en todas las zonas y regiones",
+          "pregunta": "¿El desenlace de hombres y mujeres difiere dentro de una misma zona y región?",
+          "variables": "sexo, zona, macro_region, estado_victima.",
+          "procedimiento": "Se calculó el % que sigue desaparecido por sexo en cada uno de los 6 cruces zona × región, en Medicina Legal.",
+          "evidencia": "Matriz y barras apiladas.",
+          "hallazgo": "Los hombres superan a las mujeres en los 6 cruces, por 9,4 a 27,6 puntos. En total, 67,8 % de los hombres sigue desaparecido frente a 49,9 % de las mujeres.",
+          "interpretacion": "La brecha por sexo no depende de la zona.",
+          "utilidad": "Priorizar los casos de hombres en la búsqueda.",
+          "limitacion": "Es una asociación observada, no una causa."
+        },
+        {
+          "titulo": "El sur rural tiene la mayor proporción de casos sin aparecer",
+          "pregunta": "¿Qué perfiles tienen la mayor proporción sin aparecer y cómo influye el territorio?",
+          "variables": "zona, macro_region, sexo, estado_victima.",
+          "procedimiento": "Se compararon los mismos perfiles entre el sur y el resto, y entre zonas dentro de cada sexo y región.",
+          "evidencia": "Tarjeta de perfil de mayor riesgo y matriz.",
+          "hallazgo": "Hombre · Rural · Sur tiene 90,5 % sin aparecer (5.396 personas). El sur supera al resto en los 6 pares comparables. El perfil con más personas aún desaparecidas es Hombre · Rural · Resto (19.697).",
+          "interpretacion": "La proporción es mayor en el sur rural y el volumen en lo rural del resto del país.",
+          "utilidad": "Priorizar con dos criterios: proporción y volumen.",
+          "limitacion": "Son conteos, no tasas, y Mujer · Centro poblado · Sur tiene solo 322 personas."
+        },
+        {
+          "titulo": "Los hombres rurales del resto del país son el perfil con más hallazgos sin vida",
+          "pregunta": "¿En qué perfiles es mayor la proporción de personas que aparecieron sin vida?",
+          "variables": "sexo, zona, macro_region, estado_victima.",
+          "procedimiento": "Se calculó el % sin vida sobre el total de cada perfil y sobre quienes aparecieron.",
+          "evidencia": "Barras apiladas y dispersión.",
+          "hallazgo": "Hombre · Rural · Resto (9,9 %) y Hombre · Centro poblado · Resto (9,2 %), frente a 2,1 % de Mujer · Cabecera · Resto. Entre quienes aparecieron, 67,8 % de los hombres rurales del sur fue sin vida (347 de 512).",
+          "interpretacion": "Un % sin vida bajo puede significar que casi nadie fue encontrado.",
+          "utilidad": "Leer el % sin vida junto con el % que sigue desaparecido.",
+          "limitacion": "El estado es el registrado en la fuente; no indica qué le ocurrió a la persona."
+        }
+      ],
+      "limitacion": "Zona solo existe en Medicina Legal y se excluyó 7,6 % de las personas por faltar sexo, zona o región. Los porcentajes son proporciones de personas registradas, no tasas. Los textos describen el conjunto completo, sin el filtro de años.",
+      "decision": "Priorizar la búsqueda activa y el cruce con identificación forense en zonas rurales y centros poblados, empezando por los hombres rurales del sur (mayor proporción sin aparecer) y los del resto del país (mayor volumen)."
+    }
+  ],
+  "condiciones": [
+    {
+      "condicion": "Denominador de los porcentajes",
+      "como": "Cada porcentaje indica sobre qué total se calcula: personas de la fuente, del sexo, de la región o del perfil."
+    },
+    {
+      "condicion": "Periodos equivalentes",
+      "como": "Se comparan 2007-2015 contra 2017-2025 (9 años cada uno, sin 2016, año de la firma). 2026 se excluye de la serie porque solo llega hasta junio."
+    },
+    {
+      "condicion": "Fuentes sin sumar como personas únicas",
+      "como": "Medicina Legal y SIEVCAC pueden registrar a la misma persona. En los tableros 1 y 2 se analizan por separado con un segmentador de selección única; en el tablero 3 la serie total se presenta como registros, no como personas únicas, y se muestra cada fuente."
+    },
+    {
+      "condicion": "Faltantes separados",
+      "como": "«Sin información» y «Sin ubicación» se muestran como categorías propias, no se reparten ni se confunden con otras respuestas."
+    },
+    {
+      "condicion": "Cambios de cobertura",
+      "como": "Medicina Legal salta en 2007 con el sistema SIRDEC y SIEVCAC casi deja de registrar desde 2013-2014; por eso el análisis temporal empieza en 2007 y el conocimiento 3.2 separa el efecto de cada fuente."
+    },
+    {
+      "condicion": "Hipótesis y asociaciones",
+      "como": "Las explicaciones que los datos no comprueban se presentan como hipótesis, y las relaciones se describen como asociaciones, no como causas."
+    },
+    {
+      "condicion": "Valores inusuales revisados",
+      "como": "Huila dentro del sur, la caída de 2020 y el rebote de 2021, y perfiles pequeños como Mujer · Centro poblado · Sur (322 personas) se revisan antes de tratarlos como errores."
+    },
+    {
+      "condicion": "Modelo sin duplicar valores",
+      "como": "Las tablas de dimensiones se relacionan 1 a muchos en una sola dirección, así cada persona se cuenta una vez."
+    },
+    {
+      "condicion": "Análisis multivariado",
+      "como": "El tablero 4 cruza cuatro variables del conjunto de datos: sexo, zona, macrorregión y estado de la víctima, y solo compara perfiles con 300 personas o más."
+    }
+  ]
+}

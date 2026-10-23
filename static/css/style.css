@@ -435,3 +435,103 @@ th { background: var(--color-badge-bg); color: var(--color-text); font-weight: 6
 }
 
 .evidencia figcaption { color: var(--color-muted); font-size: 0.85rem; margin-top: 6px; }
+
+/* ---------- Etapa 4 · Conocimientos evidentes ---------- */
+.contexto-datos {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-primary);
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin: 18px 0;
+}
+.contexto-datos p { margin: 4px 0; }
+
+.tablero-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0 8px;
+}
+.tablero-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 0.92rem;
+}
+.tablero-nav a:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.tablero-nav .folio { font-family: var(--font-voice); color: var(--color-primary); }
+
+.tabla-resumen td:first-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tabla-resumen td:nth-child(2) { min-width: 200px; }
+
+.bloque-tablero {
+    margin-top: 40px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+    scroll-margin-top: 16px;
+}
+.pregunta-tablero {
+    font-family: var(--font-voice);
+    font-size: 1.08rem;
+    color: var(--color-text);
+}
+
+.conocimientos-grid {
+    display: grid;
+    gap: 16px;
+    margin: 16px 0;
+}
+.conocimiento-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    scroll-margin-top: 16px;
+}
+.conocimiento-card h3 { margin: 0 0 10px; font-size: 1.02rem; }
+.conocimiento-card .num { font-family: var(--font-voice); color: var(--color-primary); }
+.conocimiento-card dl {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 6px 14px;
+    margin: 0;
+    font-size: 0.92rem;
+}
+.conocimiento-card dt { font-weight: 600; color: var(--color-secondary); }
+.conocimiento-card dd { margin: 0; color: #33322c; }
+@media (max-width: 560px) {
+    .conocimiento-card dl { grid-template-columns: 1fr; gap: 2px; }
+    .conocimiento-card dd { margin-bottom: 8px; }
+}
+.tabla-resumen a { color: var(--color-primary); }
+
+.lim-dec {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 8px 0 16px;
+}
+.caja-limitacion, .caja-decision {
+    border-radius: 6px;
+    padding: 12px 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+.caja-limitacion { border-left: 4px solid var(--color-muted); }
+.caja-decision { border-left: 4px solid var(--color-primary); }
+.caja-limitacion .sub, .caja-decision .sub {
+    margin: 0 0 4px;
+    font-weight: 600;
+    color: var(--color-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.caja-limitacion p:last-child, .caja-decision p:last-child { margin: 0; }

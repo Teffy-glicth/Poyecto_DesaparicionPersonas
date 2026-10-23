@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Preguntas de análisis{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>2. Preguntas de análisis</h1>
+    <p class="lead">
+        Cuatro preguntas, cada una desarrollada en una página de Power BI. Todas se responden con
+        <code>data/processed/dataset_tratado.csv</code> (337.416 registros, ver
+        <a href="{{ url_for('etapa4_pagina', slug='continuidad') }}">Continuidad del proyecto</a>).
+        Debajo de cada pregunta se indican las variables que la responden y los ajustes que exige
+        la calidad real de los datos, para que el tablero de Power BI no arrastre errores de conteo.
+    </p>
+
+    <article class="iteracion-card">
+        <span class="badge">1 · Poblacional</span>
+        <h3>¿Cómo se distribuyen las personas registradas como desaparecidas en Colombia según
+            sexo, estado de la víctima y fuente, y qué grupos son predominantes y cuáles
+            minoritarios?</h3>
+        <p><strong>Por qué esta pregunta.</strong> Es la base de cualquier caracterización
+            poblacional: antes de comparar territorios o periodos hay que saber quién compone el
+            conjunto de registros y qué tan equilibrada o sesgada es esa composición.</p>
+        <p class="sub">Variables</p>
+        <ul>
+            <li><code>sexo</code> (Hombre / Mujer / Sin información)</li>
+            <li><code>estado_victima</code> (Desaparecido, Aparecido con vida, Aparecido sin vida, Fallecido y desaparecido, Sin información)</li>
+            <li><code>fuente</code></li>
+            <li><code>num_personas</code>, para no contar como "1 persona" las filas de evento agregado</li>
+        </ul>
+        <p class="resultado"><strong>Consideración de calidad.</strong> La pregunta pide personas
+            "en Colombia": conviene filtrar a <code>pais = "Colombia"</code> (o a las fuentes
+            Medicina Legal, SIEVCAC, encuesta y entrevista), porque IOM y ACLED son fuentes
+            globales y mezclarlas sin filtrar incluiría personas desaparecidas en otros países.</p>
+    </article>
+
+    <article class="iteracion-card">
+        <span class="badge">2 · Territorial</span>
+        <h3>¿Cómo se diferencia el sur del país (Nariño, Cauca, Putumayo, Caquetá y Huila) del
+            resto de regiones en número de personas desaparecidas, participación porcentual,
+            municipios con más casos y proporción de personas aparecidas sin vida?</h3>
+        <p><strong>Por qué esta pregunta.</strong> El dataset sí tiene variable territorial
+            (<code>departamento</code>, <code>municipio</code>), así que se usa la comparación
+            territorial pedida por la rúbrica en vez de justificar una sustitución.</p>
+        <p class="sub">Variables</p>
+        <ul>
+            <li><code>departamento</code>, <code>municipio</code></li>
+            <li><code>estado_victima</code> (para la proporción de "Aparecido sin vida")</li>
+            <li>Una columna calculada "macrorregión" = Sur si <code>departamento</code> está en
+                {Nariño, Cauca, Putumayo, Caquetá, Huila}, Resto en los demás casos</li>
+        </ul>
+        <p class="resultado"><strong>Consideración de calidad — importante.</strong>
+            <code>departamento</code> no viene en un solo formato: Medicina Legal usa texto normal
+            ("Nariño", 5.219 registros) y SIEVCAC usa mayúsculas sostenidas ("NARIÑO", 2.400
+            registros). Si se agrupa tal cual, Power BI los cuenta como dos departamentos distintos
+            y el total del sur queda subestimado. Hay que normalizar el texto (mayúsculas o formato
+            "Propio") en Power Query antes de calcular la macrorregión y cualquier indicador por
+            departamento.</p>
+    </article>
+
+    <article class="iteracion-card">
+        <span class="badge">3 · Temporal</span>
+        <h3>¿Cómo evolucionó el número anual de personas desaparecidas registradas en Colombia
+            entre 2007 y 2025, en qué años se dieron los máximos y mínimos, y cómo cambió el
+            registro antes y después del Acuerdo de Paz de 2016?</h3>
+        <p><strong>Por qué esta pregunta.</strong> El dataset cubre 1930-2026; se acota a 2007-2025
+            porque son años completos y comparables entre sí (2026 está incompleto en el corte de
+            los datos) y porque el rango incluye un antes/después claro: el Acuerdo de Paz de
+            2016.</p>
+        <p class="sub">Variables</p>
+        <ul>
+            <li><code>anio</code> (se usa, no <code>fecha</code>, porque hay 1.544 registros con
+                año conocido pero sin mes/día — excluirlos perdería información real)</li>
+            <li>Periodo calculado: "Antes de 2016" / "2016 en adelante"</li>
+        </ul>
+        <p class="resultado"><strong>Consideración de calidad.</strong> Un aumento o caída en el
+            conteo anual puede reflejar cambios reales o simplemente cambios en qué tanto
+            registraba cada fuente ese año (cobertura, digitalización de archivos antiguos); por
+            eso cualquier salto debe presentarse como hallazgo a interpretar con cautela, no como
+            una conclusión causal directa sobre el fenómeno.</p>
+    </article>
+
+    <article class="iteracion-card">
+        <span class="badge">4 · Multivariado</span>
+        <h3>¿Qué perfiles resultan de cruzar sexo, zona del hecho (cabecera, centro poblado o
+            rural), macrorregión (sur o resto) y estado de la víctima, y qué combinaciones tienen
+            la mayor proporción de personas que siguen desaparecidas o aparecieron sin vida?</h3>
+        <p><strong>Por qué esta pregunta.</strong> Cruza las tres dimensiones de las preguntas
+            anteriores (persona, territorio, y ahora zona del hecho) para encontrar combinaciones
+            que ninguna variable por separado muestra.</p>
+        <p class="sub">Variables</p>
+        <ul>
+            <li><code>sexo</code></li>
+            <li><code>detalle</code> como "zona del hecho" (cabecera municipal, parte rural,
+                centro poblado)</li>
+            <li>Macrorregión (sur / resto), igual que en la pregunta 2</li>
+            <li><code>estado_victima</code></li>
+        </ul>
+        <p class="resultado"><strong>Consideración de calidad — importante.</strong>
+            <code>detalle</code> solo contiene la zona del hecho en los registros de Medicina Legal;
+            en SIEVCAC guarda "Civil/Combatiente", en IOM la causa de muerte, en ACLED el admin1 y
+            en la encuesta la ocupación. Este tablero debe filtrarse explícitamente a
+            <code>fuente = "Medicina Legal (SIRDEC)"</code> (205.938 registros) para que "zona del
+            hecho" tenga sentido; cruzarlo con las demás fuentes mezclaría categorías que no son
+            comparables entre sí.</p>
+    </article>
+
+    <h2>Resumen de alcance por pregunta</h2>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>#</th><th>Tipo</th><th>Fuentes incluidas</th><th>Filtro obligatorio</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>Poblacional</td><td>Medicina Legal, SIEVCAC, encuesta, entrevista</td><td><code>pais = "Colombia"</code></td></tr>
+                <tr><td>2</td><td>Territorial</td><td>Medicina Legal, SIEVCAC, entrevista</td><td>Normalizar formato de <code>departamento</code></td></tr>
+                <tr><td>3</td><td>Temporal</td><td>Medicina Legal, SIEVCAC, encuesta, entrevista</td><td><code>anio</code> entre 2007 y 2025</td></tr>
+                <tr><td>4</td><td>Multivariado</td><td>Medicina Legal únicamente</td><td><code>fuente = "Medicina Legal (SIRDEC)"</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+</section>
+{% endblock %}

@@ -58,5 +58,22 @@
             {% endfor %}
         </ul>
     </details>
+
+    <details class="etapa-acordeon">
+        <summary>
+            <span class="etapa-nombre">Etapa 4</span>
+            <span class="etapa-subtitulo">Conocimiento evidente</span>
+        </summary>
+        <ul class="indice">
+            {% for item in etapa4_menu %}
+            <li>
+                <a href="{{ url_for('etapa4_pagina', slug=item.slug) }}">
+                    <span class="folio">{{ item.numero }}</span>
+                    <span class="titulo">{{ item.titulo }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </details>
 </section>
 {% endblock %}

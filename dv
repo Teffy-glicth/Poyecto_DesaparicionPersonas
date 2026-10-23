@@ -1,0 +1,64 @@
+[33mb6307e8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/etapa-4[m[33m, [m[1;31morigin/feature/etapa-4[m[33m)[m preguntas
+[33m58e6ddb[m vista continuidad
+[33m128906f[m creacion de rutas
+[33mfbcec90[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #4 from Teffy-glicth/feature/etapa-3
+[33mbbfb8d5[m[33m ([m[1;31morigin/feature/etapa-3[m[33m, [m[1;32mfeature/etapa-3[m[33m)[m Actualizar datasets procesados
+[33mf9cd355[m Resolver conflicto en reglas de tratamiento
+[33md4225a4[m Update index.html
+[33m2d4f0fa[m Correcion errores
+[33mf349c30[m Add rules for data treatment in etapa3_reglas.html
+[33m8f125bb[m Se añade archivo HTML con las reglas
+[33mee4dc3d[m se agregaron los estilos de la sección de dimensiones de la etapa 3
+[33m46ced8d[m Merge branch 'feature/etapa-3' of https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas into feature/etapa-3
+[33m19d58f1[m Corregir PDF del informe tecnico y actualizar app.py
+[33mb5762ba[m Configurar enlace del video de Etapa 3
+[33m01cf05e[m Se añade archivo HTML con las reglas partiendo del diagnostico de calidad
+[33m95c6537[m diseño etapa3
+[33ma3f191b[m Agregar vistas y resultados de Etapa 3
+[33m3098605[m realizacion etl
+[33mb165adf[m Merge pull request #3 from Teffy-glicth/feature/etapa-2
+[33m3a78094[m[33m ([m[1;31morigin/feature/etapa-2[m[33m, [m[1;32mfeature/etapa-2[m[33m)[m correciones
+[33me9875b0[m Descripción de etapa 2
+[33mb1595af[m Vista Dimensiones
+[33m3cc5c49[m correciones
+[33m34579db[m correciones
+[33m0abec42[m Merge branch 'feature/etapa-2' of https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas into feature/etapa-2
+[33m37e2d6c[m check app.py
+[33mf034fee[m Actualizar pag
+[33m72bc764[m Actualizar pagina y problemas de etapa 2
+[33m06109ae[m Agrega funcion render_perfilamiento en app.py
+[33mcfd9730[m Merge branch 'feature/etapa-2' of https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas into feature/etapa-2
+[33m9eeaf7a[m Detalle problemas
+[33m0f5cd19[m perfilamiento etapa 2
+[33m274d8db[m Correciones de interfaz
+[33m4080483[m Integración de etapa 2
+[33me60de21[m Merge pull request #2 from Teffy-glicth/feature/etapa-1
+[33m7408719[m[33m ([m[1;31morigin/feature/etapa-1[m[33m, [m[1;32mfeature/etapa-1[m[33m)[m bibliografías
+[33meac485e[m Merge pull request #1 from Teffy-glicth/feature/etapa-1
+[33mf51954e[m Terminación del diccionario de datos y arreglo de datos desactualizados
+[33m502c20e[m Merge branch 'feature/etapa-1' of https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas into feature/etapa-1
+[33me474ec9[m coreccion fuentes regionales
+[33m79150e5[m sección 8 mejorada
+[33m2f5f4ec[m sección 8.
+[33m6933da9[m sección 7
+[33m335123f[m Merge branch 'feature/etapa-1' of https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas into feature/etapa-1
+[33m2ce668c[m Agrega script de diagnostico de calidad para seccion 7
+[33m5392d56[m Se agregó botón 'Regresar al menú principal' en el layout compartido de cada sección
+[33m9f81c3e[m Etapa 1: agrega submenú 3. Necesidades de información
+[33m5a95f2d[m feature/etapa-1: Se explica contexto del problema y preguntas principal y secundariass
+[33m963f1d9[m Corrección fuentes
+[33m7cd4e5e[m integracion fuentes locales
+[33m25451c3[m Etapa 1: implementa submenús 1 y 2 (problema/contexto y preguntas)
+[33mc2670d4[m Merge branch 'feature/etapa-1' of https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas into feature/etapa-1
+[33m5ac34ca[m Resolve leftover merge conflict markers from feature/etapa-1-upload
+[33medde498[m Creación del diccionario de datos
+[33m237052f[m fuentes y dataset
+[33mc53e646[m Recoleccion de fuentes y dataset
+[33m33ee0d0[m datasets
+[33m22a0311[m datasets
+[33ma6afe1d[m[33m ([m[1;32mmain[m[33m)[m Add gunicorn dependency to requirements
+[33me4d77a7[m Add gunicorn dependency to requirements
+[33mabe13a7[m v1
+[33mc70f9bc[m v1
+[33m2a26bdc[m Initial commit
+[33m24e3989[m Initial commit

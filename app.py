@@ -52,6 +52,29 @@ RESULTADOS_ETL_PATH = BASE_DIR / "etl" / "resultados" / "iteraciones.json"
 ETAPA3_VIDEO_URL = os.environ.get("ETAPA3_VIDEO_URL", "https://www.youtube.com/watch?v=A8Gn9X58u3g")
 REPO_URL = os.environ.get("REPO_URL", "")
 
+ETAPA4_MENU = [
+    {"numero": 1, "slug": "continuidad", "titulo": "Continuidad del proyecto"},
+    {"numero": 2, "slug": "preguntas", "titulo": "Preguntas de análisis"},
+    {"numero": 3, "slug": "tablero", "titulo": "Tablero de Power BI"},
+    {"numero": 4, "slug": "conocimientos", "titulo": "Conocimientos evidentes"},
+    {"numero": 5, "slug": "informe", "titulo": "Informe técnico (PDF)"},
+]
+ETAPA4_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA4_MENU}
+
+CONOCIMIENTOS_PATH = DATA_DIR / "conocimientos.json"
+POWERBI_REPORT_URL = os.environ.get("POWERBI_REPORT_URL", "")
+
+ELEMENTOS_CONOCIMIENTO = [
+    ("pregunta", "Pregunta"),
+    ("variables", "Variables"),
+    ("procedimiento", "Procedimiento"),
+    ("evidencia", "Evidencia"),
+    ("hallazgo", "Hallazgo"),
+    ("interpretacion", "Interpretación"),
+    ("utilidad", "Utilidad"),
+    ("limitacion", "Limitación"),
+]
+
 MUESTRA_MAX_FILAS = 50
 
 
@@ -61,6 +84,7 @@ def inject_menu():
         "etapa1_menu": ETAPA1_MENU,
         "etapa2_menu": ETAPA2_MENU,
         "etapa3_menu": ETAPA3_MENU,
+        "etapa4_menu": ETAPA4_MENU,
         "current_slug": None,
     }
 
@@ -332,6 +356,33 @@ def etapa3_pagina(slug):
         video_embed=video_embed_url(ETAPA3_VIDEO_URL),
         video_local_url=url_for("static", filename=f"etapa3/{ETAPA3_VIDEO_LOCAL}") if video_local else None,
         current_slug=slug,
+    )
+
+
+# ---------- Etapa 4 ----------
+
+@app.route("/etapa4/<slug>")
+def etapa4_pagina(slug):
+    if slug not in ETAPA4_MENU_BY_SLUG:
+        abort(404)
+
+    if slug == "conocimientos":
+        return render_conocimientos()
+
+    return render_template(f"etapa4_{slug}.html", current_slug=slug)
+
+
+def render_conocimientos():
+    if not CONOCIMIENTOS_PATH.exists():
+        abort(500, description="Falta el archivo data/conocimientos.json.")
+    with open(CONOCIMIENTOS_PATH, encoding="utf-8") as f:
+        datos = json.load(f)
+    return render_template(
+        "etapa4_conocimientos.html",
+        datos=datos,
+        elementos=ELEMENTOS_CONOCIMIENTO,
+        informe_url=POWERBI_REPORT_URL,
+        current_slug="conocimientos",
     )
 
 
