@@ -70,6 +70,10 @@ ETAPA4_MENU = [
 ]
 ETAPA4_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA4_MENU}
 
+ETAPA4_DIR = BASE_DIR / "etapa4"
+ETAPA4_INFORME = "Etapa4_Informe.pdf"
+APP_URL = os.environ.get("APP_URL", "https://poyecto-desaparicionpersonas-kefg.onrender.com/")
+
 CONOCIMIENTOS_PATH = DATA_DIR / "conocimientos.json"
 POWERBI_REPORT_URL = os.environ.get("POWERBI_REPORT_URL", "")
 
@@ -370,6 +374,13 @@ def etapa3_pagina(slug):
 
 # ---------- Etapa 4 ----------
 
+@app.route("/etapa4/informe/pdf")
+def etapa4_informe_pdf():
+    if not (ETAPA4_DIR / ETAPA4_INFORME).exists():
+        abort(404)
+    return send_from_directory(ETAPA4_DIR, ETAPA4_INFORME, mimetype="application/pdf")
+
+
 @app.route("/etapa4/<slug>")
 def etapa4_pagina(slug):
     if slug not in ETAPA4_MENU_BY_SLUG:
@@ -396,18 +407,20 @@ def render_conocimientos():
         current_slug="conocimientos",
     )
 
+
 def render_informe():
-    informe_path = BASE_DIR / "static" / "informe" / "Informe_Etapa4.pdf"
     return render_template(
         "etapa4_informe.html",
-        hay_informe=informe_path.exists(),
-        informe_url=url_for("static", filename="informe/Informe_Etapa4.pdf"),
+        hay_informe=(ETAPA4_DIR / ETAPA4_INFORME).exists(),
+        informe_url=url_for("etapa4_informe_pdf"),
         repo_url=REPO_URL,
         app_url=APP_URL,
         powerbi_url=POWERBI_URL,
         pbix_url=PBIX_URL,
         current_slug="informe",
     )
+
+    return render_template(f"etapa4_{slug}.html", current_slug=slug)
 
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
