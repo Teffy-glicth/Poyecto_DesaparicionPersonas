@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 from flask import Flask, Response, abort, render_template, send_from_directory, url_for
+from flask import Flask, abort, render_template, send_from_directory, url_for
 
 app = Flask(__name__)
 
@@ -13,6 +14,14 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 PROCESSED_DIR = DATA_DIR / "processed"
 PRIMARIAS_DIR = DATA_DIR / "Primarias"
+REPO_URL = "https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas"
+APP_URL = "https://poyecto-desaparicionpersonas-kefg.onrender.com"
+POWERBI_URL = (
+    "https://app.powerbi.com/view?r="
+    "eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9"
+    "&pageName=9897ca544da6e7d48a25"
+)
+PBIX_URL = "https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas/blob/ec1f4c07430488bac30d513a98e0622aaf3a605a/powerbi/ConocimientoEvidente_Final.pbix"  
 
 ETAPA1_MENU = [
     {"numero": 1, "slug": "problema", "titulo": "Problema y contexto"},
@@ -379,6 +388,8 @@ def etapa4_pagina(slug):
 
     if slug == "conocimientos":
         return render_conocimientos()
+    if slug == "informe":
+        return render_informe()
 
     if slug == "informe":
         return render_template(
@@ -407,6 +418,18 @@ def render_conocimientos():
         current_slug="conocimientos",
     )
 
+def render_informe():
+    informe_path = BASE_DIR / "static" / "informe" / "Informe_Etapa4.pdf"
+    return render_template(
+        "etapa4_informe.html",
+        hay_informe=informe_path.exists(),
+        informe_url=url_for("static", filename="informe/Informe_Etapa4.pdf"),
+        repo_url=REPO_URL,
+        app_url=APP_URL,
+        powerbi_url=POWERBI_URL,
+        pbix_url=PBIX_URL,
+        current_slug="informe",
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
