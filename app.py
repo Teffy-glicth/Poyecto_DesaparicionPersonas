@@ -391,17 +391,6 @@ def etapa4_pagina(slug):
     if slug == "informe":
         return render_informe()
 
-    if slug == "informe":
-        return render_template(
-            "etapa4_informe.html",
-            hay_informe=(ETAPA4_DIR / ETAPA4_INFORME).exists(),
-            informe_url=url_for("etapa4_informe_pdf"),
-            powerbi_url=POWERBI_REPORT_URL,
-            repo_url=REPO_URL or "https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas",
-            app_url=APP_URL,
-            current_slug=slug,
-        )
-
     return render_template(f"etapa4_{slug}.html", current_slug=slug)
 
 
@@ -418,18 +407,20 @@ def render_conocimientos():
         current_slug="conocimientos",
     )
 
+
 def render_informe():
-    informe_path = BASE_DIR / "static" / "informe" / "Informe_Etapa4.pdf"
     return render_template(
         "etapa4_informe.html",
-        hay_informe=informe_path.exists(),
-        informe_url=url_for("static", filename="informe/Informe_Etapa4.pdf"),
+        hay_informe=(ETAPA4_DIR / ETAPA4_INFORME).exists(),
+        informe_url=url_for("etapa4_informe_pdf"),
         repo_url=REPO_URL,
         app_url=APP_URL,
         powerbi_url=POWERBI_URL,
         pbix_url=PBIX_URL,
         current_slug="informe",
     )
+
+    return render_template(f"etapa4_{slug}.html", current_slug=slug)
 
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
