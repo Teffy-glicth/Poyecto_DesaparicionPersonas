@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Propósito · Análisis multidimensional{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Análisis multidimensional · Etapa 5</p>
+    <h1>1. Propósito y modelo estrella</h1>
+    <p class="lead">
+        Esta etapa profundiza en los conocimientos evidentes de la Etapa 4 (los 12 hallazgos de
+        los cuatro tableros de Power BI) mediante un modelo estrella propio: una tabla de
+        hechos y seis dimensiones consultadas desde Flask. En lugar de repetir las mismas
+        cifras agregadas, cada una de las cuatro vistas de esta sección cruza varias dimensiones
+        a la vez y cambia de nivel de detalle (drill-down, roll-up, slice, dice y pivot) para
+        explicar <em>por qué</em> se dan esos hallazgos y en qué grupos específicos se
+        concentran.
+    </p>
+
+    <div class="contexto-datos">
+        <p><strong>Fuente de los datos:</strong> {{ fuente or "Instituto Nacional de Medicina Legal y Ciencias Forenses (SIRDEC) y Centro Nacional de Memoria Histórica (SIEVCAC), publicados en datos.gov.co" }}.</p>
+        <p><strong>Cobertura:</strong> {{ periodo or "Registros de 1930 a junio de 2026; las series comparables usan los años completos 2007-2025" }}.</p>
+        <p><strong>Base de este análisis:</strong> {{ base or "282.597 personas registradas en Colombia (205.812 de Medicina Legal y 76.785 de SIEVCAC), una fila por persona en su fuente" }}.</p>
+        <p class="nota">
+            Se excluyen IOM y ACLED: su fila es un evento agregado, no una persona, y mezclarlos
+            rompería la granularidad de la tabla de hechos (una persona registrada por una
+            fuente). Más detalle del modelo, sus dimensiones y jerarquías en
+            <a href="{{ url_for('etapa5_pagina', slug='modelo') }}">Modelo multidimensional</a>.
+        </p>
+    </div>
+
+    <h2>Unidad de análisis frente a granularidad</h2>
+    <p>
+        La <strong>unidad de análisis</strong> es la persona desaparecida en Colombia. La
+        <strong>granularidad</strong> de la tabla de hechos (<code>fact_desaparicion</code>) es
+        distinta y más fina: una persona registrada por una fuente. Una misma persona puede
+        aparecer en Medicina Legal y en SIEVCAC a la vez, así que las dos fuentes nunca se suman
+        como si fueran una sola población; por eso cada vista compara las fuentes lado a lado o
+        las deja como filtro, en vez de sumarlas.
+    </p>
+
+    <h2>De los conocimientos evidentes a las vistas multidimensionales</h2>
+    <p>
+        Cada vista de esta etapa toma como punto de partida uno de los cuatro tableros de
+        conocimiento evidente de la Etapa 4 y profundiza en él cruzando dimensiones adicionales
+        que el tablero original no combinaba a la vez.
+    </p>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <thead>
+                <tr>
+                    <th>Tablero de conocimiento evidente (Etapa 4)</th>
+                    <th>Pregunta del tablero</th>
+                    <th>Vista que profundiza (Etapa 5)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in relacion %}
+                <tr>
+                    <td>{{ r.tablero.numero }}. {{ r.tablero.nombre }}</td>
+                    <td>{{ r.tablero.pregunta }}</td>
+                    <td>
+                        {% if r.vista_slug %}
+                        <a href="{{ url_for('etapa5_pagina', slug=r.vista_slug) }}">{{ r.vista_titulo }}</a>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">
+        El detalle de qué hallazgo concreto de cada tablero profundiza cada vista, con cifras
+        verificables, está en los ocho conocimientos multidimensionales (dos por vista) de
+        <code>data/conocimientos_multidimensionales.json</code>, reunidos en
+        <a href="{{ url_for('etapa5_pagina', slug='conclusiones') }}">Conocimientos y conclusiones</a>.
+    </p>
+
+    <h2>Las cuatro vistas</h2>
+    <ul class="indice indice-proposito">
+        {% for v in vistas %}
+        <li>
+            <a href="{{ url_for('etapa5_pagina', slug=v.slug) }}">
+                <span class="folio">{{ loop.index }}</span>
+                <span class="titulo">{{ v.titulo }}</span>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

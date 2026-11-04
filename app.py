@@ -736,14 +736,53 @@ def render_vista2():
         conocimientos=conocimientos_de_vista("vista2"),
     )
 
+# Qué tablero de conocimiento evidente (Etapa 4) profundiza cada vista de esta etapa.
+ETAPA5_TABLERO_A_VISTA = {
+    "poblacion": "vista1",
+    "territorio": "vista2",
+    "tiempo": "vista3",
+    "perfiles": "vista4",
+}
+
+
+def render_proposito():
+    conocimiento_evidente = {}
+    if CONOCIMIENTOS_PATH.exists():
+        with open(CONOCIMIENTOS_PATH, encoding="utf-8") as f:
+            conocimiento_evidente = json.load(f)
+
+    relacion = []
+    for tablero in conocimiento_evidente.get("tableros", []):
+        vista_slug = ETAPA5_TABLERO_A_VISTA.get(tablero["slug"])
+        vista_item = ETAPA5_MENU_BY_SLUG.get(vista_slug)
+        relacion.append({
+            "tablero": tablero,
+            "vista_slug": vista_slug,
+            "vista_titulo": vista_item["titulo"] if vista_item else None,
+        })
+
+    return render_template(
+        "etapa5_proposito.html",
+        current_slug="proposito",
+        fuente=conocimiento_evidente.get("fuente"),
+        periodo=conocimiento_evidente.get("periodo"),
+        base=conocimiento_evidente.get("base"),
+        relacion=relacion,
+        vistas=[v for v in ETAPA5_MENU if v["slug"].startswith("vista")],
+    )
+
+
 @app.route("/etapa5/<slug>")
 def etapa5_pagina(slug):
     if slug not in ETAPA5_MENU_BY_SLUG:
         abort(404)
 
+    if slug == "proposito":
+        return render_proposito()
+
     if slug == "vista1":
         return render_vista1()
-    
+
     if slug == "vista2":
         return render_vista2()
 
