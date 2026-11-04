@@ -679,3 +679,102 @@ th { background: var(--color-badge-bg); color: var(--color-text); font-weight: 6
 .etapa5-conocimiento-card h3 { margin: 0 0 8px; font-size: 1rem; }
 .etapa5-conocimiento-card p { margin: 0 0 6px; font-size: 0.92rem; }
 .etapa5-conocimiento-card p:last-child { margin-bottom: 0; }
+
+.etapa5-seleccion-titulo {
+    font-weight: 600;
+    color: var(--color-secondary);
+    margin-right: 4px;
+}
+.etapa5-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    margin: 2px 4px 2px 0;
+    background: var(--color-badge-bg);
+    color: var(--color-badge-text);
+    border-radius: 999px;
+    font-size: 0.82rem;
+}
+.etapa5-chip-vacio {
+    background: transparent;
+    border: 1px dashed var(--color-border);
+    color: var(--color-muted);
+}
+
+.etapa5-ruta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 10px;
+    font-size: 0.88rem;
+}
+.etapa5-ruta button {
+    border: none;
+    background: none;
+    padding: 0;
+    color: var(--color-primary);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.etapa5-ruta button:hover { color: var(--color-secondary); }
+.etapa5-ruta .actual { font-weight: 600; color: var(--color-text); }
+.etapa5-ruta .sep { color: var(--color-muted); margin: 0 4px; }
+.etapa5-ruta .nivel {
+    margin-left: 10px;
+    color: var(--color-muted);
+    font-size: 0.82rem;
+}
+
+.etapa5-filtro-inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+.etapa5-filtro-inline select { min-width: 160px; }
+
+.etapa5-comprobacion {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    background: var(--color-badge-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.86rem;
+    color: #33322c;
+}
+
+.etapa5-matriz-clic tbody tr { cursor: pointer; }
+.etapa5-matriz-clic tbody tr:hover td { background-color: var(--color-badge-bg) !important; }
+
+.etapa5-sql { margin: 0 0 20px; }
+.etapa5-sql summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--color-secondary);
+    font-weight: 500;
+}
+.etapa5-sql pre {
+    margin: 10px 0 0;
+    padding: 12px 14px;
+    background: #1f1e1a;
+    color: #e8e4d8;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+@media (max-width: 560px) {
+    .etapa5-filtro-inline { flex-direction: column; align-items: flex-start; }
+    .etapa5-ruta .nivel { display: block; margin: 4px 0 0; }
+}
+
+.indice-proposito {
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    overflow: hidden;
+    margin: 12px 0 28px;
+}
