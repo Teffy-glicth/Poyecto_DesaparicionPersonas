@@ -545,10 +545,171 @@ def datos_vista1(args):
         }
     finally:
         con.close()
+VISTA2_PREGUNTA = (
+    "¿Qué departamentos y municipios concentran a las personas que siguen "
+    "desaparecidas y cómo cambia el porcentaje al bajar de macrorregión a municipio?"
+)
 
+# Jerarquía geográfica definida por el Integrante 1 en olap.JERARQUIAS:
+# macro_region -> departamento -> municipio
+NIVELES_GEO = olap.JERARQUIAS["geografia"]
+NOMBRE_NIVEL_GEO = {
+    "macro_region": "Macrorregión",
+    "departamento": "Departamento",
+    "municipio": "Municipio",
+}
+# Categorías que existen en dim_geografia pero no son un municipio real.
+GEO_NO_MUNICIPIO = {"Sin informacion", "Desaparecidos En El Extranjero"}
+# Por debajo de este número de personas el % de un grupo no es confiable.
+MIN_PERSONAS_CONFIABLE = 30
+MEDIDAS_VISTA2 = ["personas", "siguen_desaparecidas", "pct_siguen_desaparecidas"]
+ORDEN_DESENLACE = ["Sin resolver", "Resuelto", "Sin informacion"]
+
+
+def _formato_entero(valor):
+    return f"{int(valor or 0):,}".replace(",", ".")
+
+
+def _formato_pct(valor):
+    return f"{(valor or 0):.1f}".replace(".", ",")
+
+
+def datos_vista2(args):
+    # 1. Filtros de las dos dimensiones distintas a la geografía.
+    filtros = {}
+    for clave in ("fuente", "periodo_acuerdo"):
+        valor = args.get(clave)
+        if valor:
+            filtros[clave] = valor
+
+    # 2. Ruta dentro de la jerarquía geográfica (ej.: Sur > Huila).
+    ruta = {}
+    for nivel_ruta in NIVELES_GEO[:-1]:
+        valor = args.get(nivel_ruta)
+        if not valor:
+            break
+        ruta[nivel_ruta] = valor
+    profundidad = len(ruta)
+    nivel = NIVELES_GEO[profundidad]
+    filtros_sel = {**filtros, **ruta}
+    op = args.get("op", "")
+
+    con = olap.conectar()
+    try:
+        # 3. Operación OLAP: se vuelve a consultar el modelo en el nivel pedido.
+        #    Drill-down: del nivel padre al siguiente nivel, filtrando por el valor elegido.
+        #    Roll-up: del nivel hijo al nivel superior (las medidas se recalculan con SQL).
+        if op == "roll_up" and profundidad < len(NIVELES_GEO) - 1:
+            res = olap.roll_up("geografia", NIVELES_GEO[profundidad + 1],
+                               MEDIDAS_VISTA2, filtros_sel, con=con)
+        elif profundidad > 0 and op != "roll_up":
+            res = olap.drill_down("geografia", NIVELES_GEO[profundidad - 1],
+                                  MEDIDAS_VISTA2, filtros_sel, con=con)
+        else:
+            res = olap.consultar([nivel], MEDIDAS_VISTA2, filtros_sel, con=con)
+            res["operacion"] = op or "consulta"
+
+        filas = sorted(res["filas"], key=lambda f: f["siguen_desaparecidas"] or 0, reverse=True)
+        for f in filas:
+            f["etiqueta"] = f[nivel]
+            f["confiable"] = (f["personas"] or 0) >= MIN_PERSONAS_CONFIABLE
+
+        # 4. Totales de la selección completa (no se suman ni promedian % de los grupos).
+        total = olap.consultar([], MEDIDAS_VISTA2, filtros_sel, con=con)["filas"][0]
+        personas_sel = total["personas"] or 0
+        sin_resolver_sel = total["siguen_desaparecidas"] or 0
+        pct_sel = total["pct_siguen_desaparecidas"] or 0.0
+
+        # Municipios afectados = conteo DISTINTO de municipios (departamento + municipio)
+        # con al menos un registro, sin contar "Sin informacion" ni "Desaparecidos en el extranjero".
+        munis = olap.consultar(["departamento", "municipio"], ["personas"], filtros_sel, con=con)["filas"]
+        municipios_afectados = sum(1 for m in munis if m["municipio"] not in GEO_NO_MUNICIPIO)
+
+        indicadores = [
+            {
+                "etiqueta": "Personas que siguen desaparecidas",
+                "valor": _formato_entero(sin_resolver_sel),
+                "unidad": "",
+                "denominador": personas_sel,
+            },
+            {
+                "etiqueta": "% que siguen desaparecidas",
+                "valor": _formato_pct(pct_sel),
+                "unidad": "%",
+                "denominador": personas_sel,
+            },
+            {
+                "etiqueta": "Municipios afectados (conteo distinto)",
+                "valor": _formato_entero(municipios_afectados),
+                "unidad": "",
+                "denominador": None,
+            },
+        ]
+
+        # 5. Comprobación de recálculo: % del grupo padre (ponderado por personas)
+        #    frente al promedio simple de los % de sus hijos (lo que NO se debe hacer).
+        comprobacion = None
+        if profundidad > 0 and filas:
+            promedio_simple = sum(f["pct_siguen_desaparecidas"] or 0 for f in filas) / len(filas)
+            comprobacion = {
+                "grupo": " › ".join(ruta.values()),
+                "pct_ponderado": _formato_pct(pct_sel),
+                "promedio_simple_hijos": _formato_pct(promedio_simple),
+                "hijos": len(filas),
+                "nivel_hijos": NOMBRE_NIVEL_GEO[nivel].lower(),
+            }
+
+        # 6. Matriz: nivel geográfico actual x grupo_desenlace (personas; el % por fila lo calcula olap.js).
+        matriz_res = olap.consultar([nivel, "grupo_desenlace"], ["personas"], filtros_sel, con=con)
+        matriz = olap.como_matriz(matriz_res, nivel, "grupo_desenlace", "personas")
+        orden_filas = [f[nivel] for f in filas]
+        idx = {v: i for i, v in enumerate(matriz["filas"])}
+        columnas = [c for c in ORDEN_DESENLACE if c in matriz["columnas"]]
+        idx_col = {c: j for j, c in enumerate(matriz["columnas"])}
+        celdas = [[matriz["celdas"][idx[v]][idx_col[c]] for c in columnas] for v in orden_filas if v in idx]
+        matriz = {
+            "filas": [v for v in orden_filas if v in idx],
+            "columnas": columnas,
+            "celdas": celdas,
+            "totales_fila": [sum(c or 0 for c in fila) for fila in celdas],
+        }
+
+        opciones_fuente = [f["fuente"] for f in olap.consultar(["fuente"], ["personas"], con=con)["filas"]]
+        opciones_periodo = [
+            f["periodo_acuerdo"] for f in olap.consultar(["periodo_acuerdo"], ["personas"], con=con)["filas"]
+        ]
+
+        return {
+            "pregunta": VISTA2_PREGUNTA,
+            "dimensiones": ["geografía (macrorregión › departamento › municipio)", "estado (desenlace)",
+                            "fuente", "tiempo (periodo_acuerdo)"],
+            "medidas": ["Personas registradas", "Personas que siguen desaparecidas",
+                        "% que siguen desaparecidas", "Municipios afectados"],
+            "jerarquias": ["geografía: macro_region → departamento → municipio"],
+            "filtros_aplicados": filtros,
+            "ruta": [{"nivel": k, "nombre_nivel": NOMBRE_NIVEL_GEO[k], "valor": v} for k, v in ruta.items()],
+            "nivel": nivel,
+            "nombre_nivel": NOMBRE_NIVEL_GEO[nivel],
+            "nivel_siguiente": NIVELES_GEO[profundidad + 1] if profundidad + 1 < len(NIVELES_GEO) else None,
+            "operacion": res.get("operacion", "consulta"),
+            "min_personas_confiable": MIN_PERSONAS_CONFIABLE,
+            "opciones_filtros": {"fuente": opciones_fuente, "periodo_acuerdo": opciones_periodo},
+            "indicadores": indicadores,
+            "filas": filas,
+            "top10": filas[:10],
+            "matriz": matriz,
+            "comprobacion": comprobacion,
+            "denominador_total": personas_sel,
+            "pct_seleccion": round(pct_sel, 1),
+            "sql": res.get("sql"),
+            "conocimientos": conocimientos_de_vista("vista2"),
+        }
+    finally:
+        con.close()
 
 VISTA_API = {
     "vista1": datos_vista1,
+    "vista2": datos_vista2,
 }
 
 
@@ -568,6 +729,12 @@ def api_etapa5(vista):
 def render_vista1():
     return render_template("etapa5_vista_perfil.html", current_slug="vista1")
 
+def render_vista2():
+    return render_template(
+        "etapa5_vista_territorio.html",
+        current_slug="vista2",
+        conocimientos=conocimientos_de_vista("vista2"),
+    )
 
 @app.route("/etapa5/<slug>")
 def etapa5_pagina(slug):
@@ -576,6 +743,9 @@ def etapa5_pagina(slug):
 
     if slug == "vista1":
         return render_vista1()
+    
+    if slug == "vista2":
+        return render_vista2()
 
     item = ETAPA5_MENU_BY_SLUG[slug]
     return render_template(
