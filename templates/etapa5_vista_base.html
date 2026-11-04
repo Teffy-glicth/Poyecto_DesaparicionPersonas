@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{% block vista_titulo_tab %}Etapa 5{% endblock %} · Análisis multidimensional{% endblock %}
+
+{% block content %}
+<section class="page etapa5-vista" id="etapa5-vista" data-api-endpoint="{% block api_endpoint %}{% endblock %}">
+
+    <p class="eyebrow etapa5-eyebrow">Análisis multidimensional · Etapa 5</p>
+    <h1>{% block vista_titulo %}{% endblock %}</h1>
+    <p class="etapa5-pregunta"><strong>Pregunta:</strong> {% block vista_pregunta %}{% endblock %}</p>
+
+    <dl class="etapa5-meta">
+        <div><dt>Dimensiones</dt><dd>{% block vista_dimensiones %}{% endblock %}</dd></div>
+        <div><dt>Medidas</dt><dd>{% block vista_medidas %}{% endblock %}</dd></div>
+        <div><dt>Jerarquías</dt><dd>{% block vista_jerarquias %}{% endblock %}</dd></div>
+    </dl>
+
+    <h2>Indicadores</h2>
+    <div class="etapa5-indicadores" id="etapa5-indicadores" aria-live="polite">
+        <p class="nota">Cargando indicadores…</p>
+    </div>
+
+    <h2>Gráficas</h2>
+    <div class="etapa5-graficas">
+        <div class="etapa5-grafica-card">
+            <p class="etapa5-grafica-titulo">{% block grafica1_titulo %}{% endblock %}</p>
+            <div class="etapa5-grafica-canvas-wrap"><canvas id="{% block canvas1_id %}grafica1{% endblock %}"></canvas></div>
+        </div>
+        <div class="etapa5-grafica-card">
+            <p class="etapa5-grafica-titulo">{% block grafica2_titulo %}{% endblock %}</p>
+            <div class="etapa5-grafica-canvas-wrap"><canvas id="{% block canvas2_id %}grafica2{% endblock %}"></canvas></div>
+        </div>
+    </div>
+
+    <h2>Matriz de resultados</h2>
+    <p class="etapa5-matriz-titulo">{% block matriz_titulo %}{% endblock %}</p>
+    <div class="etapa5-matriz" id="etapa5-matriz">
+        <p class="nota">Cargando matriz…</p>
+    </div>
+
+    <h2>Filtros y operaciones multidimensionales</h2>
+    <div class="etapa5-filtros" id="etapa5-filtros">{% block vista_filtros %}{% endblock %}</div>
+    <div class="etapa5-controles-olap" id="etapa5-controles">{% block vista_controles %}{% endblock %}</div>
+    <p class="etapa5-seleccion-activa" id="etapa5-seleccion"></p>
+
+    <h2>Interpretación</h2>
+    <div class="etapa5-interpretacion">{% block vista_interpretacion %}{% endblock %}</div>
+
+    <h2>Conocimientos multidimensionales</h2>
+    <div class="etapa5-conocimientos">{% block vista_conocimientos %}{% endblock %}</div>
+
+    <h2>Limitación y decisión</h2>
+    <div class="lim-dec">
+        <div class="caja-limitacion"><p class="sub">Limitación</p>{% block vista_limitacion %}{% endblock %}</div>
+        <div class="caja-decision"><p class="sub">Decisión sustentada en los datos</p>{% block vista_decision %}{% endblock %}</div>
+    </div>
+
+    {% block vista_extra %}{% endblock %}
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="{{ url_for('static', filename='js/olap.js') }}"></script>
+{% block vista_script %}{% endblock %}
+{% endblock %}

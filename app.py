@@ -5,8 +5,9 @@ import os
 import re
 from pathlib import Path
 
-from flask import Flask, Response, abort, render_template, send_from_directory, url_for
-from flask import Flask, abort, render_template, send_from_directory, url_for
+from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory, url_for
+
+import olap
 
 app = Flask(__name__)
 
@@ -90,6 +91,21 @@ ELEMENTOS_CONOCIMIENTO = [
 
 MUESTRA_MAX_FILAS = 50
 
+ETAPA5_MENU = [
+    {"numero": 1, "slug": "proposito", "titulo": "Propósito y modelo estrella"},
+    {"numero": 2, "slug": "modelo", "titulo": "Modelo multidimensional"},
+    {"numero": 3, "slug": "vista1", "titulo": "Vista 1 · Perfil y desenlace"},
+    {"numero": 4, "slug": "vista2", "titulo": "Vista 2 · Territorio"},
+    {"numero": 5, "slug": "vista3", "titulo": "Vista 3 · Evolución temporal"},
+    {"numero": 6, "slug": "vista4", "titulo": "Vista 4 · Perfiles combinados"},
+    {"numero": 7, "slug": "operaciones", "titulo": "Operaciones multidimensionales"},
+    {"numero": 8, "slug": "validaciones", "titulo": "Validaciones del modelo"},
+    {"numero": 9, "slug": "conclusiones", "titulo": "Conocimientos y conclusiones"},
+]
+ETAPA5_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA5_MENU}
+
+CONOCIMIENTOS_MULTIDIM_PATH = DATA_DIR / "conocimientos_multidimensionales.json"
+
 
 @app.context_processor
 def inject_menu():
@@ -98,6 +114,7 @@ def inject_menu():
         "etapa2_menu": ETAPA2_MENU,
         "etapa3_menu": ETAPA3_MENU,
         "etapa4_menu": ETAPA4_MENU,
+        "etapa5_menu": ETAPA5_MENU,
         "current_slug": None,
     }
 
@@ -421,6 +438,153 @@ def render_informe():
     )
 
     return render_template(f"etapa4_{slug}.html", current_slug=slug)
+
+
+# ---------- Etapa 5 ----------
+
+def cargar_conocimientos_multidimensionales():
+    if not CONOCIMIENTOS_MULTIDIM_PATH.exists():
+        return {"conocimientos": []}
+    with open(CONOCIMIENTOS_MULTIDIM_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def conocimientos_de_vista(slug_vista):
+    datos = cargar_conocimientos_multidimensionales()
+    return [c for c in datos.get("conocimientos", []) if c.get("vista") == slug_vista]
+
+
+VISTA1_PREGUNTA = (
+    "¿Cómo cambia la brecha de desenlace entre hombres y mujeres según la fuente, "
+    "la calidad de la víctima y el periodo frente al Acuerdo de Paz?"
+)
+
+
+def datos_vista1(args):
+    filtros = {}
+    fuente = args.get("fuente")
+    if fuente:
+        filtros["fuente"] = fuente
+    periodo_acuerdo = args.get("periodo_acuerdo")
+    if periodo_acuerdo:
+        filtros["periodo_acuerdo"] = periodo_acuerdo
+
+    pivote = args.get("pivot") in ("1", "true", "True")
+    slice_fuente_sievcac = args.get("slice_sievcac") in ("1", "true", "True")
+    if slice_fuente_sievcac:
+        filtros["fuente"] = "SIEVCAC (CNMH)"
+
+    con = olap.conectar()
+    try:
+        por_sexo = olap.consultar(
+            ["sexo"], ["personas", "pct_aparecidas_con_vida"],
+            filtros=filtros, con=con,
+        )
+        filas_sexo = {f["sexo"]: f for f in por_sexo["filas"]}
+        mujeres = filas_sexo.get("Mujer", {})
+        hombres = filas_sexo.get("Hombre", {})
+        pct_mujeres = mujeres.get("pct_aparecidas_con_vida", 0.0) or 0.0
+        pct_hombres = hombres.get("pct_aparecidas_con_vida", 0.0) or 0.0
+
+        indicadores = [
+            {
+                "etiqueta": "Mujeres aparecidas con vida",
+                "valor": round(pct_mujeres, 1),
+                "unidad": "%",
+                "denominador": mujeres.get("personas", 0),
+            },
+            {
+                "etiqueta": "Hombres aparecidos con vida",
+                "valor": round(pct_hombres, 1),
+                "unidad": "%",
+                "denominador": hombres.get("personas", 0),
+            },
+            {
+                "etiqueta": "Brecha mujeres − hombres",
+                "valor": round(pct_mujeres - pct_hombres, 1),
+                "unidad": "pp",
+                "denominador": None,
+            },
+        ]
+
+        dims_cruce = ["estado_victima", "sexo"] if pivote else ["sexo", "estado_victima"]
+        grafica_barras = olap.consultar(
+            dims_cruce, ["personas"], filtros={**filtros, "sexo": ["Hombre", "Mujer", "Sin informacion"]}, con=con
+        )
+
+        filtros_lineas = dict(filtros)
+        filtros_lineas["sexo"] = ["Hombre", "Mujer"]
+        grafica_lineas = olap.consultar(
+            ["anio", "sexo"], ["personas", "pct_aparecidas_con_vida"], filtros=filtros_lineas, con=con
+        )
+        grafica_lineas["filas"] = [f for f in grafica_lineas["filas"] if f["anio"] is not None]
+
+        matriz_res = olap.consultar(dims_cruce, ["personas"], filtros=filtros, con=con)
+        matriz = olap.como_matriz(matriz_res, dims_cruce[0], dims_cruce[1], "personas")
+        matriz["totales_fila"] = [sum(c for c in fila if c) for fila in matriz["celdas"]]
+
+        opciones_fuente = [f["fuente"] for f in olap.consultar(["fuente"], ["personas"], con=con)["filas"]]
+        opciones_periodo = [
+            f["periodo_acuerdo"] for f in olap.consultar(["periodo_acuerdo"], ["personas"], con=con)["filas"]
+        ]
+
+        return {
+            "pregunta": VISTA1_PREGUNTA,
+            "dimensiones": ["víctima (sexo, calidad)", "estado (desenlace)", "fuente", "tiempo (periodo_acuerdo)"],
+            "medidas": ["Personas registradas", "% aparecidas con vida"],
+            "jerarquias": ["estado: grupo_desenlace → estado_victima", "fuente: fuente → tipo_evento"],
+            "filtros_aplicados": filtros,
+            "pivote": pivote,
+            "opciones_filtros": {"fuente": opciones_fuente, "periodo_acuerdo": opciones_periodo},
+            "indicadores": indicadores,
+            "grafica_barras": grafica_barras,
+            "grafica_lineas": grafica_lineas,
+            "matriz": matriz,
+            "denominador_total": por_sexo["denominador_total"],
+            "conocimientos": conocimientos_de_vista("vista1"),
+        }
+    finally:
+        con.close()
+
+
+VISTA_API = {
+    "vista1": datos_vista1,
+}
+
+
+@app.route("/api/etapa5/<vista>")
+def api_etapa5(vista):
+    handler = VISTA_API.get(vista)
+    if handler is None:
+        abort(404, description=f"La vista {vista!r} todavía no tiene API (la arma su dueño en su turno).")
+    try:
+        return jsonify(handler(request.args))
+    except olap.ConsultaInvalida as exc:
+        abort(400, description=str(exc))
+    except FileNotFoundError as exc:
+        abort(500, description=str(exc))
+
+
+def render_vista1():
+    return render_template("etapa5_vista_perfil.html", current_slug="vista1")
+
+
+@app.route("/etapa5/<slug>")
+def etapa5_pagina(slug):
+    if slug not in ETAPA5_MENU_BY_SLUG:
+        abort(404)
+
+    if slug == "vista1":
+        return render_vista1()
+
+    item = ETAPA5_MENU_BY_SLUG[slug]
+    return render_template(
+        "etapa1_placeholder.html",
+        numero=item["numero"],
+        titulo=item["titulo"],
+        current_slug=slug,
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
