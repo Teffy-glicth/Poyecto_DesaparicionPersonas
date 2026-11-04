@@ -1,0 +1,224 @@
+{% extends "etapa5_vista_base.html" %}
+
+{% block vista_titulo_tab %}Vista 1 · Perfil y desenlace{% endblock %}
+{% block api_endpoint %}vista1{% endblock %}
+
+{% block vista_titulo %}Vista 1 · Perfil y desenlace{% endblock %}
+{% block vista_pregunta %}
+¿Cómo cambia la brecha de desenlace entre hombres y mujeres según la fuente, la calidad
+de la víctima y el periodo frente al Acuerdo de Paz?
+{% endblock %}
+
+{% block vista_dimensiones %}Víctima (sexo, calidad de la víctima), Estado (desenlace), Fuente, Tiempo (periodo frente al Acuerdo){% endblock %}
+{% block vista_medidas %}Personas registradas, % que siguen desaparecidas, % aparecidas con vida{% endblock %}
+{% block vista_jerarquias %}Estado: grupo_desenlace → estado_victima · Fuente: fuente → tipo_evento{% endblock %}
+
+{% block grafica1_titulo %}Estado de la víctima por sexo (barras al 100 %){% endblock %}
+{% block canvas1_id %}vista1-grafica-barras{% endblock %}
+{% block grafica2_titulo %}% aparecidas con vida por sexo y año{% endblock %}
+{% block canvas2_id %}vista1-grafica-lineas{% endblock %}
+{% block matriz_titulo %}Sexo × Estado de la víctima — personas y % por fila (usa Pivot para invertir el cruce){% endblock %}
+
+{% block vista_filtros %}
+<label class="etapa5-filtro">
+    Fuente
+    <select data-filtro="fuente" id="vista1-filtro-fuente">
+        <option value="">Todas</option>
+    </select>
+</label>
+<label class="etapa5-filtro">
+    Periodo frente al Acuerdo de Paz
+    <select data-filtro="periodo_acuerdo" id="vista1-filtro-periodo">
+        <option value="">Todos</option>
+    </select>
+</label>
+{% endblock %}
+
+{% block vista_controles %}
+<button type="button" class="etapa5-btn" id="vista1-btn-slice">
+    Slice: fuente = SIEVCAC (CNMH)
+</button>
+<button type="button" class="etapa5-btn" id="vista1-btn-pivot">
+    Pivot: invertir sexo ↔ estado
+</button>
+<button type="button" class="etapa5-btn" id="vista1-btn-limpiar">
+    Quitar filtros
+</button>
+{% endblock %}
+
+{% block vista_interpretacion %}
+<p>
+    Medicina Legal (SIRDEC) registra desenlaces con vida varias veces más seguido que
+    SIEVCAC (CNMH) para los dos sexos, y dentro de cada fuente las mujeres aparecen con
+    vida aproximadamente el doble que los hombres. La brecha de sexo se mantiene antes y
+    después del Acuerdo de Paz de 2016, aunque el desenlace general mejoró para ambos
+    sexos en ese periodo. Usa los filtros de fuente y periodo, el Slice y el Pivot de
+    arriba para explorar estos cruces con los datos en vivo.
+</p>
+{% endblock %}
+
+{% block vista_conocimientos %}
+<div class="etapa5-conocimiento-card">
+    <h3>1. Fuente frente a sexo en el desenlace con vida</h3>
+    <p><strong>Pregunta:</strong> ¿la brecha de desenlace entre hombres y mujeres es igual de grande en las dos fuentes, o la fuente pesa más que el sexo?</p>
+    <p><strong>Hallazgo:</strong> en las dos fuentes las mujeres aparecen con vida ~2× más que los hombres (2,03× en Medicina Legal, 2,43× en SIEVCAC), pero el nivel absoluto depende mucho más de la fuente: cualquiera de los dos sexos en Medicina Legal aparece con vida entre 10 y 12 veces más seguido que en SIEVCAC.</p>
+    <p><strong>Interpretación:</strong> la cifra agregada de la Etapa 4 ("las mujeres aparecen con vida el doble") es estable entre fuentes, pero la fuente —que agrupa un periodo y un tipo de hecho distintos— explica una diferencia mucho mayor que el sexo.</p>
+    <p><strong>Utilidad:</strong> sustenta priorizar el análisis por tipo de registro/fuente, no solo por sexo de la víctima.</p>
+    <p><strong>Limitación:</strong> es una asociación, no una relación causal; el modelo no mide por qué SIEVCAC tiene desenlaces con vida menos frecuentes.</p>
+</div>
+<div class="etapa5-conocimiento-card">
+    <h3>2. La brecha de sexo no se cerró después del Acuerdo de Paz</h3>
+    <p><strong>Pregunta:</strong> tras el Acuerdo de 2016, ¿mejoró el desenlace de hombres y mujeres por igual, o la brecha entre sexos se mantuvo?</p>
+    <p><strong>Hallazgo:</strong> el % que sigue desaparecido bajó 5,6 puntos porcentuales en hombres (58,77 % → 53,14 %) y 3,9 en mujeres (47,25 % → 43,35 %), pero la brecha en % con vida casi no se cerró: 18,07 pp antes frente a 15,45 pp después.</p>
+    <p><strong>Interpretación:</strong> la mejora general tras el Acuerdo de Paz no cerró la brecha de sexo, la desplazó en bloque: ambos sexos mejoraron en magnitud parecida.</p>
+    <p><strong>Utilidad:</strong> una política que solo mida la tasa general puede parecer que cierra la brecha de género cuando en realidad la mantiene; conviene medir por sexo, no solo el agregado.</p>
+    <p><strong>Limitación:</strong> 2026 queda fuera por estar incompleto; la mejora observada es una asociación temporal, no prueba causalidad del Acuerdo de Paz.</p>
+</div>
+<p class="nota">
+    Los ocho elementos completos de cada conocimiento (incluidos dimensiones/medidas,
+    procedimiento y evidencia exacta) están en
+    <code>data/conocimientos_multidimensionales.json</code> y se repasan en la página de
+    Conocimientos y conclusiones.
+</p>
+{% endblock %}
+
+{% block vista_limitacion %}
+El modelo no distingue si una misma persona aparece en Medicina Legal y en SIEVCAC a la
+vez (posible traslape entre fuentes), así que un "total" que sume ambas fuentes cuenta
+registros, no necesariamente personas distintas; por eso esta vista nunca suma personas
+entre fuentes, solo las compara lado a lado.
+{% endblock %}
+
+{% block vista_decision %}
+Si el objetivo es aumentar la tasa de aparición con vida, conviene enfocar primero las
+estrategias en los casos de SIEVCAC (conflicto armado), donde la probabilidad de
+aparecer con vida es de 10 a 12 veces menor que en los casos de Medicina Legal, para los
+dos sexos.
+{% endblock %}
+
+{% block vista_script %}
+<script>
+(function () {
+    const Etapa5 = window.Etapa5;
+    let pivote = false;
+
+    function cargarOpcionesFiltro(selectEl, valores, actual) {
+        const existentes = new Set(Array.from(selectEl.options).map(o => o.value));
+        valores.forEach(function (v) {
+            if (!existentes.has(v)) {
+                const opt = document.createElement("option");
+                opt.value = v;
+                opt.textContent = v;
+                selectEl.appendChild(opt);
+            }
+        });
+        if (actual) selectEl.value = actual;
+    }
+
+    function pintarGraficaBarras(id, resultado, dims) {
+        Etapa5.destruirChart(id);
+        const ctx = document.getElementById(id);
+        const [dimFila, dimColumna] = dims;
+        const categorias = [...new Set(resultado.filas.map(f => f[dimFila]))];
+        const series = [...new Set(resultado.filas.map(f => f[dimColumna]))];
+        const datasets = series.map(function (serie, i) {
+            return {
+                label: serie,
+                backgroundColor: Etapa5.colorDe(serie, i),
+                data: categorias.map(function (cat) {
+                    const fila = resultado.filas.find(f => f[dimFila] === cat && f[dimColumna] === serie);
+                    return fila ? fila.personas : 0;
+                }),
+            };
+        });
+        new Chart(ctx, {
+            type: "bar",
+            data: { labels: categorias, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { title: { display: false } },
+                scales: {
+                    x: { stacked: true, ticks: { autoSkip: false } },
+                    y: { stacked: true, beginAtZero: true, title: { display: true, text: "Personas" } },
+                },
+            },
+        });
+    }
+
+    function pintarGraficaLineas(id, resultado) {
+        Etapa5.destruirChart(id);
+        const ctx = document.getElementById(id);
+        const anios = [...new Set(resultado.filas.map(f => f.anio))].sort((a, b) => a - b);
+        const sexos = [...new Set(resultado.filas.map(f => f.sexo))];
+        const datasets = sexos.map(function (sexo, i) {
+            return {
+                label: sexo,
+                borderColor: Etapa5.colorDe(sexo, i),
+                backgroundColor: Etapa5.colorDe(sexo, i),
+                fill: false,
+                tension: 0.15,
+                data: anios.map(function (anio) {
+                    const fila = resultado.filas.find(f => f.anio === anio && f.sexo === sexo);
+                    return fila ? Number(fila.pct_aparecidas_con_vida.toFixed(1)) : null;
+                }),
+            };
+        });
+        new Chart(ctx, {
+            type: "line",
+            data: { labels: anios, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, title: { display: true, text: "% aparecidas con vida" } } },
+            },
+        });
+    }
+
+    async function refrescar(paramsExtra) {
+        const datos = await Etapa5.consultar(Object.assign({ pivot: pivote ? "1" : "" }, paramsExtra || {}));
+
+        Etapa5.pintarIndicadores(datos.indicadores);
+
+        const dimsCruce = datos.pivote ? ["estado_victima", "sexo"] : ["sexo", "estado_victima"];
+        pintarGraficaBarras("vista1-grafica-barras", datos.grafica_barras, dimsCruce);
+        pintarGraficaLineas("vista1-grafica-lineas", datos.grafica_lineas);
+        Etapa5.pintarMatriz(datos.matriz);
+
+        const extra = datos.pivote ? "pivot: estado × sexo" : null;
+        Etapa5.mostrarSeleccionActiva(datos.filtros_aplicados, extra);
+
+        cargarOpcionesFiltro(
+            document.getElementById("vista1-filtro-fuente"),
+            datos.opciones_filtros.fuente,
+            datos.filtros_aplicados.fuente
+        );
+        cargarOpcionesFiltro(
+            document.getElementById("vista1-filtro-periodo"),
+            datos.opciones_filtros.periodo_acuerdo,
+            datos.filtros_aplicados.periodo_acuerdo
+        );
+    }
+
+    document.getElementById("vista1-filtro-fuente").addEventListener("change", function () { refrescar(); });
+    document.getElementById("vista1-filtro-periodo").addEventListener("change", function () { refrescar(); });
+
+    document.getElementById("vista1-btn-slice").addEventListener("click", function () {
+        document.getElementById("vista1-filtro-fuente").value = "SIEVCAC (CNMH)";
+        refrescar();
+    });
+    document.getElementById("vista1-btn-pivot").addEventListener("click", function () {
+        pivote = !pivote;
+        refrescar();
+    });
+    document.getElementById("vista1-btn-limpiar").addEventListener("click", function () {
+        document.getElementById("vista1-filtro-fuente").value = "";
+        document.getElementById("vista1-filtro-periodo").value = "";
+        pivote = false;
+        refrescar();
+    });
+
+    refrescar();
+})();
+</script>
+{% endblock %}

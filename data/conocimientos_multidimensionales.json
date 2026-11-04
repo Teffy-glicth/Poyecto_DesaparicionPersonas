@@ -1,0 +1,33 @@
+{
+  "proposito": "Conocimientos descubiertos en la Etapa 5 (Análisis multidimensional) al cruzar medidas con dos o más dimensiones del modelo estrella. Cada vista aporta dos. Se profundiza en los conocimientos evidentes de la Etapa 4, no se repiten.",
+  "conocimientos": [
+    {
+      "vista": "vista1",
+      "numero": 1,
+      "pregunta": "¿La brecha de desenlace entre hombres y mujeres (Tablero 1 de la Etapa 4: las mujeres aparecen con vida el doble) es igual de grande en las dos fuentes, o la fuente pesa más que el sexo?",
+      "dimensiones_medidas": "dim_victima (sexo) × dim_fuente (fuente); medida: % aparecidas con vida = SUM(flag_aparecio_viva)*100.0/SUM(num_personas), calculado dentro de cada combinación sexo×fuente.",
+      "procedimiento": "olap.consultar(['sexo','fuente'], ['personas','pct_aparecidas_con_vida']) sin filtros, sobre las 288.396 personas del modelo. Equivale a un dice: cruzar sexo y fuente a la vez (operación Dice) y comparar, dentro de cada fuente, el cociente mujer/hombre.",
+      "evidencia": "Matriz sexo × fuente de la Vista 1 (con el filtro de fuente desactivado) y la consulta en etl/olap/consultas/vista1.sql. Medicina Legal: hombres 22,97 % (de 143.736), mujeres 46,52 % (de 62.202). SIEVCAC: hombres 1,93 % (de 69.997), mujeres 4,69 % (de 9.475).",
+      "hallazgo": "En las dos fuentes las mujeres aparecen con vida aproximadamente el doble que los hombres (46,52/22,97 = 2,03× en Medicina Legal; 4,69/1,93 = 2,43× en SIEVCAC), pero el nivel absoluto depende mucho más de la fuente que del sexo: cualquiera de los dos sexos en Medicina Legal aparece con vida entre 10 y 12 veces más seguido que ese mismo sexo en SIEVCAC.",
+      "interpretacion": "El conocimiento evidente de la Etapa 4 (\"las mujeres aparecen con vida el doble\") describía una sola cifra agregada. Al cruzar sexo con fuente se ve que esa proporción 2× es estable entre fuentes (no es un artefacto de mezclar Medicina Legal y SIEVCAC), pero que la fuente —que mezcla un periodo y un tipo de hecho distintos (SIEVCAC registra específicamente desaparición forzada del conflicto armado)— es la que más empuja hacia abajo la probabilidad de aparecer con vida, para ambos sexos.",
+      "utilidad": "Sustenta priorizar el análisis y los recursos de búsqueda por tipo de registro/fuente (no solo por sexo de la víctima), porque el contexto que representa cada fuente (conflicto armado vs. registro general) parece pesar más en el desenlace que el sexo de la persona.",
+      "limitacion": "Es una asociación observada entre sexo, fuente y desenlace, no una relación causal: no se puede concluir con estos datos *por qué* SIEVCAC tiene desenlaces con vida mucho menos frecuentes (podrían influir el periodo que cubre cada fuente, el tipo de hecho, o el tiempo transcurrido desde la desaparición, que el modelo no mide).",
+      "filtros_usados": "Ninguno (vista completa, sin slice de fuente ni de periodo_acuerdo)",
+      "nivel": "sexo × fuente (sin drill-down adicional)"
+    },
+    {
+      "vista": "vista1",
+      "numero": 2,
+      "pregunta": "Después del Acuerdo de Paz de 2016, ¿mejoró el desenlace de hombres y mujeres por igual, o la brecha entre sexos se mantuvo?",
+      "dimensiones_medidas": "dim_victima (sexo) × dim_tiempo (periodo_acuerdo); medidas: % aparecidas con vida y % que siguen desaparecidas, ambas SUM(flag)*100.0/SUM(num_personas) dentro de cada combinación sexo×periodo.",
+      "procedimiento": "olap.consultar(['sexo','periodo_acuerdo'], ['personas','pct_aparecidas_con_vida']) y la misma consulta con pct_siguen_desaparecidas, filtrando después a periodo_acuerdo en {Antes (2007-2016), Despues (2017-2025)} —periodos de igual duración (9 años), como exige la condición de periodos equivalentes del punto 8 de la guía—.",
+      "evidencia": "Filtro de periodo_acuerdo de la Vista 1 aplicado primero a 'Antes (2007-2016)' y luego a 'Despues (2017-2025)'. Antes: hombres 32,02 % con vida / 58,77 % siguen desaparecidos (de 54.168); mujeres 50,09 % con vida / 47,25 % siguen desaparecidas (de 30.598). Después: hombres 39,31 % con vida / 53,14 % siguen desaparecidos (de 36.539); mujeres 54,76 % con vida / 43,35 % siguen desaparecidas (de 23.056).",
+      "hallazgo": "Los dos sexos mejoraron después de 2016: el % que sigue desaparecido bajó 5,6 puntos porcentuales en hombres (58,77→53,14) y 3,9 en mujeres (47,25→43,35). Pero la brecha entre sexos en % con vida casi no se cerró: 18,07 pp antes (50,09−32,02) frente a 15,45 pp después (54,76−39,31).",
+      "interpretacion": "La etapa 4 ya había fijado 2007-2016 y 2017-2025 como periodos comparables; este cruce muestra que la mejora general en el desenlace tras el Acuerdo de Paz no cerró la brecha de sexo, solo la movió en bloque: mujeres y hombres mejoraron en una magnitud parecida, así que la distancia relativa entre ambos se mantuvo casi igual.",
+      "utilidad": "Una política o un programa de búsqueda que solo mida su éxito con la tasa general de aparición con vida puede parecer que está cerrando la brecha de género cuando en realidad la está desplazando sin reducirla; conviene medir el indicador por sexo, no solo el agregado.",
+      "limitacion": "2026 queda fuera de esta comparación por estar incompleto (solo hasta junio) y 818 personas con año conocido pero mes desconocido sí entran en este nivel (se agrupan por año), pero no aparecerían si se bajara a trimestre o mes; la mejora observada es una asociación temporal, no prueba que el Acuerdo de Paz la haya causado.",
+      "filtros_usados": "periodo_acuerdo = 'Antes (2007-2016)' y luego 'Despues (2017-2025)' (dos consultas, mismo filtro aplicado a cada una)",
+      "nivel": "sexo × periodo_acuerdo (nivel año agregado por los 9 años de cada periodo)"
+    }
+  ]
+}
