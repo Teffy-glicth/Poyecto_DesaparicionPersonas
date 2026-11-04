@@ -1,0 +1,87 @@
+{
+  "generado": "2026-11-04T06:25:07+00:00",
+  "ok_general": true,
+  "unicidad_claves": {
+    "dim_tiempo": {
+      "ok": true,
+      "claves_repetidas": []
+    },
+    "dim_geografia": {
+      "ok": true,
+      "claves_repetidas": []
+    },
+    "dim_zona": {
+      "ok": true,
+      "claves_repetidas": []
+    },
+    "dim_victima": {
+      "ok": true,
+      "claves_repetidas": []
+    },
+    "dim_estado": {
+      "ok": true,
+      "claves_repetidas": []
+    },
+    "dim_fuente": {
+      "ok": true,
+      "claves_repetidas": []
+    }
+  },
+  "fk_huerfanas": {
+    "id_tiempo": 0,
+    "id_geografia": 0,
+    "id_zona": 0,
+    "id_victima": 0,
+    "id_estado": 0,
+    "id_fuente": 0
+  },
+  "duplicados_hechos": {
+    "ok": true,
+    "cantidad": 0
+  },
+  "hechos_en_clave_0_por_dimension": {
+    "id_tiempo": 4262,
+    "id_geografia": 4343,
+    "id_zona": 96689,
+    "id_victima": 0,
+    "id_estado": 0,
+    "id_fuente": 0
+  },
+  "comparaciones_con_csv_tratado": [
+    {
+      "nombre": "Personas registradas — Medicina Legal (SIRDEC)",
+      "valor_csv_tratado": 205938,
+      "valor_modelo": 205938,
+      "coincide": true,
+      "explicacion": "Coincide: num_personas=1 por fila y el filtro de carga es el mismo que se aplico aqui sobre el CSV (fuente + unidad_de_analisis='persona')."
+    },
+    {
+      "nombre": "Personas registradas — SIEVCAC (CNMH)",
+      "valor_csv_tratado": 82458,
+      "valor_modelo": 82458,
+      "coincide": true,
+      "explicacion": "Coincide: num_personas=1 por fila y el filtro de carga es el mismo que se aplico aqui sobre el CSV (fuente + unidad_de_analisis='persona')."
+    },
+    {
+      "nombre": "Hombres en Medicina Legal (SIRDEC)",
+      "valor_csv_tratado": 143736,
+      "valor_modelo": 143736,
+      "coincide": true,
+      "explicacion": "Coincide: dim_victima.sexo aplica la misma normalizacion (str.title()) que esta comparacion sobre el CSV."
+    },
+    {
+      "nombre": "% que siguen desaparecidas — Medicina Legal (SIRDEC)",
+      "valor_csv_tratado": 63.69,
+      "valor_modelo": 63.69,
+      "coincide": true,
+      "explicacion": "Coincide (margen de redondeo < 0.05 pp): SUM(flag_sigue_desaparecida)*100.0/COUNT(*) sobre el grupo filtrado, el mismo denominador que esta comparacion."
+    },
+    {
+      "nombre": "% que siguen desaparecidas — SIEVCAC (CNMH)",
+      "valor_csv_tratado": 87.3,
+      "valor_modelo": 87.3,
+      "coincide": true,
+      "explicacion": "Coincide (margen de redondeo < 0.05 pp): SUM(flag_sigue_desaparecida)*100.0/COUNT(*) sobre el grupo filtrado, el mismo denominador que esta comparacion."
+    }
+  ]
+}
