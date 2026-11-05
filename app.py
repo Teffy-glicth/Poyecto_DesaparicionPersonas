@@ -908,11 +908,158 @@ def datos_vista3(args):
         "sql": res.get("sql"),
         "conocimientos": conocimientos_de_vista("vista3"),
     }
+# ---------- Vista 4 · Perfiles combinados ----------
+
+VISTA4_PREGUNTA = (
+    "¿Qué combinaciones de sexo, zona del hecho y departamento tienen la mayor "
+    "proporción de personas sin resolver?"
+)
+MEDIDAS_VISTA4 = ["personas", "siguen_desaparecidas", "pct_siguen_desaparecidas"]
+FILTROS_VISTA4 = ("fuente", "macro_region", "departamento", "zona_hecho", "sexo")
+FILTROS_DICE_VISTA4 = ("macro_region", "departamento", "zona_hecho", "sexo")
+# Nunca se suman fuentes: si no se elige una, se usa esta.
+FUENTE_POR_DEFECTO_V4 = "Medicina Legal (SIRDEC)"
+SIN_INFO = "Sin informacion"
+
+
+def _opciones_vista4(columna, con):
+    filas = olap.consultar([columna], ["personas"], con=con)["filas"]
+    return [f[columna] for f in filas if f[columna] is not None]
+
+
+def _clave_orden_v4(valor):
+    # "Sin informacion" siempre al final, separado de las respuestas reales.
+    return (valor == SIN_INFO, str(valor))
+
+
+def _celda_v4(fila):
+    personas = fila["personas"] or 0
+    return {
+        "personas": personas,
+        "pct": fila["pct_siguen_desaparecidas"] or 0.0,
+        "confiable": personas >= MIN_PERSONAS_CONFIABLE,
+    }
+
+
+def datos_vista4(args):
+    # 1. Filtros: fuente (dimensión fuente) + los cortes del Dice
+    #    (geografía, zona y víctima).
+    filtros = {}
+    for clave in FILTROS_VISTA4:
+        valor = args.get(clave)
+        if valor:
+            filtros[clave] = valor
+    filtros.setdefault("fuente", FUENTE_POR_DEFECTO_V4)
+    fuente = filtros["fuente"]
+    pivote = args.get("pivot") in ("1", "true", "True")
+    n_dice = len([c for c in FILTROS_DICE_VISTA4 if c in filtros])
+
+    con = olap.conectar()
+    try:
+        total = olap.consultar([], MEDIDAS_VISTA4, filtros, con=con)["filas"][0]
+        base_fuente = olap.consultar([], MEDIDAS_VISTA4, {"fuente": fuente}, con=con)["filas"][0]
+
+        combos = olap.consultar(["sexo", "zona_hecho"], MEDIDAS_VISTA4, filtros, con=con)["filas"]
+        por_zona = olap.consultar(["zona_hecho", "grupo_desenlace"], ["personas"], filtros, con=con)["filas"]
+
+        # Pivot: se vuelve a consultar el modelo con las dimensiones invertidas,
+        # y los totales de fila se recalculan con SQL en ese nuevo nivel.
+        dims = ["sexo", "zona_hecho"] if pivote else ["zona_hecho", "sexo"]
+        celdas_res = olap.pivot(dims, MEDIDAS_VISTA4, filtros, con=con)
+        totales_fila_res = olap.consultar([dims[0]], MEDIDAS_VISTA4, filtros, con=con)["filas"]
+
+        top_res = olap.consultar(["sexo", "zona_hecho", "departamento"], MEDIDAS_VISTA4, filtros, con=con)["filas"]
+        opciones = {c: _opciones_vista4(c, con) for c in FILTROS_VISTA4}
+    finally:
+        con.close()
+
+    personas_sel = total["personas"] or 0
+    pct_sel = total["pct_siguen_desaparecidas"] or 0.0
+    personas_fuente = base_fuente["personas"] or 0
+    pct_fuente = base_fuente["pct_siguen_desaparecidas"] or 0.0
+    diferencia = pct_sel - pct_fuente
+
+    indicadores = [
+        {"etiqueta": "Personas en la combinación seleccionada",
+         "valor": _formato_entero(personas_sel), "unidad": "", "denominador": None},
+        {"etiqueta": "% sin resolver de la combinación",
+         "valor": _formato_pct(pct_sel), "unidad": "%", "denominador": personas_sel},
+        {"etiqueta": f"Diferencia frente al total de {fuente} ({_formato_pct(pct_fuente)} %)",
+         "valor": f"{diferencia:+.1f}".replace(".", ","), "unidad": "pp",
+         "denominador": personas_fuente},
+    ]
+
+    # Gráfica 1: % sin resolver por sexo + zona, de mayor a menor.
+    # Las combinaciones con menos de 30 personas van al final y no se destacan.
+    combos = sorted(combos, key=lambda f: ((f["personas"] or 0) < MIN_PERSONAS_CONFIABLE,
+                                           -(f["pct_siguen_desaparecidas"] or 0)))
+    barras_combos = [
+        {"etiqueta": f"{f['sexo']} · {f['zona_hecho']}", "sexo": f["sexo"], **_celda_v4(f)}
+        for f in combos
+    ]
+
+    # Matriz zona × sexo (o sexo × zona con Pivot): % sin resolver y personas por celda.
+    filas_v = sorted({f[dims[0]] for f in celdas_res["filas"]}, key=_clave_orden_v4)
+    cols_v = sorted({f[dims[1]] for f in celdas_res["filas"]}, key=_clave_orden_v4)
+    por_celda = {(f[dims[0]], f[dims[1]]): f for f in celdas_res["filas"]}
+    por_fila = {f[dims[0]]: f for f in totales_fila_res}
+    matriz = {
+        "fila_dim": dims[0],
+        "columna_dim": dims[1],
+        "filas": filas_v,
+        "columnas": cols_v,
+        "celdas": [[_celda_v4(por_celda[(fv, cv)]) if (fv, cv) in por_celda else None
+                    for cv in cols_v] for fv in filas_v],
+        "totales_fila": [_celda_v4(por_fila[fv]) for fv in filas_v],
+    }
+
+    # Ranking sexo + zona + departamento (solo n >= 30 y sin "Sin informacion").
+    ranking = [
+        f for f in top_res
+        if (f["personas"] or 0) >= MIN_PERSONAS_CONFIABLE
+        and SIN_INFO not in (f["sexo"], f["zona_hecho"], f["departamento"])
+    ]
+    ranking.sort(key=lambda f: f["pct_siguen_desaparecidas"] or 0, reverse=True)
+    top_combinaciones = [
+        {"combinacion": f"{f['sexo']} · {f['zona_hecho']} · {f['departamento']}", **_celda_v4(f)}
+        for f in ranking[:10]
+    ]
+
+    aviso = None
+    if personas_sel == 0:
+        aviso = "La combinación elegida no tiene personas registradas."
+    elif personas_sel < MIN_PERSONAS_CONFIABLE:
+        aviso = (f"La selección tiene solo {personas_sel} personas (menos de "
+                 f"{MIN_PERSONAS_CONFIABLE}): el % no es confiable.")
+
+    return {
+        "pregunta": VISTA4_PREGUNTA,
+        "dimensiones": ["víctima (sexo)", "zona (zona del hecho)",
+                        "geografía (macrorregión › departamento)", "estado (desenlace)", "fuente"],
+        "medidas": ["Personas registradas", "Personas que siguen desaparecidas",
+                    "% que siguen desaparecidas"],
+        "jerarquias": ["geografía: macro_region → departamento", "estado: grupo_desenlace → estado_victima"],
+        "filtros_aplicados": filtros,
+        "pivote": pivote,
+        "n_dice": n_dice,
+        "min_personas_confiable": MIN_PERSONAS_CONFIABLE,
+        "opciones_filtros": opciones,
+        "indicadores": indicadores,
+        "grafica_combos": barras_combos,
+        "grafica_zonas": por_zona,
+        "matriz": matriz,
+        "top_combinaciones": top_combinaciones,
+        "aviso": aviso,
+        "denominador_total": personas_sel,
+        "sql": celdas_res.get("sql"),
+        "conocimientos": conocimientos_de_vista("vista4"),
+    }
 
 VISTA_API = {
     "vista1": datos_vista1,
     "vista2": datos_vista2,
     "vista3": datos_vista3,
+    "vista4": datos_vista4,
 }
 
 
@@ -944,6 +1091,12 @@ def render_vista3():
         "etapa5_vista_tiempo.html",
         current_slug="vista3",
         conocimientos=conocimientos_de_vista("vista3"),
+    )
+def render_vista4():
+    return render_template(
+        "etapa5_vista_perfiles.html",
+        current_slug="vista4",
+        conocimientos=conocimientos_de_vista("vista4"),
     )
 # Qué tablero de conocimiento evidente (Etapa 4) profundiza cada vista de esta etapa.
 ETAPA5_TABLERO_A_VISTA = {
@@ -997,6 +1150,10 @@ def etapa5_pagina(slug):
 
     if slug == "vista3":
         return render_vista3()
+
+    if slug == "vista4":
+        return render_vista4()
+
 
     item = ETAPA5_MENU_BY_SLUG[slug]
     return render_template(
