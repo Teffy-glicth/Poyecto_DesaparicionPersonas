@@ -3,6 +3,7 @@ import io
 import json
 import os
 import re
+from functools import lru_cache
 from pathlib import Path
 
 from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory, url_for
@@ -1055,6 +1056,430 @@ def datos_vista4(args):
         "conocimientos": conocimientos_de_vista("vista4"),
     }
 
+# ---------- Operaciones, validaciones y conclusiones ----------
+
+FUENTE_ML = "Medicina Legal (SIRDEC)"
+FUENTE_SIEVCAC = "SIEVCAC (CNMH)"
+FUENTES_MODELO = (FUENTE_ML, FUENTE_SIEVCAC)
+PERIODO_DESPUES = "Despues (2017-2025)"
+ANIO_EJEMPLO = 2017
+MEDIDAS_OP = ["personas", "siguen_desaparecidas", "pct_siguen_desaparecidas"]
+TRATADO_CSV = PROCESSED_DIR / "dataset_tratado.csv"
+CARGA_RESUMEN_PATH = DATA_DIR / "olap" / "carga_resumen.json"
+
+CONDICIONES_ANALISIS = [
+    ("Granularidad consistente",
+     "Cada fila de fact_desaparicion es una persona registrada por una fuente. El script de carga comprueba que el número de filas no cambie y que id_registro sea único."),
+    ("Relaciones que no multiplican valores",
+     "Las seis dimensiones se unen por una clave primaria única y cada hecho tiene una sola clave por dimensión, así que los JOIN no repiten filas. La página de validaciones lo comprueba."),
+    ("Registros, entidades únicas y sumas",
+     "Las personas son la suma de num_personas (un registro por persona y fuente) y los municipios afectados se cuentan con COUNT(DISTINCT). Una misma persona puede estar en las dos fuentes, por eso los filtros de fuente advierten cuando se eligen todas."),
+    ("Denominador de los porcentajes",
+     "Cada porcentaje indica sobre qué se calcula: las personas del grupo que se está mostrando."),
+    ("Recalcular al cambiar de nivel",
+     "Los porcentajes se definen como cociente de sumas (siguen desaparecidas ÷ personas) y se recalculan en SQL en cada nivel de la jerarquía."),
+    ("No sumar ni promediar porcentajes",
+     "Al cambiar de nivel, la vista de territorio contrasta el porcentaje ponderado con el promedio simple de los niveles inferiores, y la de tiempo verifica que la suma de las filas iguale el total de la selección."),
+    ("Periodos equivalentes",
+     "La serie comparable usa 2007-2025 (2026 llega hasta junio). Como 2007-2016 tiene 10 años y 2017-2025 tiene 9, se comparan promedios anuales y no totales."),
+    ("Faltantes, desconocidos y negativos",
+     "'Sin informacion' se conserva como categoría propia y no se mezcla con 'Sin resolver': la primera indica que se desconoce el estado y la segunda que la persona sigue desaparecida."),
+    ("Jerarquías válidas",
+     "Geografía: macrorregión → departamento → municipio. Tiempo: año → trimestre → mes. Estado: grupo de desenlace → estado. Fuente: fuente → tipo de evento. Cada nivel pertenece a un único nivel superior."),
+    ("Asociación y causalidad",
+     "Los hallazgos describen asociaciones entre dimensiones. Ninguno prueba que una variable cause a otra."),
+    ("Hipótesis",
+     "Las explicaciones que los datos no permiten comprobar, como la presencia de grupos armados o diferencias de registro entre fuentes, se presentan como hipótesis."),
+]
+
+
+def _tabla_medidas(titulo, titulo_dim, filas, etiqueta):
+    return {
+        "titulo": titulo,
+        "columnas": [titulo_dim, "Personas", "Siguen desaparecidas", "% que siguen desaparecidas"],
+        "filas": [[etiqueta(f), _formato_entero(f["personas"]), _formato_entero(f["siguen_desaparecidas"]),
+                   _formato_pct(f["pct_siguen_desaparecidas"]) + " %"] for f in filas],
+    }
+
+
+def _tabla_matriz(titulo, titulo_fila, m):
+    filas = []
+    for nombre, valores in zip(m["filas"], m["celdas"]):
+        filas.append([nombre] + [_formato_entero(v) for v in valores]
+                     + [_formato_entero(sum(v or 0 for v in valores))])
+    return {"titulo": titulo,
+            "columnas": [titulo_fila] + [str(c) for c in m["columnas"]] + ["Total fila"],
+            "filas": filas}
+
+
+def _extremos(filas):
+    validas = [f for f in filas if (f["personas"] or 0) >= MIN_PERSONAS_CONFIABLE
+               and f["pct_siguen_desaparecidas"] is not None]
+    if len(validas) < 2:
+        return None
+    return (min(validas, key=lambda f: f["pct_siguen_desaparecidas"]),
+            max(validas, key=lambda f: f["pct_siguen_desaparecidas"]))
+
+
+def _pct_fila(m, fila, columna):
+    if fila not in m["filas"] or columna not in m["columnas"]:
+        return None
+    celdas = m["celdas"][m["filas"].index(fila)]
+    total = sum(v or 0 for v in celdas)
+    return 100 * (celdas[m["columnas"].index(columna)] or 0) / total if total else None
+
+
+def _op(numero, nombre, definicion, vista, dimensiones, medidas, nivel_filtros,
+        procedimiento, tablas, interpretacion, sql):
+    return {
+        "numero": numero, "nombre": nombre, "definicion": definicion,
+        "vista_slug": vista, "vista_titulo": ETAPA5_MENU_BY_SLUG[vista]["titulo"],
+        "dimensiones": dimensiones, "medidas": medidas, "nivel_filtros": nivel_filtros,
+        "procedimiento": procedimiento, "tablas": tablas,
+        "interpretacion": interpretacion, "sql": sql,
+    }
+
+
+def datos_operaciones():
+    con = olap.conectar()
+    try:
+        # 1. Drill-down: macrorregión -> departamento (Sur, Medicina Legal)
+        macro = olap.consultar(["macro_region"], MEDIDAS_OP, {"fuente": FUENTE_ML}, con=con)["filas"]
+        drill = olap.drill_down("geografia", "macro_region", MEDIDAS_OP,
+                                {"fuente": FUENTE_ML, "macro_region": "Sur"}, con=con)
+        deps = sorted(drill["filas"], key=lambda f: f["siguen_desaparecidas"] or 0, reverse=True)
+        sur = next((f for f in macro if f["macro_region"] == "Sur"), None)
+        interp1 = []
+        if sur:
+            interp1.append(
+                f"En el nivel de macrorregión, el Sur reúne {_formato_entero(sur['personas'])} personas de "
+                f"Medicina Legal y {_formato_pct(sur['pct_siguen_desaparecidas'])} % siguen desaparecidas "
+                f"(denominador: personas del Sur).")
+        ext = _extremos(deps)
+        if ext:
+            bajo, alto = ext
+            interp1.append(
+                f"Al bajar a departamento, el porcentaje va de {_formato_pct(bajo['pct_siguen_desaparecidas'])} % "
+                f"en {bajo['departamento']} a {_formato_pct(alto['pct_siguen_desaparecidas'])} % en "
+                f"{alto['departamento']} (solo grupos con al menos {MIN_PERSONAS_CONFIABLE} personas): "
+                f"el promedio de la macrorregión resume situaciones distintas.")
+        interp1.append("Cada porcentaje se recalcula con SQL en el nivel mostrado (siguen desaparecidas ÷ "
+                       "personas del grupo); no es el promedio de los porcentajes del nivel inferior.")
+
+        # 2. Roll-up: mes -> trimestre (2017, Medicina Legal)
+        filtros_r = {"fuente": FUENTE_ML, "anio": ANIO_EJEMPLO}
+        meses = sorted(olap.consultar(["mes"], MEDIDAS_OP, filtros_r, con=con)["filas"],
+                       key=lambda f: _orden_tiempo("mes", f["mes"]))
+        roll = olap.roll_up("tiempo", "mes", MEDIDAS_OP, filtros_r, con=con)
+        trims = sorted(roll["filas"], key=lambda f: _orden_tiempo("trimestre", f["trimestre"]))
+        total_anio = olap.consultar([], MEDIDAS_OP, filtros_r, con=con)["filas"][0]
+        pcts_m = [f["pct_siguen_desaparecidas"] for f in meses if f["pct_siguen_desaparecidas"] is not None]
+        interp2 = [
+            f"Los meses de {ANIO_EJEMPLO} suman {_formato_entero(sum(f['personas'] or 0 for f in meses))} personas, "
+            f"los trimestres suman {_formato_entero(sum(f['personas'] or 0 for f in trims))} y el año completo "
+            f"tiene {_formato_entero(total_anio['personas'])}: al subir de nivel no se pierden ni se duplican registros.",
+        ]
+        if pcts_m and total_anio["pct_siguen_desaparecidas"] is not None:
+            interp2.append(
+                f"El porcentaje del año ({_formato_pct(total_anio['pct_siguen_desaparecidas'])} %) se calcula con las "
+                f"personas del año; el promedio simple de los porcentajes mensuales daría "
+                f"{_formato_pct(sum(pcts_m) / len(pcts_m))} %, que no es el valor correcto.")
+        interp2.append("Los registros sin mes aparecen como 'Mes desconocido' y no se reparten entre trimestres.")
+
+        # 3. Slice: fuente = SIEVCAC, agrupado por calidad de la víctima
+        sl = olap.consultar(["calidad_victima"], MEDIDAS_OP, {"fuente": FUENTE_SIEVCAC}, con=con)
+        filas_s = sorted(sl["filas"], key=lambda f: f["personas"] or 0, reverse=True)
+        total_s = sum(f["personas"] or 0 for f in filas_s)
+        tabla_s = {
+            "titulo": "Resultado del slice (fuente = SIEVCAC)",
+            "columnas": ["Calidad de la víctima", "Personas",
+                         f"% de las personas de SIEVCAC (denominador: {_formato_entero(total_s)})",
+                         "% que siguen desaparecidas"],
+            "filas": [[f["calidad_victima"], _formato_entero(f["personas"]),
+                       _formato_pct(100 * (f["personas"] or 0) / total_s if total_s else 0) + " %",
+                       _formato_pct(f["pct_siguen_desaparecidas"]) + " %"] for f in filas_s],
+        }
+        interp3 = []
+        if filas_s and total_s:
+            top = filas_s[0]
+            interp3.append(
+                f"Con la fuente fijada en SIEVCAC quedan {_formato_entero(total_s)} personas; la categoría más "
+                f"frecuente es '{top['calidad_victima']}' con {_formato_entero(top['personas'])} "
+                f"({_formato_pct(100 * top['personas'] / total_s)} %).")
+        interp3.append("La calidad de la víctima (civil o combatiente) solo se registra en SIEVCAC, por eso este "
+                       "análisis necesita el slice y no puede extenderse a Medicina Legal.")
+
+        # 4. Dice: fuente + periodo + macrorregión, agrupado por sexo
+        filtros_d = {"fuente": FUENTE_ML, "periodo_acuerdo": PERIODO_DESPUES, "macro_region": "Sur"}
+        dice = olap.consultar(["sexo"], MEDIDAS_OP, filtros_d, con=con)
+        tot_d = olap.consultar([], MEDIDAS_OP, filtros_d, con=con)["filas"][0]
+        tot_ml = olap.consultar([], MEDIDAS_OP, {"fuente": FUENTE_ML}, con=con)["filas"][0]
+        interp4 = []
+        if tot_d["personas"] and tot_ml["personas"]:
+            interp4.append(
+                f"La combinación de tres filtros (fuente, periodo y macrorregión) deja "
+                f"{_formato_entero(tot_d['personas'])} de las {_formato_entero(tot_ml['personas'])} personas de "
+                f"Medicina Legal ({_formato_pct(100 * tot_d['personas'] / tot_ml['personas'])} %). De ellas, "
+                f"{_formato_pct(tot_d['pct_siguen_desaparecidas'])} % siguen desaparecidas, frente a "
+                f"{_formato_pct(tot_ml['pct_siguen_desaparecidas'])} % en toda la fuente.")
+        interp4.append("Diferencia con el slice: aquí se restringen varias dimensiones a la vez, así que el "
+                       "resultado describe un subconjunto concreto y no debe leerse como el comportamiento general.")
+
+        # 5. Pivot: sexo x desenlace, dos disposiciones del mismo resultado
+        piv = olap.pivot(["sexo", "grupo_desenlace"], ["personas"], {"fuente": FUENTE_ML}, con=con)
+        m_a = olap.como_matriz(piv, "sexo", "grupo_desenlace", "personas")
+        m_b = olap.como_matriz(piv, "grupo_desenlace", "sexo", "personas")
+        pa = _pct_fila(m_a, "Mujer", "Sin resolver")
+        pb = _pct_fila(m_b, "Sin resolver", "Mujer")
+        interp5 = []
+        if pa is not None and pb is not None:
+            interp5.append(
+                f"Con el sexo en las filas se lee: del total de mujeres registradas, {_formato_pct(pa)} % siguen "
+                f"sin resolver. Con el desenlace en las filas se lee: del total de personas sin resolver, "
+                f"{_formato_pct(pb)} % son mujeres.")
+        interp5.append("Las dos proporciones responden preguntas distintas porque cambia el denominador "
+                       "(mujeres registradas frente a personas sin resolver). El pivot cambia la perspectiva "
+                       "de lectura sin cambiar los datos.")
+    finally:
+        con.close()
+
+    return [
+        _op(1, "Drill-down",
+            "Bajar de un nivel general a uno más detallado dentro de una jerarquía.",
+            "vista2", "Geografía (macrorregión → departamento), Fuente",
+            "Personas, personas que siguen desaparecidas, % que siguen desaparecidas",
+            "Nivel: de macrorregión a departamento · Filtros: fuente = Medicina Legal, macrorregión = Sur",
+            "olap.drill_down('geografia', 'macro_region', medidas, filtros) agrupa por el siguiente nivel y "
+            "mantiene el filtro del valor elegido. Las medidas se recalculan con SQL.",
+            [_tabla_medidas("Nivel general: macrorregión", "Macrorregión", macro, lambda f: f["macro_region"]),
+             _tabla_medidas("Nivel detallado: departamentos del Sur", "Departamento", deps, lambda f: f["departamento"])],
+            interp1, drill["sql"]),
+        _op(2, "Roll-up",
+            "Agrupar los resultados en un nivel superior de la jerarquía.",
+            "vista3", "Tiempo (mes → trimestre), Fuente",
+            "Personas, personas que siguen desaparecidas, % que siguen desaparecidas",
+            f"Nivel: de mes a trimestre · Filtros: fuente = Medicina Legal, año = {ANIO_EJEMPLO}",
+            "olap.roll_up('tiempo', 'mes', medidas, filtros) agrupa por el nivel superior (trimestre). Las "
+            "sumas se vuelven a calcular en la base de datos, no se suman porcentajes.",
+            [_tabla_medidas(f"Nivel detallado: meses de {ANIO_EJEMPLO}", "Mes", meses, lambda f: _etiqueta_tiempo("mes", f["mes"])),
+             _tabla_medidas(f"Nivel superior: trimestres de {ANIO_EJEMPLO}", "Trimestre", trims, lambda f: _etiqueta_tiempo("trimestre", f["trimestre"]))],
+            interp2, roll["sql"]),
+        _op(3, "Slice",
+            "Seleccionar un valor de una dimensión para estudiar un subconjunto.",
+            "vista1", "Fuente (valor fijo), Víctima (calidad)",
+            "Personas, participación dentro de la fuente, % que siguen desaparecidas",
+            "Filtro: fuente = SIEVCAC (CNMH) · Agrupación: calidad de la víctima",
+            "olap.consultar(['calidad_victima'], medidas, {'fuente': 'SIEVCAC (CNMH)'}) fija una sola dimensión "
+            "y agrupa por otra.",
+            [tabla_s], interp3, sl["sql"]),
+        _op(4, "Dice",
+            "Seleccionar un subconjunto combinando filtros de dos o más dimensiones.",
+            "vista2", "Fuente, Tiempo (periodo frente al Acuerdo), Geografía (macrorregión), Víctima (sexo)",
+            "Personas, personas que siguen desaparecidas, % que siguen desaparecidas",
+            "Filtros: fuente = Medicina Legal, periodo = 2017-2025, macrorregión = Sur · Agrupación: sexo",
+            "olap.consultar(['sexo'], medidas, filtros) con tres filtros simultáneos sobre dimensiones distintas.",
+            [_tabla_medidas("Resultado del dice, por sexo", "Sexo", dice["filas"], lambda f: f["sexo"])],
+            interp4, dice["sql"]),
+        _op(5, "Pivot",
+            "Cambiar la disposición de las dimensiones en una matriz para ver los resultados desde otra perspectiva.",
+            "vista3", "Víctima (sexo), Estado (grupo de desenlace), Fuente",
+            "Personas (con total por fila)",
+            "Filtro: fuente = Medicina Legal · Matriz A: sexo × desenlace · Matriz B: desenlace × sexo",
+            "olap.pivot(['sexo', 'grupo_desenlace'], medidas, filtros) y olap.como_matriz con filas y columnas "
+            "intercambiadas. Es la misma consulta con otra disposición.",
+            [_tabla_matriz("Matriz A: sexo en filas, desenlace en columnas", "Sexo", m_a),
+             _tabla_matriz("Matriz B: desenlace en filas, sexo en columnas", "Desenlace", m_b)],
+            interp5, piv["sql"]),
+    ]
+
+
+@lru_cache(maxsize=1)
+def resumen_tratado():
+    """Conteos del dataset tratado, con el mismo filtro con que se carga el modelo."""
+    if not TRATADO_CSV.exists():
+        return None
+    total, elegibles, por_fuente, por_estado = 0, 0, {}, {}
+    with open(TRATADO_CSV, encoding="utf-8-sig", newline="") as f:
+        for fila in csv.DictReader(f):
+            total += 1
+            if fila.get("fuente") in FUENTES_MODELO and fila.get("unidad_de_analisis") == "persona":
+                elegibles += 1
+                por_fuente[fila["fuente"]] = por_fuente.get(fila["fuente"], 0) + 1
+                estado = fila.get("estado_victima") or "Sin informacion"
+                por_estado[estado] = por_estado.get(estado, 0) + 1
+    return {"total": total, "elegibles": elegibles, "por_fuente": por_fuente, "por_estado": por_estado}
+
+
+DIMENSIONES_FK = [
+    ("dim_tiempo", "id_tiempo", "Tiempo"),
+    ("dim_geografia", "id_geografia", "Geografía"),
+    ("dim_zona", "id_zona", "Zona del hecho"),
+    ("dim_victima", "id_victima", "Víctima"),
+    ("dim_estado", "id_estado", "Estado"),
+    ("dim_fuente", "id_fuente", "Fuente"),
+]
+FALTANTES = [
+    ("Tiempo: sin año", "dim_tiempo", "id_tiempo", "d.anio IS NULL"),
+    ("Tiempo: año conocido, mes desconocido", "dim_tiempo", "id_tiempo", "d.anio IS NOT NULL AND d.mes IS NULL"),
+    ("Geografía: departamento sin información", "dim_geografia", "id_geografia", "d.departamento = 'Sin informacion'"),
+    ("Geografía: municipio sin información", "dim_geografia", "id_geografia", "d.municipio = 'Sin informacion'"),
+    ("Zona del hecho: sin información", "dim_zona", "id_zona", "d.zona_hecho = 'Sin informacion'"),
+    ("Víctima: sexo sin información", "dim_victima", "id_victima", "d.sexo = 'Sin informacion'"),
+    ("Víctima: calidad sin información", "dim_victima", "id_victima", "d.calidad_victima = 'Sin informacion'"),
+    ("Estado: sin información", "dim_estado", "id_estado", "d.estado_victima = 'Sin informacion'"),
+]
+ESTADOS_COMPARAR = [
+    ("Siguen desaparecidas", "flag_sigue_desaparecida", "Desaparecido"),
+    ("Aparecidas con vida", "flag_aparecio_viva", "Aparecido con vida"),
+    ("Aparecidas sin vida", "flag_aparecio_sin_vida", "Aparecido sin vida"),
+]
+
+
+def _fila_comparacion(nombre, modelo, esperado):
+    if esperado is None:
+        return {"celdas": [nombre, _formato_entero(modelo), "No disponible"], "ok": None}
+    return {"celdas": [nombre, _formato_entero(modelo), _formato_entero(esperado)], "ok": modelo == esperado}
+
+
+def datos_validaciones():
+    tratado = resumen_tratado()
+    carga = {}
+    if CARGA_RESUMEN_PATH.exists():
+        with open(CARGA_RESUMEN_PATH, encoding="utf-8") as f:
+            carga = json.load(f)
+
+    con = olap.conectar()
+    try:
+        un = lambda sql, p=(): con.execute(sql, p).fetchone()[0]
+        total = un("SELECT COUNT(*) FROM fact_desaparicion")
+        personas_total = un("SELECT SUM(num_personas) FROM fact_desaparicion") or 0
+
+        unicidad = []
+        for tabla, pk, nombre in DIMENSIONES_FK:
+            filas, distintas = con.execute(f"SELECT COUNT(*), COUNT(DISTINCT {pk}) FROM {tabla}").fetchone()
+            unicidad.append({"celdas": [f"{tabla}.{pk}", _formato_entero(filas), _formato_entero(distintas)],
+                             "ok": filas == distintas})
+
+        huerfanas = []
+        for tabla, pk, nombre in DIMENSIONES_FK:
+            n = un(f"SELECT COUNT(*) FROM fact_desaparicion f LEFT JOIN {tabla} d ON f.{pk} = d.{pk} "
+                   f"WHERE d.{pk} IS NULL")
+            huerfanas.append({"celdas": [f"fact_desaparicion.{pk} → {tabla}", _formato_entero(n), "0"], "ok": n == 0})
+
+        distintos = un("SELECT COUNT(DISTINCT id_registro) FROM fact_desaparicion")
+        multi = un("SELECT COUNT(*) FROM fact_desaparicion WHERE flag_sigue_desaparecida + "
+                   "flag_aparecio_viva + flag_aparecio_sin_vida > 1")
+        duplicados = [
+            {"celdas": ["Filas frente a id_registro distintos", _formato_entero(total), _formato_entero(distintos)],
+             "ok": total == distintos},
+            {"celdas": ["SUM(num_personas) frente a filas (una persona por fila)",
+                        _formato_entero(personas_total), _formato_entero(total)], "ok": personas_total == total},
+            {"celdas": ["Filas con más de un estado marcado", _formato_entero(multi), "0"], "ok": multi == 0},
+        ]
+
+        faltantes = []
+        for nombre, tabla, pk, cond in FALTANTES:
+            n = un(f"SELECT COUNT(*) FROM fact_desaparicion f JOIN {tabla} d ON f.{pk} = d.{pk} WHERE {cond}")
+            faltantes.append({"celdas": [nombre, _formato_entero(n),
+                                         _formato_pct(100 * n / total if total else 0) + " %"], "ok": None})
+
+        origen = "dataset_tratado.csv" if tratado else "carga_resumen.json (conteos registrados al cargar el modelo)"
+        esp_total = tratado["elegibles"] if tratado else carga.get("registros_cargados")
+        esp_fuente = tratado["por_fuente"] if tratado else carga.get("por_fuente", {})
+        comparaciones = [_fila_comparacion("Total de personas (Medicina Legal + SIEVCAC, unidad persona)", total, esp_total)]
+        for fuente in FUENTES_MODELO:
+            n = un("SELECT COUNT(*) FROM fact_desaparicion f JOIN dim_fuente d ON f.id_fuente = d.id_fuente "
+                   "WHERE d.fuente = ?", (fuente,))
+            comparaciones.append(_fila_comparacion(f"Personas de {fuente}", n,
+                                                   esp_fuente.get(fuente) if esp_fuente else None))
+        if tratado:
+            for nombre, flag, valor in ESTADOS_COMPARAR:
+                n = un(f"SELECT SUM({flag}) FROM fact_desaparicion") or 0
+                comparaciones.append(_fila_comparacion(nombre, n, tratado["por_estado"].get(valor, 0)))
+
+        niveles = []
+        for nombre, dims in [("Suma por macrorregión", ["macro_region"]),
+                             ("Suma por departamento", ["departamento"]),
+                             ("Suma por departamento y municipio", ["departamento", "municipio"]),
+                             ("Suma por año", ["anio"]),
+                             ("Suma por año y trimestre", ["anio", "trimestre"])]:
+            suma = sum(f["personas"] or 0 for f in olap.consultar(dims, ["personas"], con=con)["filas"])
+            niveles.append({"celdas": [nombre, _formato_entero(suma), _formato_entero(personas_total)],
+                            "ok": suma == personas_total})
+    finally:
+        con.close()
+
+    nota_dif = ("No hay conjunto tratado disponible para comparar en este entorno; se usan los conteos "
+                "registrados al cargar el modelo.")
+    if tratado:
+        nota_dif = (f"El conjunto tratado completo tiene {_formato_entero(tratado['total'])} filas y "
+                    f"{_formato_entero(tratado['elegibles'])} entran al modelo. Las "
+                    f"{_formato_entero(tratado['total'] - tratado['elegibles'])} restantes corresponden a IOM o ACLED "
+                    f"(eventos agregados) o a una unidad de análisis distinta de persona, y se excluyen para "
+                    f"mantener la granularidad de la tabla de hechos.")
+
+    secciones = [
+        {"titulo": "1. Unicidad de las claves de las dimensiones",
+         "descripcion": "Cada clave primaria debe aparecer una sola vez en su dimensión.",
+         "columnas": ["Clave primaria", "Filas", "Claves distintas"], "filas": unicidad, "nota": None},
+        {"titulo": "2. Correspondencia de las claves foráneas",
+         "descripcion": "Todo hecho debe tener su registro en cada dimensión relacionada.",
+         "columnas": ["Relación", "Hechos sin registro relacionado", "Esperado"], "filas": huerfanas, "nota": None},
+        {"titulo": "3. Duplicaciones en la tabla de hechos",
+         "descripcion": "Verifica que la granularidad sea una persona por fila y que ninguna persona tenga dos estados.",
+         "columnas": ["Comprobación", "Obtenido", "Esperado"], "filas": duplicados, "nota": None},
+        {"titulo": "4. Valores faltantes y categorías desconocidas",
+         "descripcion": f"Cuántos hechos tienen un atributo sin información (denominador: {_formato_entero(total)} hechos).",
+         "columnas": ["Atributo", "Hechos", "% de los hechos"], "filas": faltantes,
+         "nota": ("Los desconocidos se conservan como la categoría 'Sin informacion' y no se eliminan ni se reparten. "
+                  "Tampoco se confunden con una respuesta negativa: 'Sin resolver' es un desenlace conocido. "
+                  "La zona del hecho solo existe en Medicina Legal y la calidad de la víctima solo en SIEVCAC, "
+                  "por eso aparecen como 'Sin informacion' en la otra fuente.")},
+        {"titulo": "5. Comparación con los datos tratados",
+         "descripcion": f"Conteos del modelo frente a los datos tratados (origen de la comparación: {origen}).",
+         "columnas": ["Comparación", "Modelo", "Datos tratados"], "filas": comparaciones, "nota": nota_dif},
+        {"titulo": "6. Coherencia entre niveles de las jerarquías",
+         "descripcion": "La suma de cualquier nivel debe igualar el total de personas del modelo.",
+         "columnas": ["Agrupación", "Suma de personas", "Total del modelo"], "filas": niveles, "nota": None},
+    ]
+    evaluadas = [r for s in secciones for r in s["filas"] if r["ok"] is not None]
+    return {
+        "secciones": secciones,
+        "total_comprobaciones": len(evaluadas),
+        "coinciden": sum(1 for r in evaluadas if r["ok"]),
+        "total_hechos": total,
+    }
+
+
+def datos_conclusiones():
+    todos = cargar_conocimientos_multidimensionales().get("conocimientos", [])
+    vistas = [{"slug": v["slug"], "titulo": v["titulo"],
+               "conocimientos": [c for c in todos if c.get("vista") == v["slug"]]}
+              for v in ETAPA5_MENU if v["slug"].startswith("vista")]
+    return vistas, len(todos)
+
+
+def render_operaciones():
+    try:
+        operaciones = datos_operaciones()
+    except FileNotFoundError as exc:
+        abort(500, description=str(exc))
+    return render_template("etapa5_operaciones.html", current_slug="operaciones",
+                           operaciones=operaciones, condiciones=CONDICIONES_ANALISIS)
+
+
+def render_validaciones():
+    try:
+        datos = datos_validaciones()
+    except FileNotFoundError as exc:
+        abort(500, description=str(exc))
+    return render_template("etapa5_validaciones.html", current_slug="validaciones", datos=datos)
+
+
+def render_conclusiones():
+    vistas, total = datos_conclusiones()
+    return render_template("etapa5_conclusiones.html", current_slug="conclusiones",
+                           vistas=vistas, total_conocimientos=total)
 VISTA_API = {
     "vista1": datos_vista1,
     "vista2": datos_vista2,
@@ -1160,6 +1585,15 @@ def etapa5_pagina(slug):
 
     if slug == "vista4":
         return render_vista4()
+
+    if slug == "operaciones":
+        return render_operaciones()
+
+    if slug == "validaciones":
+        return render_validaciones()
+
+    if slug == "conclusiones":
+        return render_conclusiones()
 
 
     item = ETAPA5_MENU_BY_SLUG[slug]

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Operaciones multidimensionales · Análisis multidimensional{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Análisis multidimensional · Etapa 5</p>
+    <h1>7. Operaciones multidimensionales</h1>
+    <p class="lead">
+        Las cinco operaciones se aplican sobre el modelo estrella. Cada ejemplo se calcula al abrir esta
+        página, consultando <code>fact_desaparicion</code>, y cada cambio de nivel o de filtro vuelve a calcular
+        las medidas con SQL; no se limita a cambiar la gráfica.
+    </p>
+
+    {% for op in operaciones %}
+    <article class="etapa5-conocimiento-card">
+        <h2>{{ op.numero }}. {{ op.nombre }}</h2>
+        <p>{{ op.definicion }}</p>
+        <p><strong>Dimensiones:</strong> {{ op.dimensiones }}</p>
+        <p><strong>Medidas:</strong> {{ op.medidas }}</p>
+        <p><strong>Nivel de detalle y filtros:</strong> {{ op.nivel_filtros }}</p>
+        <p><strong>Procedimiento de consulta:</strong> {{ op.procedimiento }}</p>
+
+        {% for t in op.tablas %}
+        <h3>{{ t.titulo }}</h3>
+        <div class="tabla-scroll">
+            <table class="tabla-resumen">
+                <thead><tr>{% for c in t.columnas %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+                <tbody>
+                    {% for fila in t.filas %}
+                    <tr>{% for celda in fila %}<td>{{ celda }}</td>{% endfor %}</tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+
+        <h3>Interpretación</h3>
+        {% for p in op.interpretacion %}<p>{{ p }}</p>{% endfor %}
+
+        <details class="etapa5-sql">
+            <summary>Ver la consulta SQL</summary>
+            <pre>{{ op.sql }}</pre>
+        </details>
+        <p class="nota">Se puede probar de forma interactiva en
+            <a href="{{ url_for('etapa5_pagina', slug=op.vista_slug) }}">{{ op.vista_titulo }}</a>.</p>
+    </article>
+    {% endfor %}
+
+    <h2>Condiciones del análisis y cómo se cumplen</h2>
+    <ul>
+        {% for titulo, texto in condiciones %}
+        <li><strong>{{ titulo }}.</strong> {{ texto }}</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}
