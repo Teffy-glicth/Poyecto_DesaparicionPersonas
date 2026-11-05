@@ -1134,6 +1134,10 @@ def render_proposito():
     )
 
 
+def render_modelo():
+    return render_template("etapa5_modelo.html", current_slug="modelo")
+
+
 @app.route("/etapa5/<slug>")
 def etapa5_pagina(slug):
     if slug not in ETAPA5_MENU_BY_SLUG:
@@ -1141,6 +1145,9 @@ def etapa5_pagina(slug):
 
     if slug == "proposito":
         return render_proposito()
+
+    if slug == "modelo":
+        return render_modelo()
 
     if slug == "vista1":
         return render_vista1()
