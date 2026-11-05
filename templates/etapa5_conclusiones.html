@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Conocimientos y conclusiones · Análisis multidimensional{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Análisis multidimensional · Etapa 5</p>
+    <h1>9. Conocimientos y conclusiones</h1>
+    <p class="lead">
+        Esta sección reúne los {{ total_conocimientos }} conocimientos multidimensionales de las cuatro vistas.
+        Cada uno indica los filtros y niveles con los que se obtuvo, y se puede reproducir en su vista.
+    </p>
+
+    {% for v in vistas %}
+    <h2>{{ v.titulo }}</h2>
+    {% for c in v.conocimientos %}
+    <div class="etapa5-conocimiento-card">
+        <h3>{{ c.numero }}. {{ c.titulo }}</h3>
+        <p><strong>Pregunta:</strong> {{ c.pregunta }}</p>
+        <p><strong>Dimensiones y medidas:</strong> {{ c.dimensiones_medidas }}</p>
+        <p><strong>Procedimiento:</strong> {{ c.procedimiento }}</p>
+        <p><strong>Evidencia:</strong> {{ c.evidencia }}</p>
+        <p><strong>Hallazgo:</strong> {{ c.hallazgo }}</p>
+        <p><strong>Interpretación:</strong> {{ c.interpretacion }}</p>
+        <p><strong>Utilidad:</strong> {{ c.utilidad }}</p>
+        <p><strong>Limitación:</strong> {{ c.limitacion }}</p>
+        <p class="nota"><strong>Filtros y nivel usados:</strong> {{ c.filtros_usados }} · {{ c.nivel }}</p>
+    </div>
+    {% endfor %}
+    <p class="nota"><a href="{{ url_for('etapa5_pagina', slug=v.slug) }}">Abrir {{ v.titulo }}</a></p>
+    {% endfor %}
+
+    <h2>Conclusiones</h2>
+    <ul>
+        <li>El modelo estrella permite recalcular cada medida en cualquier nivel de las jerarquías. Por eso los porcentajes siempre se calculan sobre las personas del grupo mostrado y no se promedian entre grupos.</li>
+        <li>Frente a los tableros de la etapa 4, las cuatro vistas cruzan varias dimensiones a la vez (territorio, tiempo, fuente, sexo y desenlace) y permiten bajar o subir de nivel para ver dónde se concentran los resultados que antes aparecían como promedios.</li>
+        <li>Las dos fuentes se leen lado a lado o con una fuente fijada, porque una misma persona puede estar en ambas y sumarlas inflaría los resultados.</li>
+        <li>Los hallazgos describen asociaciones. Ninguno demuestra causalidad, y las explicaciones que los datos no permiten comprobar se presentan como hipótesis.</li>
+    </ul>
+
+    <h2>Limitaciones generales</h2>
+    <ul>
+        <li>El modelo incluye solo Medicina Legal (SIRDEC) y SIEVCAC (CNMH). IOM y ACLED se excluyen porque cada fila es un evento agregado y no una persona.</li>
+        <li>La serie temporal comparable cubre 2007-2025; 2026 llega hasta junio y no se compara con años completos.</li>
+        <li>No se cuenta con la población por municipio, así que no se calculan tasas por 100.000 habitantes: un territorio con más personas registradas puede tener simplemente más habitantes.</li>
+        <li>La ubicación es la del registro, no necesariamente la del hecho. La zona del hecho solo se registra en Medicina Legal y la calidad de la víctima solo en SIEVCAC.</li>
+    </ul>
+
+</section>
+{% endblock %}
