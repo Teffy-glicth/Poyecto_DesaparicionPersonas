@@ -52,7 +52,7 @@ personas sin resolver?
 
 {% block vista_controles %}
 <button type="button" class="etapa5-btn" id="vista4-btn-dice">
-    Dice: Sur + Rural disperso + Hombre
+    Dice: Sur + Parte rural (vereda y campo) + Hombre
 </button>
 <button type="button" class="etapa5-btn" id="vista4-btn-pivot">
     Pivot: invertir zona ↔ sexo
@@ -71,34 +71,35 @@ personas sin resolver?
     Cada % se calcula con las personas de su combinación.
 </p>
 <p>
-    COMPLETAR: interpretación de la vista con las cifras que muestre la app
-    (qué combinación tiene el mayor % sin resolver, cuántas personas hay en ella y
-    cuánto se aleja del total de la fuente). Habla de asociación, no de causa.
+    En Medicina Legal (SIRDEC), sin otros filtros, el 63,7 % de las 205.938 personas sigue sin
+    resolver. Entre los hombres el % sube con la ruralidad (62,0 % en cabecera municipal,
+    74,2 % en centro poblado y 85,1 % en parte rural), y las mujeres tienen un % menor que
+    los hombres en todas las zonas (47,8 %, 47,8 % y 73,4 %). Las diez combinaciones de sexo,
+    zona y departamento con mayor % (con 30 personas o más) superan el 92 %, más de 28
+    puntos sobre el total de la fuente, y ocho de las diez son hombres en zona rural o
+    centro poblado. Son asociaciones entre el perfil y el desenlace, no causas.
+     Al aplicar Dice (Sur, parte rural y hombre) quedan 5.399 personas con 90,5 % sin resolver,
+ 26,8 puntos más que el total de la fuente y 5,4 más que los hombres de zona rural del país.
 </p>
 {% endblock %}
 
 {% block vista_conocimientos %}
+{% for c in conocimientos %}
 <div class="etapa5-conocimiento-card">
-    <h3>1. COMPLETAR título</h3>
-    <p><strong>Pregunta:</strong> COMPLETAR</p>
-    <p><strong>Hallazgo:</strong> COMPLETAR (cifras, filtros y nivel usados)</p>
-    <p><strong>Interpretación:</strong> COMPLETAR (como hipótesis si no se puede comprobar)</p>
-    <p><strong>Utilidad:</strong> COMPLETAR</p>
-    <p><strong>Limitación:</strong> COMPLETAR</p>
+    <h3>{{ c.numero }}. {{ c.titulo }}</h3>
+    <p><strong>Pregunta:</strong> {{ c.pregunta }}</p>
+    <p><strong>Hallazgo:</strong> {{ c.hallazgo }}</p>
+    <p><strong>Interpretación:</strong> {{ c.interpretacion }}</p>
+    <p><strong>Utilidad:</strong> {{ c.utilidad }}</p>
+    <p><strong>Limitación:</strong> {{ c.limitacion }}</p>
 </div>
-<div class="etapa5-conocimiento-card">
-    <h3>2. COMPLETAR título</h3>
-    <p><strong>Pregunta:</strong> COMPLETAR</p>
-    <p><strong>Hallazgo:</strong> COMPLETAR</p>
-    <p><strong>Interpretación:</strong> COMPLETAR</p>
-    <p><strong>Utilidad:</strong> COMPLETAR</p>
-    <p><strong>Limitación:</strong> COMPLETAR</p>
-</div>
+{% endfor %}
 <p class="nota">
     Los ocho elementos completos de cada conocimiento están en
     <code>data/conocimientos_multidimensionales.json</code>.
 </p>
 {% endblock %}
+
 
 {% block vista_limitacion %}
 Las combinaciones de sexo, zona y departamento dividen a las personas en grupos pequeños:
@@ -109,8 +110,11 @@ suma. Un % alto describe una asociación entre el perfil y el desenlace, no su c
 {% endblock %}
 
 {% block vista_decision %}
-COMPLETAR: una decisión sustentada en la combinación con mayor % sin resolver
-(con n ≥ 30), indicando la fuente, los filtros y las personas.
+Si se priorizan recursos de búsqueda con los datos de Medicina Legal, conviene empezar por
+los hombres en zona rural de Caquetá (1.233 personas, 92,9 % sin resolver) y Putumayo
+(1.231 personas, 92,5 %), seguidos por Cesar (812) y Bolívar (698), que combinan volumen y
+más de 92 % sin resolver. Las combinaciones con menos de 100 personas, como las mujeres de
+cabecera en San Andrés (41 personas), no deberían guiar la decisión.
 {% endblock %}
 
 {% block vista_script %}
@@ -267,7 +271,7 @@ COMPLETAR: una decisión sustentada en la combinación con mayor % sin resolver
 
     el("vista4-btn-dice").addEventListener("click", function () {
         el("vista4-filtro-macro_region").value = "Sur";
-        el("vista4-filtro-zona_hecho").value = "Rural disperso";
+        el("vista4-filtro-zona_hecho").value = "Parte rural (vereda y campo)";
         el("vista4-filtro-sexo").value = "Hombre";
         refrescar();
     });

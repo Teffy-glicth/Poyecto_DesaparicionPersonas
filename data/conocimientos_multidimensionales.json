@@ -58,7 +58,38 @@
         "limitacion": "Sin población del DANE no se sabe si un municipio tiene muchos casos porque tiene más habitantes. Los municipios con pocos registros pueden mostrar porcentajes extremos (por ejemplo, 100 % con 37 personas), por eso no se destacan los que tienen menos de 30 personas. Una misma persona puede estar en las dos fuentes, y aquí solo se usa Medicina Legal.",
         "filtros_usados": "fuente = Medicina Legal (SIRDEC); periodo = Todos; macro_region = Sur",
         "nivel": "Macrorregión → departamento → municipio (drill-down)"
+    },
+    {
+      "vista": "vista4",
+      "numero": 7,
+      "titulo": "La brecha de sexo en los casos sin resolver cambia según la zona: 26,4 pp en centros poblados y 11,7 pp en zona rural",
+      "pregunta": "¿La diferencia entre hombres y mujeres en el % de personas sin resolver (Tablero 1 de la Etapa 4) es la misma en todas las zonas del hecho, o cambia según la zona?",
+      "dimensiones_medidas": "dim_victima (sexo) × dim_zona (zona del hecho) × dim_estado (grupo_desenlace) × dim_fuente (fuente); medida: % que siguen desaparecidas = SUM(flag_sigue_desaparecida) * 100.0 / SUM(num_personas), calculado dentro de cada celda zona × sexo.",
+      "procedimiento": "En la Vista 4, filtro fuente = Medicina Legal (SIRDEC) (valor por defecto) y sin otros filtros. Matriz zona × sexo (consulta 5 de etl/olap/consultas/vista4.sql) sobre 205.938 personas; se calcula, dentro de cada zona, la diferencia en puntos porcentuales entre hombres y mujeres. Se aplicó Pivot (sexo × zona) y los % se recalcularon con una nueva consulta al modelo.",
+      "evidencia": "Matriz zona × sexo de la Vista 4. Cabecera municipal: hombres 62,0 % (de 93.403), mujeres 47,8 % (de 51.988). Centro poblado: hombres 74,2 % (de 9.653), mujeres 47,8 % (de 2.684). Parte rural: hombres 85,1 % (de 29.001), mujeres 73,4 % (de 4.978). Sin información de zona (se muestra aparte): hombres 84,5 % (de 11.679), mujeres 70,1 % (de 2.552).",
+      "hallazgo": "Los hombres tienen un % sin resolver mayor que las mujeres en todas las zonas, pero la diferencia no es constante: 14,2 pp en cabecera municipal, 26,4 pp en centro poblado y 11,7 pp en parte rural. En los hombres el % sube con la ruralidad (62,0 % → 74,2 % → 85,1 %); en las mujeres es igual en cabecera y centro poblado (47,8 %) y salta a 73,4 % en parte rural. Una mujer en zona rural (73,4 %) tiene un % sin resolver mayor que un hombre en cabecera municipal (62,0 %).",
+      "interpretacion": "La Etapa 4 mostró la brecha entre hombres y mujeres como una cifra única. Al cruzarla con la zona se ve que la brecha cambia de tamaño y que pasar de cabecera a zona rural mueve el % unos 23 puntos en los hombres y unos 26 en las mujeres, más que la diferencia entre sexos en cabecera (14,2 pp) o en zona rural (11,7 pp). Hipótesis no comprobable con estos datos: en zona rural pesan más las dificultades de acceso y de búsqueda que el sexo de la víctima, por eso la brecha entre sexos se reduce allí.",
+      "utilidad": "Sugiere que los programas de búsqueda no deben priorizar solo por sexo: las mujeres de zona rural (4.978 personas, 73,4 % sin resolver) quedan peor que los hombres de cabecera, y la mayor distancia entre sexos está en los centros poblados.",
+      "limitacion": "Es una asociación entre sexo, zona y desenlace, no una causa. La zona es la registrada por la fuente; 14.231 personas (6,9 %) no tienen zona y se muestran aparte sin interpretarlas como una zona. Las mujeres de centro poblado son solo 2.684 personas, por lo que su % es menos estable. Sin población del DANE no hay tasas por habitante.",
+      "filtros_usados": "fuente = Medicina Legal (SIRDEC); sin otros filtros",
+      "nivel": "zona × sexo (sin drill-down a departamento)"
+    },
+    {
+      "vista": "vista4",
+      "numero": 8,
+      "titulo": "Los perfiles con mayor % sin resolver son sobre todo hombres rurales y la mayoría está fuera del Sur, aunque el Sur agrega 5,4 pp",
+      "pregunta": "¿Qué combinaciones de sexo, zona del hecho y departamento tienen la mayor proporción de personas sin resolver, y se limitan al Sur, que la Etapa 4 señaló como la macrorregión con menos casos resueltos?",
+      "dimensiones_medidas": "dim_victima (sexo) × dim_zona (zona del hecho) × dim_geografia (macro_region → departamento) × dim_estado (grupo_desenlace) × dim_fuente (fuente); medidas: personas = SUM(num_personas) y % que siguen desaparecidas = SUM(flag_sigue_desaparecida) * 100.0 / SUM(num_personas) por combinación.",
+      "procedimiento": "En la Vista 4, filtro fuente = Medicina Legal (SIRDEC) y sin otros filtros. Ranking de combinaciones sexo + zona + departamento (consulta 6 de etl/olap/consultas/vista4.sql), con 30 personas o más y sin categorías 'Sin informacion', comparado con el 63,7 % del total de la fuente (205.938 personas). Luego Dice con macro_region = Sur + zona = Parte rural (vereda y campo) + sexo = Hombre: 5.399 personas, 90,5 % sin resolver, +26,8 pp frente al total; se compara con el 85,1 % de los hombres en zona rural de todo el país (matriz zona × sexo sin filtro de macrorregión).",
+      "evidencia": "Tabla 'Combinaciones sexo + zona + departamento' y botón Dice de la Vista 4. Hombres en parte rural: Vichada 94,4 % (302 personas), Guainía 93,0 % (57), Caquetá 92,9 % (1.233), Cesar 92,7 % (812), Putumayo 92,5 % (1.231), Bolívar 92,4 % (698). Hombres en centro poblado: Bolívar 93,0 % (270), Cauca 92,5 % (133). Mujeres: cabecera en San Andrés 95,1 % (41) y parte rural en La Guajira 93,5 % (31). Dice Sur + parte rural + hombre: 90,5 % (5.399).",
+      "hallazgo": "Las diez combinaciones con mayor % sin resolver superan el 92 %, más de 28 puntos sobre el 63,7 % de la fuente. Ocho de las diez son hombres (seis en parte rural y dos en centro poblado) y las dos de mujeres tienen 41 y 31 personas. Solo tres de las diez están en el Sur (Caquetá, Putumayo y Cauca); las otras siete están en otras regiones. Aun así, dentro del perfil hombre en zona rural, el Sur llega a 90,5 % frente a 85,1 % en todo el país, 5,4 pp más.",
+      "interpretacion": "La Etapa 4 describió el Sur como la región con menos casos resueltos. Al cruzar sexo, zona y departamento, el perfil de mayor % sin resolver (hombre en zona rural o centro poblado) aparece en departamentos de varias regiones, así que no es un fenómeno solo del Sur; pero a igual perfil, el Sur está por encima del promedio nacional. Hipótesis no comprobable con estos datos: el patrón se relaciona con la ruralidad y con la presencia de grupos armados en esos departamentos.",
+      "utilidad": "Permite priorizar por perfil y no solo por territorio: Caquetá y Putumayo (hombres en zona rural, 2.464 personas entre los dos) y Cesar y Bolívar (hombres en zona rural, 1.510 personas) combinan volumen y más de 92 % sin resolver.",
+      "limitacion": "Dividir en tres dimensiones deja grupos pequeños: dos de las tres combinaciones con mayor % tienen menos de 50 personas, por eso la regla de 30 personas no basta para sacar conclusiones de las combinaciones pequeñas. Sin población del DANE no se sabe si un departamento tiene muchos casos por tener más habitantes. Es una asociación, no una causa.",
+      "filtros_usados": "fuente = Medicina Legal (SIRDEC); sin otros filtros; combinaciones con 30 personas o más; Dice: macro_region = Sur + zona = Parte rural (vereda y campo) + sexo = Hombre",
+      "nivel": "sexo × zona × departamento (más macrorregión en el Dice)"
     }
+
   ]
 }
  
