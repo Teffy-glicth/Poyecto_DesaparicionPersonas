@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Modelo multidimensional{% endblock %}
+{% block content %}
+<section class="page">
+    <h1>2. Modelo multidimensional</h1>
+    <p class="lead">
+        Modelo estrella con 1 tabla de hechos y 6 dimensiones, implementado en SQLite
+        (<code>data/olap/modelo_estrella.db</code>) y cargado desde
+        <code>data/processed/dataset_tratado.csv</code> con
+        <code>scripts/cargar_modelo_estrella.py</code>.
+    </p>
+
+    <h2>Diagrama</h2>
+    <div class="tabla-scroll">
+        <img src="{{ url_for('static', filename='etapa5/modelo_estrella.png') }}"
+             alt="Diagrama del modelo estrella: fact_desaparicion y sus 6 dimensiones, con claves primarias y foráneas"
+             style="max-width:100%;height:auto;">
+    </div>
+    <p class="nota">
+        Fuente editable del diagrama: <code>docs/etapa5/modelo_estrella.mmd</code> (Mermaid).
+    </p>
+
+    <h2>Unidad de análisis frente a granularidad</h2>
+    <p>
+        La <strong>unidad de análisis</strong> del proyecto es la persona desaparecida en
+        Colombia (la misma de la Etapa 4). La <strong>granularidad de la tabla de
+        hechos</strong> es distinta: cada fila de <code>fact_desaparicion</code> es una
+        persona <strong>registrada por una fuente</strong>. Una misma persona puede existir
+        a la vez en Medicina Legal y en SIEVCAC — el dataset no tiene una llave para
+        identificarlo — así que las dos fuentes nunca se suman como si fueran una sola
+        población.
+    </p>
+    <p>
+        Se usan 288.396 personas (205.938 de Medicina Legal + 82.458 de SIEVCAC), el
+        resultado tratado en la Etapa 2, filtrado a las dos fuentes nacionales con
+        <code>unidad_de_analisis = "persona"</code>. IOM y ACLED quedan fuera porque su fila
+        es un evento agregado, no una persona; incluirlas rompería la granularidad del
+        modelo.
+    </p>
+
+    <h2>Tabla de hechos: <code>fact_desaparicion</code></h2>
+    <p>Grano: una fila = una persona registrada por una fuente.</p>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Campo</th><th>Tipo</th><th>PK/FK</th><th>Descripción</th></tr></thead>
+            <tbody>
+                <tr><td><code>id_hecho</code></td><td>INTEGER</td><td>PK</td><td>Clave sustituta autoincremental</td></tr>
+                <tr><td><code>id_registro</code></td><td>TEXT</td><td>dimensión degenerada</td><td>Identificador original, único en las 288.396 filas; permite rastrear hasta el CSV tratado</td></tr>
+                <tr><td><code>id_tiempo</code></td><td>INTEGER</td><td>FK → dim_tiempo</td><td>Mes del hecho, o 0 si no hay fecha</td></tr>
+                <tr><td><code>id_geografia</code></td><td>INTEGER</td><td>FK → dim_geografia</td><td>Departamento/municipio del hecho</td></tr>
+                <tr><td><code>id_zona</code></td><td>INTEGER</td><td>FK → dim_zona</td><td>Zona del hecho (solo Medicina Legal)</td></tr>
+                <tr><td><code>id_victima</code></td><td>INTEGER</td><td>FK → dim_victima</td><td>Sexo y calidad de la víctima</td></tr>
+                <tr><td><code>id_estado</code></td><td>INTEGER</td><td>FK → dim_estado</td><td>Estado actual de la persona</td></tr>
+                <tr><td><code>id_fuente</code></td><td>INTEGER</td><td>FK → dim_fuente</td><td>Fuente y tipo de evento</td></tr>
+                <tr><td><code>num_personas</code></td><td>INTEGER</td><td>—</td><td>Siempre 1 en este modelo</td></tr>
+                <tr><td><code>flag_sigue_desaparecida</code></td><td>INTEGER (0/1)</td><td>—</td><td>1 si <code>estado_victima = "Desaparecido"</code></td></tr>
+                <tr><td><code>flag_aparecio_viva</code></td><td>INTEGER (0/1)</td><td>—</td><td>1 si <code>estado_victima = "Aparecido con vida"</code></td></tr>
+                <tr><td><code>flag_aparecio_sin_vida</code></td><td>INTEGER (0/1)</td><td>—</td><td>1 si <code>estado_victima = "Aparecido sin vida"</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Dimensiones</h2>
+
+    <h3><code>dim_tiempo</code> — jerarquía año → trimestre → mes</h3>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+            <tbody>
+                <tr><td><code>id_tiempo</code> (PK)</td><td><code>AAAAMM</code>; <code>AAAA00</code> si se conoce el año pero no el mes; <code>0</code> si no se conoce ninguno</td></tr>
+                <tr><td><code>anio</code>, <code>semestre</code>, <code>trimestre</code>, <code>mes</code>, <code>nombre_mes</code></td><td>Niveles de la jerarquía temporal</td></tr>
+                <tr><td><code>periodo_acuerdo</code></td><td>"Antes (2007-2016)", "Después (2017-2025)", "Fuera de rango comparable", "Sin información"</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3><code>dim_geografia</code> — jerarquía macro región → departamento → municipio</h3>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+            <tbody>
+                <tr><td><code>id_geografia</code> (PK)</td><td>Clave sustituta</td></tr>
+                <tr><td><code>macro_region</code></td><td>"Sur" si el departamento es Nariño, Cauca, Putumayo, Caquetá o Huila; si no, "Resto"</td></tr>
+                <tr><td><code>codigo_dane_departamento</code>, <code>codigo_dane_municipio</code></td><td>Códigos DANE; nulos en SIEVCAC (departamento) y en casos del extranjero</td></tr>
+                <tr><td><code>departamento</code>, <code>municipio</code></td><td>Nombres normalizados entre los dos formatos de las fuentes</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3><code>dim_zona</code> — sin jerarquía</h3>
+    <p><code>id_zona</code> (PK), <code>zona_hecho</code>: "Cabecera municipal", "Parte rural (vereda y campo)", "Centro poblado", "Sin información". Solo lo reporta Medicina Legal.</p>
+
+    <h3><code>dim_victima</code> — sin jerarquía</h3>
+    <p><code>id_victima</code> (PK), <code>sexo</code>, <code>calidad_victima</code> ("Civil"/"Combatiente", solo en SIEVCAC).</p>
+
+    <h3><code>dim_estado</code> — jerarquía grupo de desenlace → estado de la víctima</h3>
+    <p><code>id_estado</code> (PK), <code>grupo_desenlace</code> ("Sin resolver"/"Resuelto"), <code>estado_victima</code> ("Desaparecido", "Aparecido con vida", "Aparecido sin vida").</p>
+
+    <h3><code>dim_fuente</code> — jerarquía fuente → tipo de evento</h3>
+    <p><code>id_fuente</code> (PK), <code>fuente</code> ("Medicina Legal (SIRDEC)"/"SIEVCAC (CNMH)"), <code>tipo_evento</code>, <code>nivel_fuente</code>.</p>
+
+    <h2>Medidas</h2>
+    <div class="tabla-scroll">
+        <table>
+            <thead><tr><th>Medida</th><th>Fórmula (SQL)</th><th>Agregación</th></tr></thead>
+            <tbody>
+                <tr><td>Personas registradas</td><td><code>SUM(num_personas)</code></td><td>Aditiva, salvo nunca sumar entre fuentes</td></tr>
+                <tr><td>Personas que siguen desaparecidas</td><td><code>SUM(flag_sigue_desaparecida)</code></td><td>Aditiva</td></tr>
+                <tr><td>% que siguen desaparecidas</td><td><code>SUM(flag_sigue_desaparecida) * 100.0 / SUM(num_personas)</code></td><td>Proporción, recalculada en cada grupo</td></tr>
+                <tr><td>% aparecidas con/sin vida</td><td>Igual, con <code>flag_aparecio_viva</code>/<code>flag_aparecio_sin_vida</code></td><td>Proporción</td></tr>
+                <tr><td>Municipios afectados</td><td><code>COUNT(DISTINCT id_geografia)</code></td><td>Conteo distinto, no aditivo</td></tr>
+                <tr><td>Variación entre periodos</td><td><code>(después − antes) / antes</code>, periodos de igual duración</td><td>Proporción</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">
+        Todos los porcentajes se calculan con SQL sobre el grupo filtrado, nunca
+        promediando porcentajes ya calculados de subgrupos. Detalle completo de campos,
+        dominios y limitaciones en <code>docs/etapa5/diccionario_modelo.md</code>; mapeo
+        variable original → campo del modelo en <code>docs/etapa5/mapeo_variables.md</code>.
+    </p>
+</section>
+{% endblock %}
