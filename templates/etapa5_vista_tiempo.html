@@ -1,0 +1,349 @@
+{% extends "etapa5_vista_base.html" %}
+
+{% block vista_titulo_tab %}Vista 3 · Evolución temporal{% endblock %}
+{% block api_endpoint %}vista3{% endblock %}
+
+{% block vista_titulo %}Vista 3 · Evolución temporal: cómo cambian las personas registradas y las que siguen sin resolver{% endblock %}
+{% block vista_pregunta %}
+¿Cómo evolucionaron las personas registradas y el porcentaje que sigue desaparecido entre 2007 y 2025,
+y cambia ese patrón entre el periodo anterior y el posterior al Acuerdo de Paz según la fuente y el sexo?
+{% endblock %}
+
+{% block vista_dimensiones %}Tiempo (año, trimestre, mes, periodo frente al Acuerdo), Estado (grupo de desenlace), Fuente, Víctima (sexo){% endblock %}
+{% block vista_medidas %}Personas registradas (suma), % que siguen desaparecidas (proporción recalculada en cada nivel), Promedio anual de personas por periodo (personas ÷ años del periodo){% endblock %}
+{% block vista_jerarquias %}Tiempo: año → trimestre → mes (drill-down y roll-up){% endblock %}
+
+{% block grafica1_titulo %}Personas registradas en el nivel actual (personas). Las barras de 2017-2025 tienen otro color que las de 2007-2016{% endblock %}
+{% block canvas1_id %}vista3-grafica-volumen{% endblock %}
+{% block grafica2_titulo %}% que siguen desaparecidas en el nivel actual (denominador: personas de cada barra){% endblock %}
+{% block canvas2_id %}vista3-grafica-porcentaje{% endblock %}
+{% block matriz_titulo %}Nivel de tiempo actual × variable elegida: personas y % por fila (denominador: personas de cada fila). Haz clic en una fila para bajar un nivel.{% endblock %}
+
+{% block vista_filtros %}
+<label class="etapa5-filtro">
+    Fuente
+    <select data-filtro="fuente" id="vista3-filtro-fuente">
+        <option value="">Todas (suma registros de ambas fuentes)</option>
+    </select>
+</label>
+<label class="etapa5-filtro">
+    Sexo
+    <select data-filtro="sexo" id="vista3-filtro-sexo">
+        <option value="">Todos</option>
+    </select>
+</label>
+{% endblock %}
+
+{% block vista_controles %}
+<nav class="etapa5-ruta" id="vista3-ruta" aria-label="Nivel de tiempo actual"></nav>
+<label class="etapa5-filtro etapa5-filtro-inline">
+    Drill-down: bajar a
+    <select id="vista3-drill-select">
+        <option value="">Elegir…</option>
+    </select>
+</label>
+<button type="button" class="etapa5-btn" id="vista3-btn-rollup">Roll-up: subir un nivel</button>
+<label class="etapa5-filtro etapa5-filtro-inline">
+    Pivot: columnas por
+    <select id="vista3-columna">
+        <option value="grupo_desenlace">Grupo de desenlace</option>
+        <option value="sexo">Sexo</option>
+        <option value="fuente">Fuente</option>
+    </select>
+</label>
+<button type="button" class="etapa5-btn" id="vista3-btn-transponer">Pivot: intercambiar filas y columnas</button>
+<button type="button" class="etapa5-btn" id="vista3-btn-ejemplo">Ejemplo: 2017 › T1</button>
+<button type="button" class="etapa5-btn" id="vista3-btn-limpiar">Volver a 2007-2025 y quitar filtros</button>
+{% endblock %}
+
+{% block vista_interpretacion %}
+<div id="vista3-comprobacion" class="etapa5-comprobacion" hidden></div>
+<p>[COMPLETAR con cifras de la vista: evolución anual de personas y del % sin resolver, y comparación del promedio anual antes y después del Acuerdo, con la fuente y el sexo usados.]</p>
+<p>[COMPLETAR: qué cambia al bajar de año a trimestre y a mes, y qué diferencia aparece al pasar de una fuente a otra.]</p>
+{% endblock %}
+
+{% block vista_conocimientos %}
+<div id="vista3-conocimientos">
+{% for c in conocimientos %}
+<div class="etapa5-conocimiento-card">
+    <h3>{{ c.numero }}. {{ c.titulo }}</h3>
+    <p><strong>Pregunta:</strong> {{ c.pregunta }}</p>
+    <p><strong>Dimensiones y medidas:</strong> {{ c.dimensiones_medidas }}</p>
+    <p><strong>Procedimiento:</strong> {{ c.procedimiento }}</p>
+    <p><strong>Evidencia:</strong> {{ c.evidencia }}</p>
+    <p><strong>Hallazgo:</strong> {{ c.hallazgo }}</p>
+    <p><strong>Interpretación:</strong> {{ c.interpretacion }}</p>
+    <p><strong>Utilidad:</strong> {{ c.utilidad }}</p>
+    <p><strong>Limitación:</strong> {{ c.limitacion }}</p>
+    <p class="nota"><strong>Filtros y nivel usados:</strong> {{ c.filtros_usados }} · {{ c.nivel }}</p>
+</div>
+{% endfor %}
+</div>
+{% endblock %}
+
+{% block vista_limitacion %}
+<p>
+    La serie comparable cubre solo 2007-2025: 2026 llega hasta junio y se excluye para no comparar
+    un año incompleto con años completos. Los registros sin mes aparecen como "Mes desconocido"
+    y no se reparten entre trimestres. Además, el corte entre 2016 y 2017 separa dos periodos,
+    pero no permite atribuir al Acuerdo de Paz los cambios observados: es una asociación en el
+    tiempo, no una relación causal. Con "Todas" las fuentes se suman registros de las dos
+    fuentes y una misma persona puede estar en ambas.
+</p>
+{% endblock %}
+
+{% block vista_decision %}
+<p>[COMPLETAR con una decisión sustentada en las cifras de la vista, por ejemplo, en qué periodo o trimestre conviene reforzar el registro o la búsqueda.]</p>
+{% endblock %}
+
+{% block vista_extra %}
+<details class="etapa5-sql">
+    <summary>Ver la consulta SQL que generó la tabla y las gráficas</summary>
+    <pre id="vista3-sql"></pre>
+</details>
+{% endblock %}
+
+{% block vista_script %}
+<script>
+(function () {
+    const Etapa5 = window.Etapa5;
+    const FUENTE_INICIAL = "Medicina Legal (SIRDEC)";
+    let ruta = [];                    // [año] o [año, trimestre]
+    let columna = "grupo_desenlace";  // variable que se cruza con el tiempo en la matriz
+    let transponer = false;
+    let ultimosDatos = null;
+
+    function paramsConsulta(op) {
+        return {
+            op: op || "",
+            anio: ruta[0] || "",
+            trimestre: ruta[1] || "",
+            columna: columna,
+            transponer: transponer ? "1" : "",
+        };
+    }
+
+    function cargarOpciones(selectEl, valores, actual) {
+        const existentes = new Set(Array.from(selectEl.options).map(o => o.value));
+        valores.forEach(function (v) {
+            if (!existentes.has(v)) {
+                const opt = document.createElement("option");
+                opt.value = v;
+                opt.textContent = v;
+                selectEl.appendChild(opt);
+            }
+        });
+        selectEl.value = actual || "";
+    }
+
+    function pintarRuta(datos) {
+        const nav = document.getElementById("vista3-ruta");
+        const partes = [{ texto: "2007-2025", nivel: 0 }].concat(
+            datos.ruta.map(function (r, i) { return { texto: r.valor, nivel: i + 1 }; })
+        );
+        nav.innerHTML = partes.map(function (p, i) {
+            const ultimo = i === partes.length - 1;
+            return ultimo
+                ? '<span class="actual">' + p.texto + "</span>"
+                : '<button type="button" data-nivel="' + p.nivel + '">' + p.texto + "</button>";
+        }).join('<span class="sep">›</span>') +
+            '<span class="nivel">Mostrando: ' + datos.nombre_nivel + "</span>";
+        nav.querySelectorAll("button").forEach(function (b) {
+            b.addEventListener("click", function () {
+                ruta = ruta.slice(0, Number(b.dataset.nivel));
+                refrescar("roll_up");
+            });
+        });
+    }
+
+    function pintarDrillSelect(datos) {
+        const sel = document.getElementById("vista3-drill-select");
+        sel.innerHTML = '<option value="">Elegir…</option>';
+        sel.disabled = !datos.nivel_siguiente;
+        if (!datos.nivel_siguiente) {
+            sel.innerHTML = '<option value="">Ya estás en el nivel más detallado</option>';
+            return;
+        }
+        datos.serie.forEach(function (f) {
+            if (f.clave === null) return; // "Mes desconocido" no tiene nivel inferior
+            const opt = document.createElement("option");
+            opt.value = f.clave;
+            opt.textContent = f.etiqueta;
+            sel.appendChild(opt);
+        });
+    }
+
+    function bajar(clave) {
+        if (!ultimosDatos || !ultimosDatos.nivel_siguiente) return;
+        if (clave === null || clave === undefined || clave === "") return;
+        ruta.push(Number(clave));
+        refrescar("drill_down");
+    }
+
+    function pintarGraficaVolumen(datos) {
+        const id = "vista3-grafica-volumen";
+        Etapa5.destruirChart(id);
+        const serie = datos.serie;
+        new Chart(document.getElementById(id), {
+            type: "bar",
+            data: {
+                labels: serie.map(f => f.etiqueta),
+                datasets: [{
+                    label: "Personas registradas",
+                    data: serie.map(f => f.personas),
+                    backgroundColor: serie.map(f => f.periodo === "Antes (2007-2016)"
+                        ? Etapa5.colorDe("Resto", 1) : Etapa5.colorDe("Sin resolver", 0)),
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, title: { display: true, text: "Personas" } } },
+                onClick: function (_, elementos) {
+                    if (elementos.length) bajar(serie[elementos[0].index].clave);
+                },
+            },
+        });
+    }
+
+    function pintarGraficaPorcentaje(datos) {
+        const id = "vista3-grafica-porcentaje";
+        Etapa5.destruirChart(id);
+        const serie = datos.serie;
+        new Chart(document.getElementById(id), {
+            type: "line",
+            data: {
+                labels: serie.map(f => f.etiqueta),
+                datasets: [
+                    {
+                        label: "% que siguen desaparecidas",
+                        data: serie.map(f => f.pct_siguen_desaparecidas === null
+                            ? null : Number(f.pct_siguen_desaparecidas.toFixed(1))),
+                        borderColor: Etapa5.colorDe("Sin resolver", 0),
+                        pointBackgroundColor: serie.map(f => f.confiable ? Etapa5.colorDe("Sin resolver", 0) : "#d9d4c7"),
+                        pointRadius: 4,
+                        tension: 0.2,
+                    },
+                    {
+                        label: "% de toda la selección (" + datos.indicadores[1].valor + " %)",
+                        data: serie.map(() => datos.pct_seleccion),
+                        borderColor: Etapa5.colorDe("Resto", 1),
+                        borderDash: [6, 4],
+                        pointRadius: 0,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 100, title: { display: true, text: "% que siguen desaparecidas" } },
+                    x: { ticks: { autoSkip: false, maxRotation: 60, minRotation: 0 } },
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function (ctx) {
+                                if (ctx.datasetIndex !== 0) return "";
+                                const f = serie[ctx.dataIndex];
+                                return "sobre " + Etapa5.formatoNumero(f.personas) + " personas" +
+                                    (f.confiable ? "" : " (menos de " + datos.min_personas_confiable + ": no confiable)");
+                            },
+                        },
+                    },
+                },
+                onClick: function (_, elementos) {
+                    if (elementos.length) bajar(serie[elementos[0].index].clave);
+                },
+            },
+        });
+    }
+
+    function pintarComprobacion(datos) {
+        const el = document.getElementById("vista3-comprobacion");
+        const c = datos.comprobacion;
+        el.hidden = false;
+        el.innerHTML =
+            "<strong>Comprobación del recálculo:</strong> el total de la selección es " +
+            Etapa5.formatoNumero(c.total_seleccion) + " personas y la suma de las " + c.filas +
+            " filas del nivel " + c.nivel + " es " + Etapa5.formatoNumero(c.suma_filas) + ". " +
+            (c.coincide ? "Coinciden: cambiar de nivel no pierde ni duplica registros."
+                        : "No coinciden: hay que revisar la carga.");
+    }
+
+    async function refrescar(op) {
+        const datos = await Etapa5.consultar(paramsConsulta(op));
+        ultimosDatos = datos;
+
+        Etapa5.pintarIndicadores(datos.indicadores);
+        pintarGraficaVolumen(datos);
+        pintarGraficaPorcentaje(datos);
+
+        const claves = {};
+        datos.serie.forEach(function (f) { claves[f.etiqueta] = f.clave; });
+        Etapa5.pintarMatriz(datos.matriz, "etapa5-matriz", {
+            alClicFila: (datos.nivel_siguiente && !transponer)
+                ? function (etiqueta) { bajar(claves[etiqueta]); } : null,
+            calor: true,
+        });
+
+        pintarRuta(datos);
+        pintarDrillSelect(datos);
+        pintarComprobacion(datos);
+        document.getElementById("vista3-sql").textContent = datos.sql || "";
+
+        const textoOp = { drill_down: "drill-down", roll_up: "roll-up", pivot: "pivot" }[datos.operacion];
+        const extra = "nivel: " + datos.nombre_nivel.toLowerCase() +
+            (datos.ruta.length ? " dentro de " + datos.ruta.map(r => r.valor).join(" › ") : " (2007-2025)") +
+            " · matriz: " + (transponer ? "variable en filas, tiempo en columnas" : "tiempo en filas, variable en columnas") +
+            (textoOp ? " · última operación: " + textoOp : "");
+        Etapa5.mostrarSeleccionActiva(datos.filtros_aplicados, extra);
+
+        cargarOpciones(document.getElementById("vista3-filtro-fuente"),
+            datos.opciones_filtros.fuente, datos.filtros_aplicados.fuente);
+        cargarOpciones(document.getElementById("vista3-filtro-sexo"),
+            datos.opciones_filtros.sexo, datos.filtros_aplicados.sexo);
+    }
+
+    document.getElementById("vista3-filtro-fuente").addEventListener("change", function () { refrescar(); });
+    document.getElementById("vista3-filtro-sexo").addEventListener("change", function () { refrescar(); });
+    document.getElementById("vista3-drill-select").addEventListener("change", function (e) { bajar(e.target.value); });
+    document.getElementById("vista3-btn-rollup").addEventListener("click", function () {
+        if (!ruta.length) return;
+        ruta.pop();
+        refrescar("roll_up");
+    });
+    document.getElementById("vista3-columna").addEventListener("change", function (e) {
+        columna = e.target.value;
+        refrescar("pivot");
+    });
+    document.getElementById("vista3-btn-transponer").addEventListener("click", function () {
+        transponer = !transponer;
+        refrescar("pivot");
+    });
+    document.getElementById("vista3-btn-ejemplo").addEventListener("click", function () {
+        ruta = [2017, 1];
+        refrescar("drill_down");
+    });
+    document.getElementById("vista3-btn-limpiar").addEventListener("click", function () {
+        document.getElementById("vista3-filtro-fuente").value = FUENTE_INICIAL;
+        document.getElementById("vista3-filtro-sexo").value = "";
+        document.getElementById("vista3-columna").value = "grupo_desenlace";
+        ruta = [];
+        columna = "grupo_desenlace";
+        transponer = false;
+        refrescar();
+    });
+
+    // Arranca con Medicina Legal para no sumar registros de las dos fuentes.
+    const selFuente = document.getElementById("vista3-filtro-fuente");
+    const opt = document.createElement("option");
+    opt.value = FUENTE_INICIAL;
+    opt.textContent = FUENTE_INICIAL;
+    selFuente.appendChild(opt);
+    selFuente.value = FUENTE_INICIAL;
+    refrescar();
+})();
+</script>
+{% endblock %}

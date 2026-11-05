@@ -707,9 +707,212 @@ def datos_vista2(args):
     finally:
         con.close()
 
+# ---------- Vista 3 · Evolución temporal ----------
+
+VISTA3_PREGUNTA = (
+    "¿Cómo evolucionaron las personas registradas y el porcentaje que sigue desaparecido "
+    "entre 2007 y 2025, y cambia ese patrón entre el periodo anterior y el posterior al "
+    "Acuerdo de Paz según la fuente y el sexo?"
+)
+
+NIVELES_TIEMPO = olap.JERARQUIAS["tiempo"]  # anio -> trimestre -> mes
+NOMBRE_NIVEL_TIEMPO = {"anio": "Año", "trimestre": "Trimestre", "mes": "Mes"}
+ANIOS_COMPARABLES = list(range(2007, 2026))  # 2026 llega hasta junio: se excluye
+# 2007-2016 tiene 10 años y 2017-2025 tiene 9: se comparan promedios anuales, no totales.
+ANIOS_POR_PERIODO = {"Antes (2007-2016)": 10, "Despues (2017-2025)": 9}
+MEDIDAS_VISTA3 = ["personas", "siguen_desaparecidas", "pct_siguen_desaparecidas"]
+COLUMNAS_MATRIZ_V3 = ("grupo_desenlace", "sexo", "fuente")
+MESES_ORDEN = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+               "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+
+
+def _formato_decimal(valor):
+    texto = f"{(valor or 0):,.1f}"
+    return texto.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _entero_opcional(valor, nombre):
+    if valor in (None, ""):
+        return None
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        raise olap.ConsultaInvalida(f"{nombre} no es un número válido: {valor!r}")
+
+
+def _etiqueta_tiempo(nivel, valor):
+    if valor is None:
+        return "Mes desconocido"
+    if nivel == "anio":
+        return str(int(valor))
+    if nivel == "trimestre":
+        return f"T{int(valor)}"
+    return str(valor).capitalize()
+
+
+def _orden_tiempo(nivel, valor):
+    # olap ordena los meses por nombre; aquí se ordenan por calendario.
+    if valor is None:
+        return 99
+    if nivel == "mes":
+        return MESES_ORDEN.index(valor) if valor in MESES_ORDEN else 98
+    return int(valor)
+
+
+def _matriz_tiempo(filas, nivel, columna, transponer):
+    tiempos = sorted({f[nivel] for f in filas}, key=lambda v: _orden_tiempo(nivel, v))
+    if columna == "grupo_desenlace":
+        otros = sorted({f[columna] for f in filas},
+                       key=lambda v: ORDEN_DESENLACE.index(v) if v in ORDEN_DESENLACE else 99)
+    else:
+        otros = sorted({f[columna] for f in filas}, key=str)
+    celda = {(f[nivel], f[columna]): f["personas"] for f in filas}
+    etiquetas_tiempo = [_etiqueta_tiempo(nivel, t) for t in tiempos]
+    if transponer:
+        nombres_filas, nombres_cols = otros, etiquetas_tiempo
+        celdas = [[celda.get((t, o)) for t in tiempos] for o in otros]
+    else:
+        nombres_filas, nombres_cols = etiquetas_tiempo, otros
+        celdas = [[celda.get((t, o)) for o in otros] for t in tiempos]
+    return {
+        "filas": nombres_filas,
+        "columnas": nombres_cols,
+        "celdas": celdas,
+        "totales_fila": [sum(c or 0 for c in fila) for fila in celdas],
+    }
+
+
+def datos_vista3(args):
+    op = args.get("op", "")
+    fuente = args.get("fuente") or None
+    sexo = args.get("sexo") or None
+    columna = args.get("columna") if args.get("columna") in COLUMNAS_MATRIZ_V3 else "grupo_desenlace"
+    transponer = args.get("transponer") in ("1", "true", "True")
+
+    anio = _entero_opcional(args.get("anio"), "anio")
+    trimestre = _entero_opcional(args.get("trimestre"), "trimestre")
+    if anio not in ANIOS_COMPARABLES:
+        anio = None
+    if anio is None or trimestre not in (1, 2, 3, 4):
+        trimestre = None
+
+    # Filtros de las dimensiones fuente y víctima (sexo), más el rango comparable.
+    base = {"anio": ANIOS_COMPARABLES}
+    filtros_aplicados = {}
+    if fuente:
+        base["fuente"] = fuente
+        filtros_aplicados["fuente"] = fuente
+    if sexo:
+        base["sexo"] = sexo
+        filtros_aplicados["sexo"] = sexo
+
+    # Ruta dentro de la jerarquía de tiempo (ej.: 2017 > T1).
+    filtros_sel = dict(base)
+    ruta = []
+    if anio is not None:
+        filtros_sel["anio"] = anio
+        ruta.append({"nivel": "anio", "nombre_nivel": "Año", "valor": str(anio)})
+    if trimestre is not None:
+        filtros_sel["trimestre"] = trimestre
+        ruta.append({"nivel": "trimestre", "nombre_nivel": "Trimestre", "valor": f"T{trimestre}"})
+    profundidad = len(ruta)
+    nivel = NIVELES_TIEMPO[profundidad]
+
+    con = olap.conectar()
+    try:
+        # Operación OLAP: se vuelve a consultar el modelo en el nivel pedido.
+        if op == "roll_up" and profundidad < len(NIVELES_TIEMPO) - 1:
+            res = olap.roll_up("tiempo", NIVELES_TIEMPO[profundidad + 1],
+                               MEDIDAS_VISTA3, filtros_sel, con=con)
+        elif op == "drill_down" and profundidad > 0:
+            res = olap.drill_down("tiempo", NIVELES_TIEMPO[profundidad - 1],
+                                  MEDIDAS_VISTA3, filtros_sel, con=con)
+        else:
+            res = olap.consultar([nivel], MEDIDAS_VISTA3, filtros_sel, con=con)
+            res["operacion"] = "pivot" if op == "pivot" else "consulta"
+
+        total = olap.consultar([], MEDIDAS_VISTA3, filtros_sel, con=con)["filas"][0]
+        por_periodo = olap.consultar(["periodo_acuerdo"], ["personas"], base, con=con)["filas"]
+        matriz_res = olap.consultar([nivel, columna], ["personas"], filtros_sel, con=con)
+        opciones_fuente = [f["fuente"] for f in olap.consultar(["fuente"], ["personas"], con=con)["filas"]]
+        opciones_sexo = [f["sexo"] for f in olap.consultar(["sexo"], ["personas"], con=con)["filas"]]
+    finally:
+        con.close()
+
+    serie = []
+    for f in sorted(res["filas"], key=lambda f: _orden_tiempo(nivel, f[nivel])):
+        clave = f[nivel]
+        anio_fila = int(clave) if nivel == "anio" else anio
+        serie.append({
+            "etiqueta": _etiqueta_tiempo(nivel, clave),
+            "clave": int(clave) if nivel == "anio" else clave,
+            "personas": f["personas"],
+            "siguen_desaparecidas": f["siguen_desaparecidas"],
+            "pct_siguen_desaparecidas": f["pct_siguen_desaparecidas"],
+            "confiable": (f["personas"] or 0) >= MIN_PERSONAS_CONFIABLE,
+            "periodo": "Antes (2007-2016)" if anio_fila <= 2016 else "Despues (2017-2025)",
+        })
+
+    personas_sel = total["personas"] or 0
+    pct_sel = total["pct_siguen_desaparecidas"] or 0.0
+
+    # Promedio anual por periodo (periodos de distinta duración).
+    promedio = {p["periodo_acuerdo"]: (p["personas"] or 0) / ANIOS_POR_PERIODO[p["periodo_acuerdo"]]
+                for p in por_periodo if p["periodo_acuerdo"] in ANIOS_POR_PERIODO}
+    antes, despues = promedio.get("Antes (2007-2016)"), promedio.get("Despues (2017-2025)")
+    if antes and despues is not None:
+        variacion = f"{100 * (despues - antes) / antes:+.1f}".replace(".", ",")
+        valor_promedio = f"{_formato_decimal(antes)} → {_formato_decimal(despues)} ({variacion} %)"
+    else:
+        valor_promedio = "Sin datos"
+
+    indicadores = [
+        {"etiqueta": "Personas registradas en la selección",
+         "valor": _formato_entero(personas_sel), "unidad": "", "denominador": None},
+        {"etiqueta": "% que siguen desaparecidas",
+         "valor": _formato_pct(pct_sel), "unidad": "%", "denominador": personas_sel},
+        {"etiqueta": "Promedio anual de personas: 2007-2016 → 2017-2025",
+         "valor": valor_promedio, "unidad": "personas por año", "denominador": None},
+    ]
+
+    suma_filas = sum(f["personas"] or 0 for f in serie)
+    comprobacion = {
+        "nivel": NOMBRE_NIVEL_TIEMPO[nivel].lower(),
+        "filas": len(serie),
+        "total_seleccion": personas_sel,
+        "suma_filas": suma_filas,
+        "coincide": suma_filas == personas_sel,
+    }
+
+    return {
+        "pregunta": VISTA3_PREGUNTA,
+        "dimensiones": ["tiempo (año › trimestre › mes, periodo_acuerdo)", "estado (desenlace)",
+                        "fuente", "víctima (sexo)"],
+        "medidas": ["Personas registradas", "Personas que siguen desaparecidas",
+                    "% que siguen desaparecidas", "Promedio anual de personas por periodo"],
+        "jerarquias": ["tiempo: año → trimestre → mes"],
+        "filtros_aplicados": filtros_aplicados,
+        "ruta": ruta,
+        "nivel": nivel,
+        "nombre_nivel": NOMBRE_NIVEL_TIEMPO[nivel],
+        "nivel_siguiente": NIVELES_TIEMPO[profundidad + 1] if profundidad + 1 < len(NIVELES_TIEMPO) else None,
+        "operacion": res.get("operacion", "consulta"),
+        "min_personas_confiable": MIN_PERSONAS_CONFIABLE,
+        "opciones_filtros": {"fuente": opciones_fuente, "sexo": opciones_sexo},
+        "indicadores": indicadores,
+        "serie": serie,
+        "matriz": _matriz_tiempo(matriz_res["filas"], nivel, columna, transponer),
+        "comprobacion": comprobacion,
+        "denominador_total": personas_sel,
+        "pct_seleccion": round(pct_sel, 1),
+        "sql": res.get("sql"),
+        "conocimientos": conocimientos_de_vista("vista3"),
+    }
+
 VISTA_API = {
     "vista1": datos_vista1,
     "vista2": datos_vista2,
+    "vista3": datos_vista3,
 }
 
 
@@ -736,6 +939,12 @@ def render_vista2():
         conocimientos=conocimientos_de_vista("vista2"),
     )
 
+def render_vista3():
+    return render_template(
+        "etapa5_vista_tiempo.html",
+        current_slug="vista3",
+        conocimientos=conocimientos_de_vista("vista3"),
+    )
 # Qué tablero de conocimiento evidente (Etapa 4) profundiza cada vista de esta etapa.
 ETAPA5_TABLERO_A_VISTA = {
     "poblacion": "vista1",
@@ -786,6 +995,9 @@ def etapa5_pagina(slug):
     if slug == "vista2":
         return render_vista2()
 
+    if slug == "vista3":
+        return render_vista3()
+
     item = ETAPA5_MENU_BY_SLUG[slug]
     return render_template(
         "etapa1_placeholder.html",
@@ -793,7 +1005,6 @@ def etapa5_pagina(slug):
         titulo=item["titulo"],
         current_slug=slug,
     )
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
