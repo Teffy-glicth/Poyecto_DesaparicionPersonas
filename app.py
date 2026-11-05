@@ -938,7 +938,7 @@ def render_vista2():
         current_slug="vista2",
         conocimientos=conocimientos_de_vista("vista2"),
     )
- //Dirección de la vista 3: Evolución temporal
+# Dirección de la vista 3: Evolución temporal
 def render_vista3():
     return render_template(
         "etapa5_vista_tiempo.html",
