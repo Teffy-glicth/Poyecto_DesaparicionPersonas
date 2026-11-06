@@ -1,0 +1,59 @@
+erDiagram
+    fact_desaparicion }o--|| dim_tiempo : id_tiempo
+    fact_desaparicion }o--|| dim_geografia : id_geografia
+    fact_desaparicion }o--|| dim_zona : id_zona
+    fact_desaparicion }o--|| dim_victima : id_victima
+    fact_desaparicion }o--|| dim_estado : id_estado
+    fact_desaparicion }o--|| dim_fuente : id_fuente
+
+    fact_desaparicion {
+        int id_hecho PK
+        string id_registro "clave natural (degenerada)"
+        int id_tiempo FK
+        int id_geografia FK
+        int id_zona FK
+        int id_victima FK
+        int id_estado FK
+        int id_fuente FK
+        int num_personas "siempre 1"
+        int flag_sigue_desaparecida
+        int flag_aparecio_viva
+        int flag_aparecio_sin_vida
+    }
+    dim_tiempo {
+        int id_tiempo PK "AAAAMM, 0 = sin fecha"
+        int anio
+        int semestre
+        int trimestre
+        int mes
+        string nombre_mes
+        string periodo_acuerdo
+    }
+    dim_geografia {
+        int id_geografia PK
+        string macro_region
+        string codigo_dane_departamento
+        string departamento
+        string codigo_dane_municipio
+        string municipio
+    }
+    dim_zona {
+        int id_zona PK
+        string zona_hecho
+    }
+    dim_victima {
+        int id_victima PK
+        string sexo
+        string calidad_victima
+    }
+    dim_estado {
+        int id_estado PK
+        string grupo_desenlace
+        string estado_victima
+    }
+    dim_fuente {
+        int id_fuente PK
+        string fuente
+        string tipo_evento
+        string nivel_fuente
+    }

@@ -1,0 +1,13 @@
+{
+  "registros_cargados": 288396,
+  "dim_tiempo": 865,
+  "dim_geografia": 1446,
+  "dim_zona": 4,
+  "dim_victima": 9,
+  "dim_estado": 4,
+  "dim_fuente": 4,
+  "por_fuente": {
+    "Medicina Legal (SIRDEC)": 205938,
+    "SIEVCAC (CNMH)": 82458
+  }
+}

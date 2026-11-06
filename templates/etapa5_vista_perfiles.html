@@ -1,0 +1,294 @@
+{% extends "etapa5_vista_base.html" %}
+
+{% block vista_titulo_tab %}Vista 4 · Perfiles combinados{% endblock %}
+{% block api_endpoint %}vista4{% endblock %}
+
+{% block vista_titulo %}Vista 4 · Perfiles combinados{% endblock %}
+{% block vista_pregunta %}
+¿Qué combinaciones de sexo, zona del hecho y departamento tienen la mayor proporción de
+personas sin resolver?
+{% endblock %}
+
+{% block vista_dimensiones %}Víctima (sexo), Zona (zona del hecho), Geografía (macrorregión, departamento), Estado (desenlace), Fuente{% endblock %}
+{% block vista_medidas %}Personas registradas, Personas que siguen desaparecidas, % que siguen desaparecidas (sin resolver){% endblock %}
+{% block vista_jerarquias %}Geografía: macro_region → departamento · Estado: grupo_desenlace → estado_victima{% endblock %}
+
+{% block grafica1_titulo %}% sin resolver por combinación sexo + zona (de mayor a menor; en gris, menos de 30 personas){% endblock %}
+{% block canvas1_id %}vista4-grafica-combos{% endblock %}
+{% block grafica2_titulo %}Estado de la víctima por zona del hecho (barras al 100 %){% endblock %}
+{% block canvas2_id %}vista4-grafica-zonas{% endblock %}
+{% block matriz_titulo %}Zona × Sexo — % sin resolver en cada celda y personas debajo (usa Pivot para invertir el cruce){% endblock %}
+
+{% block vista_filtros %}
+<label class="etapa5-filtro">
+    Fuente
+    <select data-filtro="fuente" id="vista4-filtro-fuente"></select>
+</label>
+<label class="etapa5-filtro">
+    Macrorregión
+    <select data-filtro="macro_region" id="vista4-filtro-macro_region">
+        <option value="">Todas</option>
+    </select>
+</label>
+<label class="etapa5-filtro">
+    Departamento
+    <select data-filtro="departamento" id="vista4-filtro-departamento">
+        <option value="">Todos</option>
+    </select>
+</label>
+<label class="etapa5-filtro">
+    Zona del hecho
+    <select data-filtro="zona_hecho" id="vista4-filtro-zona_hecho">
+        <option value="">Todas</option>
+    </select>
+</label>
+<label class="etapa5-filtro">
+    Sexo
+    <select data-filtro="sexo" id="vista4-filtro-sexo">
+        <option value="">Todos</option>
+    </select>
+</label>
+{% endblock %}
+
+{% block vista_controles %}
+<button type="button" class="etapa5-btn" id="vista4-btn-dice">
+    Dice: Sur + Parte rural (vereda y campo) + Hombre
+</button>
+<button type="button" class="etapa5-btn" id="vista4-btn-pivot">
+    Pivot: invertir zona ↔ sexo
+</button>
+<button type="button" class="etapa5-btn" id="vista4-btn-limpiar">
+    Quitar filtros (vuelve a Medicina Legal)
+</button>
+<p class="nota" id="vista4-aviso"></p>
+{% endblock %}
+
+{% block vista_interpretacion %}
+<h3>Combinaciones sexo + zona + departamento con mayor % sin resolver</h3>
+<div id="vista4-top"><p class="nota">Cargando…</p></div>
+<p class="nota">
+    Solo se listan combinaciones con 30 personas o más y sin categorías "Sin informacion".
+    Cada % se calcula con las personas de su combinación.
+</p>
+<p>
+    En Medicina Legal (SIRDEC), sin otros filtros, el 63,7 % de las 205.938 personas sigue sin
+    resolver. Entre los hombres el % sube con la ruralidad (62,0 % en cabecera municipal,
+    74,2 % en centro poblado y 85,1 % en parte rural), y las mujeres tienen un % menor que
+    los hombres en todas las zonas (47,8 %, 47,8 % y 73,4 %). Las diez combinaciones de sexo,
+    zona y departamento con mayor % (con 30 personas o más) superan el 92 %, más de 28
+    puntos sobre el total de la fuente, y ocho de las diez son hombres en zona rural o
+    centro poblado. Son asociaciones entre el perfil y el desenlace, no causas.
+     Al aplicar Dice (Sur, parte rural y hombre) quedan 5.399 personas con 90,5 % sin resolver,
+ 26,8 puntos más que el total de la fuente y 5,4 más que los hombres de zona rural del país.
+</p>
+{% endblock %}
+
+{% block vista_conocimientos %}
+{% for c in conocimientos %}
+<div class="etapa5-conocimiento-card">
+    <h3>{{ c.numero }}. {{ c.titulo }}</h3>
+    <p><strong>Pregunta:</strong> {{ c.pregunta }}</p>
+    <p><strong>Hallazgo:</strong> {{ c.hallazgo }}</p>
+    <p><strong>Interpretación:</strong> {{ c.interpretacion }}</p>
+    <p><strong>Utilidad:</strong> {{ c.utilidad }}</p>
+    <p><strong>Limitación:</strong> {{ c.limitacion }}</p>
+</div>
+{% endfor %}
+<p class="nota">
+    Los ocho elementos completos de cada conocimiento están en
+    <code>data/conocimientos_multidimensionales.json</code>.
+</p>
+{% endblock %}
+
+
+{% block vista_limitacion %}
+Las combinaciones de sexo, zona y departamento dividen a las personas en grupos pequeños:
+por eso no se destacan las que tienen menos de 30 personas. Además, sin población del
+DANE no se pueden calcular tasas por 100.000 habitantes, y una misma persona puede estar
+en Medicina Legal y en SIEVCAC, así que la vista compara fuentes lado a lado y nunca las
+suma. Un % alto describe una asociación entre el perfil y el desenlace, no su causa.
+{% endblock %}
+
+{% block vista_decision %}
+Si se priorizan recursos de búsqueda con los datos de Medicina Legal, conviene empezar por
+los hombres en zona rural de Caquetá (1.233 personas, 92,9 % sin resolver) y Putumayo
+(1.231 personas, 92,5 %), seguidos por Cesar (812) y Bolívar (698), que combinan volumen y
+más de 92 % sin resolver. Las combinaciones con menos de 100 personas, como las mujeres de
+cabecera en San Andrés (41 personas), no deberían guiar la decisión.
+{% endblock %}
+
+{% block vista_script %}
+<script>
+(function () {
+    const Etapa5 = window.Etapa5;
+    const FILTROS = ["fuente", "macro_region", "departamento", "zona_hecho", "sexo"];
+    let pivote = false;
+
+    function el(id) { return document.getElementById(id); }
+    function esc(t) {
+        return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    function pct(v) { return Number(v || 0).toFixed(1).replace(".", ","); }
+
+    function cargarOpciones(selectEl, valores, actual) {
+        const existentes = new Set(Array.from(selectEl.options).map(o => o.value));
+        valores.forEach(function (v) {
+            if (!existentes.has(v)) {
+                const opt = document.createElement("option");
+                opt.value = v;
+                opt.textContent = v;
+                selectEl.appendChild(opt);
+            }
+        });
+        if (actual) selectEl.value = actual;
+    }
+
+    function pintarGraficaCombos(id, barras) {
+        Etapa5.destruirChart(id);
+        new Chart(el(id), {
+            type: "bar",
+            data: {
+                labels: barras.map(b => b.etiqueta + " (n=" + Etapa5.formatoNumero(b.personas) + ")"),
+                datasets: [{
+                    label: "% sin resolver",
+                    data: barras.map(b => Number(b.pct.toFixed(1))),
+                    backgroundColor: barras.map((b, i) => b.confiable ? Etapa5.colorDe(b.sexo, i) : "#d6d1c4"),
+                }],
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, max: 100, title: { display: true, text: "% sin resolver" } },
+                    y: { ticks: { autoSkip: false } },
+                },
+            },
+        });
+    }
+
+    function pintarGraficaZonas(id, filas) {
+        Etapa5.destruirChart(id);
+        const zonas = [...new Set(filas.map(f => f.zona_hecho))];
+        const estados = [...new Set(filas.map(f => f.grupo_desenlace))];
+        const totales = {};
+        filas.forEach(function (f) { totales[f.zona_hecho] = (totales[f.zona_hecho] || 0) + (f.personas || 0); });
+        const datasets = estados.map(function (estado, i) {
+            return {
+                label: estado,
+                backgroundColor: Etapa5.colorDe(estado, i),
+                data: zonas.map(function (z) {
+                    const fila = filas.find(f => f.zona_hecho === z && f.grupo_desenlace === estado);
+                    return fila && totales[z] ? Number((fila.personas * 100 / totales[z]).toFixed(1)) : 0;
+                }),
+            };
+        });
+        new Chart(el(id), {
+            type: "bar",
+            data: {
+                labels: zonas.map(z => z + " (n=" + Etapa5.formatoNumero(totales[z]) + ")"),
+                datasets: datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, ticks: { autoSkip: false } },
+                    y: { stacked: true, beginAtZero: true, max: 100, title: { display: true, text: "% de la zona" } },
+                },
+            },
+        });
+    }
+
+    function celdaHtml(c) {
+        if (!c) return "<td>—</td>";
+        if (!c.confiable) {
+            return "<td><span class=\"nota\">" + pct(c.pct) + " % · " + Etapa5.formatoNumero(c.personas) +
+                " personas (menos de 30: poco confiable)</span></td>";
+        }
+        const estilo = ' style="background: rgba(122, 31, 31, ' + (c.pct / 100 * 0.35).toFixed(3) + ')"';
+        return "<td" + estilo + "><strong>" + pct(c.pct) + " %</strong><br><span class=\"nota\">" +
+            Etapa5.formatoNumero(c.personas) + " personas</span></td>";
+    }
+
+    function pintarMatrizPerfiles(m) {
+        let html = '<div class="tabla-scroll"><table class="etapa5-tabla-matriz"><thead><tr><th></th>';
+        m.columnas.forEach(function (c) { html += "<th>" + esc(c) + "</th>"; });
+        html += "<th>Total fila</th></tr></thead><tbody>";
+        m.filas.forEach(function (fila, i) {
+            html += "<tr><th>" + esc(fila) + "</th>";
+            m.celdas[i].forEach(function (c) { html += celdaHtml(c); });
+            html += celdaHtml(m.totales_fila[i]);
+            html += "</tr>";
+        });
+        html += "</tbody></table></div>";
+        html += '<p class="nota">Cada celda muestra el % sin resolver de sus propias personas (el denominador es el número que aparece debajo). ' +
+            "Un color más intenso indica un % mayor.</p>";
+        el("etapa5-matriz").innerHTML = html;
+    }
+
+    function pintarTop(top) {
+        if (!top.length) {
+            el("vista4-top").innerHTML = '<p class="nota">No hay combinaciones con 30 personas o más en esta selección.</p>';
+            return;
+        }
+        let html = '<div class="tabla-scroll"><table class="etapa5-tabla-matriz"><thead><tr>' +
+            "<th>Sexo · Zona · Departamento</th><th>Personas</th><th>% sin resolver</th></tr></thead><tbody>";
+        top.forEach(function (t) {
+            html += "<tr><th>" + esc(t.combinacion) + "</th><td>" + Etapa5.formatoNumero(t.personas) +
+                "</td><td><strong>" + pct(t.pct) + " %</strong></td></tr>";
+        });
+        html += "</tbody></table></div>";
+        el("vista4-top").innerHTML = html;
+    }
+
+    async function refrescar(extra) {
+        const datos = await Etapa5.consultar(Object.assign({ pivot: pivote ? "1" : "" }, extra || {}));
+
+        Etapa5.pintarIndicadores(datos.indicadores);
+        pintarGraficaCombos("vista4-grafica-combos", datos.grafica_combos);
+        pintarGraficaZonas("vista4-grafica-zonas", datos.grafica_zonas);
+        pintarMatrizPerfiles(datos.matriz);
+        pintarTop(datos.top_combinaciones);
+
+        el("vista4-aviso").textContent = datos.aviso || "";
+
+        const partes = [];
+        if (datos.n_dice >= 2) partes.push("dice: " + datos.n_dice + " dimensiones a la vez");
+        if (datos.pivote) partes.push("pivot: sexo × zona");
+        Etapa5.mostrarSeleccionActiva(datos.filtros_aplicados, partes.length ? partes.join(" · ") : null);
+
+        FILTROS.forEach(function (nombre) {
+            cargarOpciones(el("vista4-filtro-" + nombre),
+                datos.opciones_filtros[nombre] || [], datos.filtros_aplicados[nombre]);
+        });
+    }
+
+    FILTROS.forEach(function (nombre) {
+        el("vista4-filtro-" + nombre).addEventListener("change", function () { refrescar(); });
+    });
+
+    el("vista4-btn-dice").addEventListener("click", function () {
+        el("vista4-filtro-macro_region").value = "Sur";
+        el("vista4-filtro-zona_hecho").value = "Parte rural (vereda y campo)";
+        el("vista4-filtro-sexo").value = "Hombre";
+        refrescar();
+    });
+    el("vista4-btn-pivot").addEventListener("click", function () {
+        pivote = !pivote;
+        refrescar();
+    });
+    el("vista4-btn-limpiar").addEventListener("click", function () {
+        FILTROS.forEach(function (nombre) { el("vista4-filtro-" + nombre).value = ""; });
+        pivote = false;
+        refrescar();
+    });
+
+    // Permite abrir la vista con filtros desde un enlace (por ejemplo, la tarjeta de Dice).
+    const inicial = Object.fromEntries(new URLSearchParams(window.location.search));
+    if (inicial.pivot === "1") pivote = true;
+    refrescar(inicial);
+})();
+</script>
+{% endblock %}

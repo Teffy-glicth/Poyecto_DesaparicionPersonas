@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Validaciones del modelo · Análisis multidimensional{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Análisis multidimensional · Etapa 5</p>
+    <h1>8. Validaciones del modelo</h1>
+    <p class="lead">
+        Estas comprobaciones se ejecutan al abrir la página sobre el modelo cargado
+        ({{ "{:,}".format(datos.total_hechos).replace(",", ".") }} hechos). Resultado global:
+        <strong>{{ datos.coinciden }} de {{ datos.total_comprobaciones }}</strong> comprobaciones coinciden.
+    </p>
+
+    {% for s in datos.secciones %}
+    <h2>{{ s.titulo }}</h2>
+    <p>{{ s.descripcion }}</p>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <thead>
+                <tr>{% for c in s.columnas %}<th>{{ c }}</th>{% endfor %}<th>Resultado</th></tr>
+            </thead>
+            <tbody>
+                {% for r in s.filas %}
+                <tr>
+                    {% for celda in r.celdas %}<td>{{ celda }}</td>{% endfor %}
+                    <td>{% if r.ok is none %}Informativo{% elif r.ok %}✔ Coincide{% else %}✖ Difiere{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if s.nota %}<p class="nota">{{ s.nota }}</p>{% endif %}
+    {% endfor %}
+</section>
+{% endblock %}
