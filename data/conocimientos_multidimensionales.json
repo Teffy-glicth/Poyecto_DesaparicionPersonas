@@ -59,6 +59,36 @@
         "filtros_usados": "fuente = Medicina Legal (SIRDEC); periodo = Todos; macro_region = Sur",
         "nivel": "Macrorregión → departamento → municipio (drill-down)"
     },
+{
+  "vista": "vista3",
+  "numero": 5,
+  "titulo": "El registro de SIEVCAC cae 94,6 % después de 2016 y el de Medicina Legal solo 14,0 %",
+  "pregunta": "Al separar por fuente la evolución temporal del tablero de tiempo de la Etapa 4, ¿el cambio en el promedio anual de personas registradas entre 2007-2016 y 2017-2025 es igual en Medicina Legal y en SIEVCAC?",
+  "dimensiones_medidas": "dim_tiempo (periodo_acuerdo) × dim_fuente (fuente); medida: promedio anual de personas = SUM(num_personas) ÷ años del periodo (10 en 2007-2016 y 9 en 2017-2025).",
+  "procedimiento": "En la Vista 3, slice por fuente: primero fuente = Medicina Legal (SIRDEC) y luego fuente = SIEVCAC (CNMH), sin filtro de sexo, nivel año, serie 2007-2025 (19 años). Se leyó el indicador de promedio anual en cada fuente y se calculó el aporte de cada fuente a las personas de los dos periodos (denominador: personas de ambas fuentes en cada periodo). Se compara el promedio anual y no el total porque los periodos duran 10 y 9 años.",
+  "evidencia": "Indicador de promedio anual y gráfica de personas por año de la Vista 3, con el filtro de fuente en cada una y sin filtro de sexo. Medicina Legal (135.703 personas): 7.647,7 → 6.580,7 (−14,0 %). SIEVCAC (8.855 personas): 844,4 → 45,7 (−94,6 %). Personas por periodo: Medicina Legal 76.477 y 59.226; SIEVCAC 8.444 y 411.",
+  "hallazgo": "El promedio anual de Medicina Legal pasó de 7.647,7 a 6.580,7 personas (−14,0 %), mientras que el de SIEVCAC pasó de 844,4 a 45,7 (−94,6 %). SIEVCAC pasó de aportar el 9,9 % de las personas de las dos fuentes en 2007-2016 (8.444 de 84.921) al 0,7 % en 2017-2025 (411 de 59.637).",
+  "interpretacion": "Una serie anual que sumara las dos fuentes quedaría dominada por Medicina Legal, que aporta el 90,1 % de las personas de 2007-2016 y el 99,3 % de las de 2017-2025, y ocultaría que SIEVCAC casi desaparece del registro después de 2016. El % sin resolver de SIEVCAC también baja (78,7 % → 49,4 %), pero el segundo periodo se calcula sobre solo 411 personas. Es un cambio en el registro y no prueba que el Acuerdo de Paz lo haya causado. Hipótesis no comprobable con estos datos: SIEVCAC documenta sobre todo hechos del conflicto armado anteriores a 2017, y los hechos recientes se registran con retraso.",
+  "utilidad": "Para dimensionar la carga reciente de búsqueda conviene usar Medicina Legal (6.580,7 personas por año en 2017-2025); SIEVCAC no sirve para estimar el flujo reciente, porque en ese periodo registra 45,7 personas por año. Las cifras de las dos fuentes no se suman: una misma persona puede estar en ambas.",
+  "limitacion": "Un cambio en el registro no es lo mismo que un cambio en los hechos. La serie comparable cubre 2007-2025 (2026 queda fuera por estar incompleto, hasta junio) y las personas de SIEVCAC con fecha anterior a 2007 o sin fecha no entran: solo entran 8.855. Desde 2017 SIEVCAC tiene entre 26 y 69 personas por año, y 2023 (26 personas) queda bajo el umbral de 30, así que su % no es confiable. Es una asociación temporal, no una relación causal.",
+  "filtros_usados": "fuente = Medicina Legal (SIRDEC) y luego SIEVCAC (CNMH); sin filtro de sexo; periodos 2007-2016 y 2017-2025",
+  "nivel": "año, agrupado por periodo frente al Acuerdo (10 años en 2007-2016 y 9 en 2017-2025)"
+},
+{
+  "vista": "vista3",
+  "numero": 6,
+  "titulo": "En Medicina Legal el % sin resolver cae 17,6 puntos entre 2008 y 2009 y desde entonces se mantiene entre 45 % y 53 %",
+  "pregunta": "En Medicina Legal, ¿el % que sigue desaparecido evoluciona igual cada año, y en qué trimestre se concentra el valor más alto?",
+  "dimensiones_medidas": "dim_tiempo (año → trimestre) × dim_estado (grupo_desenlace) × dim_fuente (fuente); medida: % que siguen desaparecidas = SUM(flag_sigue_desaparecida)*100.0/SUM(num_personas), recalculado en cada nivel.",
+  "procedimiento": "En la Vista 3, fuente = Medicina Legal (SIRDEC), serie 2007-2025 (19 años). Se leyó la línea del % por año y se identificó el año más alto (2007). Drill-down de 2007 a trimestre y roll-up de vuelta al año; la caja de comprobación verificó que los trimestres suman el total del año. Los periodos 2007-2016 y 2017-2025 se compararon con el % calculado sobre las personas de cada periodo, sin promediar los porcentajes anuales.",
+  "evidencia": "Gráfica de línea del %, matriz año × desenlace y caja de comprobación (los 19 años suman 135.703 personas). 2007: 69,2 % (4.866 de 7.027); 2008: 67,7 % (4.266 de 6.302); 2009: 50,1 % (3.622 de 7.225). Periodos: 2007-2016, 52,0 % (39.788 de 76.477); 2017-2025, 49,4 % (29.240 de 59.226). Trimestre de 2007: [T] con [Z] % sobre [N2] personas.",
+  "hallazgo": "El % que sigue desaparecido fue más alto en 2007 (69,2 %) y 2008 (67,7 %), y bajó 17,6 puntos en un año (de 67,7 % en 2008 a 50,1 % en 2009). De 2009 a 2025 se mueve entre 45,0 % (2014) y 53,4 % (2024). Por periodos pasó de 52,0 % (2007-2016) a 49,4 % (2017-2025), aunque 2024 (53,4 %) y 2025 (52,2 %) son los dos valores más altos desde 2009. Dentro de 2007, [T] concentra el valor más alto ([Z] %, sobre [N2] personas).",
+  "interpretacion": "El cambio de nivel entre 2008 y 2009 es mucho mayor que cualquier variación posterior, y la diferencia entre antes y después del Acuerdo (52,0 % → 49,4 %) es pequeña frente a esa caída. Por eso la comparación de los dos periodos oculta que el cambio principal ocurrió en 2009 y no alrededor de 2016. Hipótesis no comprobable con estos datos: cambió la cobertura o la forma de actualizar el estado de los casos en Medicina Legal hacia 2009.",
+  "utilidad": "Para evaluar si mejora el desenlace de los casos conviene tomar como referencia la serie 2009-2025 (48,9 % sin resolver: 59.896 de 122.374 personas) y no 2007-2008 (68,5 %: 9.132 de 13.329), que inflan el % del periodo anterior y harían parecer una mejora que ocurrió en un solo año. Además, 2024 y 2025 merecen seguimiento por tener el % más alto desde 2009.",
+  "limitacion": "Los registros sin mes quedan como 'Mes desconocido' y no se reparten entre trimestres; los grupos de menos de 30 personas no se destacan. Es una asociación temporal, no prueba que el Acuerdo de Paz haya causado cambios. Hipótesis no comprobable: los casos recientes han tenido menos tiempo para resolverse, y el estado de los casos puede cambiar después del corte de los datos.",
+  "filtros_usados": "fuente = Medicina Legal (SIRDEC); sin filtro de sexo",
+  "nivel": "año → trimestre (drill-down y roll-up)"
+},
     {
       "vista": "vista4",
       "numero": 7,
