@@ -1,0 +1,57 @@
+{
+  "periodo": [
+    2007,
+    2025
+  ],
+  "supervisado": {
+    "archivo": "supervisado_ml_2007_2025.csv",
+    "registros_medicina_legal_total": 205938,
+    "registros_en_periodo": 135703,
+    "excluidos_fuera_de_periodo_o_sin_anio": 70235,
+    "variable_objetivo": "estado_victima",
+    "predictoras": [
+      "sexo",
+      "departamento",
+      "zona",
+      "clasificacion",
+      "anio",
+      "mes"
+    ],
+    "distribucion_objetivo": {
+      "Desaparecido": 69028,
+      "Aparecido con vida": 58792,
+      "Aparecido sin vida": 7883
+    },
+    "distribucion_objetivo_pct": {
+      "Desaparecido": 50.87,
+      "Aparecido con vida": 43.32,
+      "Aparecido sin vida": 5.81
+    },
+    "mes_faltante": 0
+  },
+  "clustering": {
+    "archivo": "clustering_municipios.csv",
+    "unidad": "municipio (codigo DANE)",
+    "minimo_casos_ml": 30,
+    "excluidos": "codigos DANE terminados en 999 (municipio sin informacion) y casos en el extranjero",
+    "municipios": 259,
+    "variables_agrupamiento": [
+      "log_casos",
+      "pct_mujer",
+      "pct_rural",
+      "pct_forzada_presunta",
+      "pct_post2016",
+      "pct_conflicto"
+    ],
+    "variables_descriptivas_meta": [
+      "casos_ml",
+      "casos_sievcac",
+      "pct_sigue_desaparecida",
+      "pct_aparecio_con_vida",
+      "pct_aparecio_sin_vida",
+      "latitud",
+      "longitud"
+    ],
+    "municipios_sin_coordenadas": 11
+  }
+}
