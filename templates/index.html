@@ -92,5 +92,22 @@
             {% endfor %}
         </ul>
     </details>
+
+    <details class="etapa-acordeon">
+        <summary>
+            <span class="etapa-nombre">Etapa 6</span>
+            <span class="etapa-subtitulo">Conocimiento oculto</span>
+        </summary>
+        <ul class="indice">
+            {% for item in etapa6_menu %}
+            <li>
+                <a href="{{ url_for('etapa6_pagina', slug=item.slug) }}">
+                    <span class="folio">{{ item.numero }}</span>
+                    <span class="titulo">{{ item.titulo }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </details>
 </section>
 {% endblock %}
