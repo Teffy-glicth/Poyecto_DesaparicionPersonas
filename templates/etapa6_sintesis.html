@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Conocimiento oculto · Síntesis{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Conocimiento oculto · Etapa 6</p>
+    <h1>1. Síntesis, objetivo y datos</h1>
+    <p class="lead">{{ datos.proposito }}</p>
+
+    <h2>Preguntas de análisis</h2>
+    {% for p in datos.preguntas %}
+    <div class="page variable-card">
+        <p><strong>{{ p.titulo }}.</strong> {{ p.texto }}</p>
+    </div>
+    {% endfor %}
+
+    <h2>Datos y transformaciones</h2>
+    <p>
+        Se partió del archivo depurado en la Etapa 2 (<code>data/processed/dataset_tratado.csv</code>).
+        El script <code>{{ datos.datos.fuente_scripts.preparacion }}</code> genera los tres archivos
+        que se abren en Orange y deja documentadas las transformaciones adicionales. Los comentarios
+        se descargaron con <code>{{ datos.datos.fuente_scripts.extraccion_comentarios }}</code>.
+    </p>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <thead>
+                <tr><th>Archivo</th><th>Unidad de análisis</th><th>Filtro aplicado</th><th>Registros</th></tr>
+            </thead>
+            <tbody>
+                {% for a in datos.datos.archivos %}
+                <tr>
+                    <td><code>{{ a.archivo }}</code></td>
+                    <td>{{ a.unidad }}</td>
+                    <td>{{ a.filtro }}</td>
+                    <td>{{ "{:,}".format(a.registros).replace(",", ".") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Decisiones clave sobre los datos</h2>
+    {% for d in datos.datos.decisiones %}
+    <h3>{{ d.titulo }}</h3>
+    <p>{{ d.texto }}</p>
+    {% endfor %}
+
+    <h2>Los tres flujos de esta etapa</h2>
+    <ul class="indice indice-proposito">
+        <li>
+            <a href="{{ url_for('etapa6_pagina', slug='supervisado') }}">
+                <span class="folio">2</span>
+                <span class="titulo">Modelo supervisado (clasificación)</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('etapa6_pagina', slug='clustering') }}">
+                <span class="folio">3</span>
+                <span class="titulo">Agrupamiento de municipios</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('etapa6_pagina', slug='comentarios') }}">
+                <span class="folio">4</span>
+                <span class="titulo">Comentarios de YouTube</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('etapa6_pagina', slug='conclusiones') }}">
+                <span class="folio">5</span>
+                <span class="titulo">Conclusiones integradas</span>
+            </a>
+        </li>
+    </ul>
+</section>
+{% endblock %}

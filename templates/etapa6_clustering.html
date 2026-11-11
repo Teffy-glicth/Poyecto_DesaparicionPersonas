@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Conocimiento oculto · Agrupamiento de municipios{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Conocimiento oculto · Etapa 6</p>
+    <h1>3. Agrupamiento de municipios (k-Means)</h1>
+    <p class="lead"><strong>Pregunta:</strong> {{ datos.pregunta }}</p>
+
+    <h2>Planteamiento</h2>
+    <p>{{ datos.planteamiento }}</p>
+    <h3>Algoritmo y número de grupos</h3>
+    <p>{{ datos.algoritmo }}</p>
+    <p class="nota">{{ datos.flujo }}</p>
+
+    <h2>Perfil de los tres grupos</h2>
+    <div class="tabla-scroll">
+        <table class="tabla-numeros">
+            <thead>
+                <tr>
+                    <th class="texto">Indicador (promedio)</th>
+                    {% for g in datos.grupos %}<th>{{ g.nombre }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="texto">Municipios</td>{% for g in datos.grupos %}<td>{{ g.municipios }}</td>{% endfor %}</tr>
+                <tr><td class="texto">Casos promedio en Medicina Legal</td>{% for g in datos.grupos %}<td>{{ g.casos_promedio_ml }}</td>{% endfor %}</tr>
+                <tr><td class="texto">% mujeres</td>{% for g in datos.grupos %}<td>{{ g.pct_mujeres }} %</td>{% endfor %}</tr>
+                <tr><td class="texto">% rural o centro poblado</td>{% for g in datos.grupos %}<td>{{ g.pct_rural }} %</td>{% endfor %}</tr>
+                <tr><td class="texto">% forzada presunta</td>{% for g in datos.grupos %}<td>{{ g.pct_forzada_presunta }} %</td>{% endfor %}</tr>
+                <tr><td class="texto">% de casos después de 2016</td>{% for g in datos.grupos %}<td>{{ g.pct_post2016 }} %</td>{% endfor %}</tr>
+                <tr><td class="texto">% conflicto (peso de SIEVCAC)</td>{% for g in datos.grupos %}<td>{{ g.pct_conflicto }} %</td>{% endfor %}</tr>
+                <tr><td class="texto">Departamento más frecuente</td>{% for g in datos.grupos %}<td>{{ g.departamento_frecuente }}</td>{% endfor %}</tr>
+                <tr><td class="texto"><strong>% que siguen desaparecidas</strong> (no usado para agrupar)</td>{% for g in datos.grupos %}<td><strong>{{ g.pct_sigue_desaparecida }} %</strong></td>{% endfor %}</tr>
+                <tr><td class="texto">Silueta promedio</td>{% for g in datos.grupos %}<td>{{ g.silueta }}</td>{% endfor %}</tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Interpretación de cada grupo</h2>
+    {% for g in datos.grupos %}
+    <div class="page variable-card">
+        <p><strong>{{ g.nombre }}</strong> ({{ g.municipios }} municipios). {{ g.interpretacion }}</p>
+    </div>
+    {% endfor %}
+
+    <h2>Diferencias estadísticamente significativas (ANOVA)</h2>
+    <div class="tabla-scroll">
+        <table class="tabla-numeros">
+            <thead><tr><th class="texto">Variable</th><th>F</th><th>p</th></tr></thead>
+            <tbody>
+                {% for a in datos.anova %}
+                <tr><td class="texto"><code>{{ a.variable }}</code></td><td>{{ a.F }}</td><td>{{ a.p }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Validación y patrón territorial</h2>
+    <p>{{ datos.geo }}</p>
+    <p>{{ datos.validacion }}</p>
+
+    <div class="lim-dec">
+        <div class="caja-limitacion">
+            <p class="sub">Patrón oculto</p>
+            <p>{{ datos.patron_oculto }}</p>
+        </div>
+        <div class="caja-decision">
+            <p class="sub">Decisiones que puede apoyar</p>
+            <p>{{ datos.decisiones }}</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
