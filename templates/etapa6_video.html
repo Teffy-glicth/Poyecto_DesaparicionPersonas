@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Conocimiento oculto · Video de sustentación{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Conocimiento oculto · Etapa 6</p>
+    <h1>7. Video de sustentación</h1>
+    <p class="lead">
+        Explicamos los hallazgos de cada flujo: la comparación y selección del modelo supervisado, la
+        interpretación de los grupos de municipios y las conclusiones derivadas de los comentarios de
+        YouTube, mostrando los flujos y resultados principales en Orange.
+    </p>
+
+    {% if video_local_url %}
+    <div class="video-wrap video-local">
+        <video controls preload="metadata" src="{{ video_local_url }}">
+            Tu navegador no reproduce video. <a href="{{ video_local_url }}">Descárgalo aquí</a>.
+        </video>
+    </div>
+    {% elif video_embed %}
+    <div class="video-wrap">
+        <iframe src="{{ video_embed }}" title="Video de sustentación · Conocimiento oculto"
+                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowfullscreen loading="lazy"></iframe>
+    </div>
+    <p class="nota">
+        Si el video no carga, <a href="{{ video_url }}" target="_blank" rel="noopener">ábrelo directamente</a>.
+    </p>
+    {% else %}
+    <p class="placeholder-note">
+        El video todavía no se ha publicado. Define su enlace en <code>ETAPA6_VIDEO_URL</code>
+        (YouTube no listado o Google Drive con acceso para cualquier persona con el enlace).
+    </p>
+    {% endif %}
+
+    <h2>Contenido del video</h2>
+    <table>
+        <thead><tr><th>Parte</th><th>Tema</th></tr></thead>
+        <tbody>
+            <tr><td>1</td><td>Modelo supervisado: planteamiento, flujo en Orange, comparación de los tres modelos y selección del árbol de decisión.</td></tr>
+            <tr><td>2</td><td>Agrupamiento de municipios: variables, elección de k = 3, interpretación de los tres grupos y validación.</td></tr>
+            <tr><td>3</td><td>Comentarios de YouTube: extracción, limpieza, temas, tono y grupos de comentarios.</td></tr>
+            <tr><td>4</td><td>Conclusiones integradas y limitaciones del trabajo.</td></tr>
+        </tbody>
+    </table>
+</section>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Conocimiento oculto · Conclusiones integradas{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Conocimiento oculto · Etapa 6</p>
+    <h1>5. Conclusiones integradas</h1>
+
+    <h2>Coincidencias entre los análisis</h2>
+    <p>{{ datos.coincidencias }}</p>
+
+    <h2>Lo que los datos no ven</h2>
+    <p>{{ datos.lo_que_no_se_ve }}</p>
+
+    <h2>Diferencias</h2>
+    <p>{{ datos.diferencias }}</p>
+
+    <div class="caja-decision" style="margin: 18px 0;">
+        <p class="sub">Decisiones que podrían apoyarse en los resultados</p>
+        <p>{{ datos.decisiones }}</p>
+    </div>
+
+    <h2>Evidencia frente a hipótesis</h2>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <thead><tr><th>Hallazgos respaldados por evidencia</th><th>Hipótesis que requieren validación</th></tr></thead>
+            <tbody>
+                {% for fila in datos.evidencia_vs_hipotesis %}
+                <tr><td>{{ fila.evidencia }}</td><td>{{ fila.hipotesis }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="caja-limitacion" style="margin: 18px 0;">
+        <p class="sub">Limitaciones generales</p>
+        <p>{{ datos.limitaciones_generales }}</p>
+    </div>
+
+    <h2>Referencias y enlaces</h2>
+    <ul class="lista-recursos">
+        {% for r in referencias %}
+        <li><a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.texto }}</a></li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

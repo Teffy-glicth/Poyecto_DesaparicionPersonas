@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Conocimiento oculto · Modelo supervisado{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Conocimiento oculto · Etapa 6</p>
+    <h1>2. Modelo supervisado (clasificación)</h1>
+    <p class="lead"><strong>Pregunta:</strong> {{ datos.pregunta }}</p>
+
+    <h2>Planteamiento</h2>
+    <p>{{ datos.tipo_problema }}</p>
+    <div class="contexto-datos">
+        <p><strong>Variable objetivo:</strong> <code>{{ datos.variable_objetivo }}</code></p>
+        <p><strong>Predictoras:</strong> {{ datos.predictoras | join(", ") }}</p>
+        <p class="nota">{{ datos.desbalance_nota }}</p>
+    </div>
+
+    <div class="kpis">
+        {% for c in datos.distribucion_clases %}
+        <div class="kpi">
+            <p class="kpi-valor">{{ ("%.1f"|format(c.pct)).replace(".", ",") }} %</p>
+            <p class="kpi-label">{{ c.clase }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2>Rank: relevancia de las variables</h2>
+    <div class="tabla-scroll">
+        <table class="tabla-numeros">
+            <thead>
+                <tr><th class="texto">Variable</th><th>Info. gain</th><th>Gain ratio</th><th>Gini</th><th>χ²</th></tr>
+            </thead>
+            <tbody>
+                {% for r in datos.rank %}
+                <tr>
+                    <td class="texto"><code>{{ r.variable }}</code></td>
+                    <td>{{ r.info_gain }}</td>
+                    <td>{{ r.gain_ratio }}</td>
+                    <td>{{ r.gini }}</td>
+                    <td>{{ r.chi2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">{{ datos.rank_nota }}</p>
+
+    <h2>Diseño del flujo y parámetros</h2>
+    <p>{{ datos.flujo }}</p>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <thead><tr><th>Modelo</th><th>Parámetros</th></tr></thead>
+            <tbody>
+                {% for m in datos.modelos_parametros %}
+                <tr><td>{{ m.modelo }}</td><td>{{ m.parametros }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Lectura de los modelos</h2>
+    {% for texto in datos.interpretacion_modelos %}
+    <div class="page variable-card"><p>{{ texto }}</p></div>
+    {% endfor %}
+
+    <h2>Evaluación y comparación</h2>
+    <p class="nota">Métricas promedio con validación cruzada estratificada de 10 particiones sobre 40.000 registros.</p>
+    <div class="tabla-scroll">
+        <table class="tabla-numeros">
+            <thead>
+                <tr><th class="texto">Modelo</th><th>AUC</th><th>CA</th><th>F1</th><th>Precisión</th><th>Recall</th><th>MCC</th></tr>
+            </thead>
+            <tbody>
+                {% for m in datos.metricas %}
+                <tr>
+                    <td class="texto">{{ m.modelo }}</td>
+                    <td>{{ m.auc }}</td>
+                    <td>{{ m.ca }}</td>
+                    <td>{{ m.f1 }}</td>
+                    <td>{{ m.precision }}</td>
+                    <td>{{ m.recall }}</td>
+                    <td>{{ m.mcc }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">{{ datos.metricas_nota }}</p>
+
+    <h3>Recall por clase (matrices de confusión)</h3>
+    <div class="tabla-scroll">
+        <table class="tabla-numeros">
+            <thead>
+                <tr><th class="texto">Modelo</th><th>Con vida</th><th>Sin vida</th><th>Desaparecido</th></tr>
+            </thead>
+            <tbody>
+                {% for m in datos.recall_por_clase %}
+                <tr>
+                    <td class="texto">{{ m.modelo }}</td>
+                    <td>{{ ("%.1f"|format(m.con_vida)).replace(".", ",") }} %</td>
+                    <td>{{ ("%.1f"|format(m.sin_vida)).replace(".", ",") }} %</td>
+                    <td>{{ ("%.1f"|format(m.desaparecido)).replace(".", ",") }} %</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p>{{ datos.efecto_desbalance }}</p>
+
+    <h2>Modelo seleccionado: {{ datos.modelo_seleccionado.nombre }}</h2>
+    <h3>Por qué se eligió</h3>
+    <p>{{ datos.modelo_seleccionado.razones }}</p>
+    <h3>Conocimiento que aporta</h3>
+    <p>{{ datos.modelo_seleccionado.conocimiento }}</p>
+
+    <div class="lim-dec">
+        <div class="caja-limitacion">
+            <p class="sub">Limitaciones</p>
+            <p>{{ datos.modelo_seleccionado.limitaciones }}</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

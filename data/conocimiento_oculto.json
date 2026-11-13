@@ -1,0 +1,270 @@
+{
+  "proposito": "Esta etapa va más allá de las descripciones de las etapas anteriores: busca descubrir patrones que no se ven a simple vista mediante un modelo supervisado y un agrupamiento en Orange Data Mining, y contrastarlos con lo que opinan los ciudadanos en los comentarios de un video de YouTube sobre un caso real de desaparición.",
+  "preguntas": [
+    {
+      "titulo": "Pregunta supervisada",
+      "texto": "Con la información disponible al momento del reporte (sexo, departamento, zona del hecho, clasificación del caso, año y mes), ¿se puede anticipar si una persona seguirá desaparecida, aparecerá con vida o aparecerá sin vida?"
+    },
+    {
+      "titulo": "Pregunta de agrupamiento",
+      "texto": "¿Qué tipos de municipio existen según el perfil de sus desapariciones, y esos tipos se diferencian en la proporción de casos que siguen sin resolverse?"
+    },
+    {
+      "titulo": "Pregunta sobre los comentarios",
+      "texto": "¿Qué percepciones expresa la audiencia frente a un caso de desaparición que termina en homicidio, y qué información aportan que no esté en los registros oficiales?"
+    }
+  ],
+  "datos": {
+    "archivos": [
+      {
+        "archivo": "supervisado_ml_2007_2025.csv",
+        "unidad": "Persona",
+        "filtro": "Medicina Legal, años 2007 a 2025",
+        "registros": 135703
+      },
+      {
+        "archivo": "clustering_municipios.csv",
+        "unidad": "Municipio (código DANE)",
+        "filtro": "Al menos 30 casos entre 2007 y 2025; se excluye el código 00999 (sin información)",
+        "registros": 259
+      },
+      {
+        "archivo": "comentarios_V190AYPh-b0.csv",
+        "unidad": "Comentario",
+        "filtro": "Todos los comentarios públicos del video",
+        "registros": 1437
+      }
+    ],
+    "decisiones": [
+      {
+        "titulo": "Periodo 2007 a 2025",
+        "texto": "En Medicina Legal, entre el 84 % y el 95 % de los casos anteriores a 2007 figuran como \"Desaparecido\", según el periodo, porque en buena parte son registros retroactivos anteriores al sistema SIRDEC. Si se incluyeran, el modelo aprendería solamente que \"año antiguo\" equivale a \"desaparecido\". El año 2026 se excluye porque está incompleto."
+      },
+      {
+        "titulo": "Solo Medicina Legal en el modelo supervisado",
+        "texto": "SIEVCAC no registra la zona del hecho, y en la Etapa 5 se encontró que la fuente explica más el desenlace que el sexo. Si se mezclaran las dos fuentes, el modelo aprendería a reconocer la fuente y no el fenómeno."
+      },
+      {
+        "titulo": "Variables excluidas para evitar fuga de información y ruido",
+        "texto": "Se excluyeron los indicadores derivados del propio desenlace (sigue desaparecida, apareció con vida o sin vida), porque no estarían disponibles al momento de predecir; el municipio, que tiene más de 1.000 categorías; la edad, vacía en esta fuente; las coordenadas, también vacías en Medicina Legal; y la fuente y el número de personas, constantes después del filtro."
+      },
+      {
+        "titulo": "Variables del agrupamiento",
+        "texto": "Para cada municipio se calcularon seis indicadores: volumen de casos en escala logarítmica (log_casos), porcentaje de mujeres (pct_mujer), porcentaje de casos en zona rural o centro poblado (pct_rural), porcentaje clasificado como desaparición forzada presunta (pct_forzada_presunta), porcentaje de casos posteriores a 2016 (pct_post2016) y peso del registro del conflicto (pct_conflicto). Los porcentajes de desenlace se dejaron como variables meta: no intervienen en la formación de los grupos y solo se usan después para describirlos."
+      }
+    ],
+    "fuente_scripts": {
+      "preparacion": "etapa6/preparar_datos_orange.py",
+      "extraccion_comentarios": "etapa6/youtube/extraer_comentarios_youtube.py"
+    }
+  },
+  "supervisado": {
+    "pregunta": "Con sexo, departamento, zona del hecho, clasificación del caso, año y mes, ¿se puede anticipar el desenlace de una desaparición (estado_victima)?",
+    "tipo_problema": "Clasificación: la variable objetivo (estado_victima) es categórica, con tres clases: Desaparecido, Aparecido con vida y Aparecido sin vida.",
+    "variable_objetivo": "estado_victima",
+    "predictoras": ["sexo", "departamento", "zona", "clasificacion", "anio", "mes"],
+    "distribucion_clases": [
+      {"clase": "Desaparecido", "pct": 50.9},
+      {"clase": "Aparecido con vida", "pct": 43.3},
+      {"clase": "Aparecido sin vida", "pct": 5.8}
+    ],
+    "desbalance_nota": "Las clases están desbalanceadas (apenas 5,8 % Aparecido sin vida), por lo que además de la exactitud se revisan el recall por clase y la matriz de confusión.",
+    "rank": [
+      {"variable": "departamento", "info_gain": 0.054, "gain_ratio": 0.016, "gini": 0.030, "chi2": 1909.628},
+      {"variable": "clasificacion", "info_gain": 0.028, "gain_ratio": 0.062, "gini": 0.015, "chi2": 430.410},
+      {"variable": "sexo", "info_gain": 0.025, "gain_ratio": 0.026, "gini": 0.009, "chi2": 2686.872},
+      {"variable": "zona", "info_gain": 0.017, "gain_ratio": 0.020, "gini": 0.009, "chi2": 4356.125},
+      {"variable": "anio", "info_gain": 0.007, "gain_ratio": 0.003, "gini": 0.003, "chi2": 500.284},
+      {"variable": "mes", "info_gain": 0.001, "gain_ratio": 0.000, "gini": 0.000, "chi2": 20.471}
+    ],
+    "rank_nota": "El departamento tiene la mayor ganancia de información (0,054), la clasificación del caso la mayor razón de ganancia (0,062) y la zona el χ² más alto (4.356). El año aporta poco (0,007) y el mes prácticamente nada (0,001). Se conservaron las seis variables para que los tres modelos compitieran con la misma información.",
+    "flujo": "File → Data Sampler (muestra fija de 40.000 registros, estratificada por clase y replicable) → cinco modelos → Test and Score (validación cruzada estratificada de 10 particiones) → Confusion Matrix; cada modelo se conecta además a un widget de interpretación (Tree Viewer, Feature Importance o Nomogram).",
+    "modelos_parametros": [
+      {"modelo": "Árbol de decisión (Tree)", "parametros": "No binario, mínimo 50 instancias por hoja, no dividir subconjuntos menores de 100, profundidad máxima 8, detener cuando la clase mayoritaria alcanza el 95 %. Se desactivó \"Induce binary tree\" porque departamento tiene 35 valores."},
+      {"modelo": "Random Forest", "parametros": "100 árboles, entrenamiento replicable, no dividir subconjuntos menores de 10."},
+      {"modelo": "RF balanceado", "parametros": "Igual al anterior, con \"Balance class distribution\" activado."},
+      {"modelo": "Regresión logística", "parametros": "Regularización Ridge (L2), C = 1."},
+      {"modelo": "LG balanceado", "parametros": "Igual a la anterior, con \"Balance class distribution\" activado."}
+    ],
+    "interpretacion_modelos": [
+      "Tree Viewer: el árbol divide primero por departamento y luego combina clasificación, zona, sexo y año. En Meta, los casos de forzada presunta en zona rural siguen desaparecidos entre el 83 % y el 91 % de las veces; en Nariño, los rurales de forzada presunta hasta 2010 llegan al 96 %. Entre los casos sin clasificación de mujeres predomina \"Aparecido con vida\" (58 %-64 %).",
+      "Feature Importance (Random Forest, importancia por permutación): departamento es la variable más importante (el F1 cae ~0,15 al permutarla), seguida de año (0,12) y mes (0,075); sexo, zona y clasificación pesan menos. Que el mes importe tanto al Random Forest cuando su ganancia de información es casi cero sugiere que el bosque aprovecha combinaciones muy específicas de año y mes sin un patrón real, una razón más para preferir el árbol.",
+      "Nomograma (regresión logística): ser mujer, que el hecho ocurra en cabecera municipal o centro poblado y que el caso no tenga clasificación suman puntos hacia la clase seleccionada; ser hombre, la zona rural y la clasificación de forzada presunta no suman. El departamento tiene la escala más amplia (Caldas, Quindío, Atlántico y Antioquia en el extremo alto; San Andrés, La Guajira, Cauca, Chocó y Putumayo en el bajo). Con el balanceo el orden de variables se mantiene; lo que cambia es la calibración hacia la clase minoritaria."
+    ],
+    "metricas": [
+      {"modelo": "Árbol", "auc": 0.688, "ca": 0.610, "f1": 0.590, "precision": 0.573, "recall": 0.610, "mcc": 0.256},
+      {"modelo": "Random Forest", "auc": 0.682, "ca": 0.602, "f1": 0.585, "precision": 0.582, "recall": 0.602, "mcc": 0.244},
+      {"modelo": "RF balanceado", "auc": 0.663, "ca": 0.494, "f1": 0.529, "precision": 0.586, "recall": 0.494, "mcc": 0.197},
+      {"modelo": "Regresión logística", "auc": 0.671, "ca": 0.586, "f1": 0.568, "precision": 0.551, "recall": 0.586, "mcc": 0.211},
+      {"modelo": "LG balanceado", "auc": 0.649, "ca": 0.447, "f1": 0.483, "precision": 0.562, "recall": 0.447, "mcc": 0.161}
+    ],
+    "metricas_nota": "Métricas promedio con validación cruzada estratificada de 10 particiones sobre 40.000 registros. El árbol obtiene los mejores valores en casi todas: exactitud 0,610, F1 0,590, AUC 0,688, MCC 0,256. Un modelo que siempre respondiera \"Desaparecido\" acertaría el 50,9 % de las veces, así que el árbol mejora esa línea base en unos 10 puntos. La probabilidad de que el AUC del árbol sea mayor que el del Random Forest es 0,984: la diferencia, aunque pequeña, es consistente. Las versiones balanceadas pierden exactitud porque desplazan predicciones hacia la clase minoritaria.",
+    "recall_por_clase": [
+      {"modelo": "Árbol", "con_vida": 57.8, "sin_vida": 0.0, "desaparecido": 70.6},
+      {"modelo": "Random Forest", "con_vida": 55.7, "sin_vida": 1.9, "desaparecido": 70.7},
+      {"modelo": "RF balanceado", "con_vida": 52.0, "sin_vida": 36.9, "desaparecido": 48.6},
+      {"modelo": "Regresión logística", "con_vida": 56.3, "sin_vida": 0.0, "desaparecido": 67.3},
+      {"modelo": "LG balanceado", "con_vida": 51.4, "sin_vida": 49.9, "desaparecido": 38.4}
+    ],
+    "efecto_desbalance": "La exactitud global oculta que los modelos sin balancear ignoran por completo la clase \"Aparecido sin vida\" (5,8 % de los casos): el árbol y la regresión logística nunca la predicen, y el Random Forest solo la identifica en el 1,9 % de los casos reales (188 predicciones, 45 aciertos). Balancear sube ese recall hasta 36,9-49,9 %, pero con una precisión cercana al 10 % en esa clase (por ejemplo, de 11.465 predicciones de \"sin vida\" en LG balanceado, solo 1.160 son correctas), tantas falsas alarmas que el modelo deja de ser útil para las otras dos clases. Con las variables disponibles, la aparición sin vida no se puede distinguir de forma fiable.",
+    "modelo_seleccionado": {
+      "nombre": "Árbol de decisión",
+      "razones": "Tiene el mejor desempeño en exactitud, F1, AUC y MCC; su ventaja en AUC sobre el Random Forest es consistente (probabilidad de 0,984); no depende de variables sin poder explicativo como el mes; y se puede leer como reglas que cualquier persona entiende.",
+      "conocimiento": "El desenlace de una desaparición depende sobre todo de dónde ocurre y de qué tipo de caso es. Los casos rurales clasificados como forzada presunta casi nunca se resuelven, mientras que los casos urbanos sin clasificación, especialmente de mujeres, tienen más probabilidad de terminar con la persona encontrada con vida. Esto puede orientar la priorización: los casos con perfil rural y de desaparición forzada requieren estrategias de búsqueda de largo plazo.",
+      "limitaciones": "La exactitud es moderada (61 %) y el modelo no detecta a las personas halladas sin vida. El año está confundido con el tiempo transcurrido: los casos recientes han tenido menos tiempo para resolverse. La clasificación del caso podría actualizarse después del reporte, lo que implica cierto riesgo de fuga de información. Los resultados son asociaciones y no causas, y corresponden solo al registro de Medicina Legal."
+    }
+  },
+  "clustering": {
+    "pregunta": "¿Qué tipos de municipio existen según el perfil de sus desapariciones, y esos tipos se diferencian en la proporción de casos que siguen sin resolverse?",
+    "planteamiento": "Se agruparon 259 municipios con al menos 30 casos entre 2007 y 2025, usando seis indicadores con escalas muy distintas (el logaritmo de casos llega a 11, mientras los porcentajes van de 0 a 1), por lo que se estandarizaron con \"Normalize columns\" de k-Means (media 0, desviación 1). Ni el desenlace ni la variable objetivo del flujo supervisado intervienen en la formación de los grupos.",
+    "algoritmo": "k-Means con inicialización k-means++, 10 reinicios y 300 iteraciones como máximo, probando de 2 a 8 grupos. La silueta promedio fue mayor con k = 2 y algo menor con k = 3; se eligió k = 3 porque separa un grupo intermedio que con dos grupos queda mezclado, y porque los tres grupos resultan interpretables y distintos en su desenlace.",
+    "flujo": "File → k-Means (agrega Cluster y la silueta de cada municipio) → Edit Domain (renombra los grupos) → Group By / Pivot Table (perfil de cada grupo), Box Plot, Scatter Plot y Geo Map (visualización); una rama de validación con Preprocess, Silhouette Plot, Distances y Hierarchical Clustering.",
+    "grupos": [
+      {
+        "nombre": "Urbanos de alto volumen",
+        "municipios": 53,
+        "casos_promedio_ml": 2076,
+        "pct_mujeres": 39.4,
+        "pct_rural": 12.2,
+        "pct_forzada_presunta": 8.0,
+        "pct_post2016": 49.9,
+        "pct_conflicto": 4.3,
+        "departamento_frecuente": "Cundinamarca",
+        "pct_sigue_desaparecida": 48.1,
+        "silueta": 0.316,
+        "interpretacion": "Ciudades y municipios conurbados: concentran muchos casos, tienen la mayor proporción de mujeres, casi nada de ruralidad y poca relación con el conflicto. Es donde más casos se resuelven."
+      },
+      {
+        "nombre": "Rurales con huella del conflicto",
+        "municipios": 78,
+        "casos_promedio_ml": 99,
+        "pct_mujeres": 15.9,
+        "pct_rural": 58.4,
+        "pct_forzada_presunta": 55.0,
+        "pct_post2016": 29.9,
+        "pct_conflicto": 27.7,
+        "departamento_frecuente": "Antioquia",
+        "pct_sigue_desaparecida": 84.4,
+        "silueta": 0.402,
+        "interpretacion": "Casos rurales, más de la mitad clasificados como forzada presunta, casi exclusivamente de hombres, con el mayor peso del registro del conflicto y concentrados antes de 2016. Ocho de cada diez personas siguen desaparecidas."
+      },
+      {
+        "nombre": "Intermedios",
+        "municipios": 128,
+        "casos_promedio_ml": 73,
+        "pct_mujeres": 32.2,
+        "pct_rural": 29.4,
+        "pct_forzada_presunta": 17.7,
+        "pct_post2016": 45.8,
+        "pct_conflicto": 10.8,
+        "departamento_frecuente": "Antioquia",
+        "pct_sigue_desaparecida": 60.2,
+        "silueta": 0.201,
+        "interpretacion": "Valores medios en todos los indicadores y un desenlace también intermedio; grupo de transición con perfiles mixtos (la silueta más baja de los tres)."
+      }
+    ],
+    "anova": [
+      {"variable": "pct_sigue_desaparecida", "F": 119.5, "p": "< 0,001"},
+      {"variable": "pct_rural", "F": 171.4, "p": "< 0,001"},
+      {"variable": "pct_conflicto", "F": 222.2, "p": "< 0,001"}
+    ],
+    "geo": "El mapa confirma el patrón territorial: los municipios rurales con huella del conflicto están en la periferia (Urabá y occidente de Antioquia, Chocó, costa pacífica de Cauca y Nariño, Putumayo, Caquetá, Meta, Guaviare y Arauca); los urbanos siguen el eje de las capitales andinas y del Caribe; los intermedios se ubican alrededor de ese eje. El patrón del sur de la Etapa 4 aparece aquí como parte de una franja periférica más amplia. Once municipios sin coordenadas en SIEVCAC no aparecen en el mapa.",
+    "validacion": "La silueta promedio es positiva en los tres grupos (mejor definido: rurales con huella del conflicto, 0,402; luego urbanos, 0,316; intermedios, 0,201, el grupo de transición). El agrupamiento jerárquico (enlace Ward), usado como contraste, une municipios vecinos del mismo departamento (Nariño, Meta, Caquetá, Cauca, Putumayo, Arauca, Guaviare), lo que refuerza la validez del resultado.",
+    "patron_oculto": "Grupos formados sin conocer el desenlace terminan con desenlaces muy distintos: hay 36 puntos de diferencia entre los municipios urbanos (48,1 %) y los rurales con huella del conflicto (84,4 %). El problema no es solo regional, como sugería el análisis del sur en la Etapa 4, sino de un tipo de municipio que se repite en varios departamentos (por eso Antioquia es el departamento más frecuente tanto en el grupo rural como en el intermedio).",
+    "decisiones": "Priorizar a los 78 municipios rurales con huella del conflicto en los planes de búsqueda de largo plazo e identificación forense, y diseñar estrategias diferenciadas por tipo de municipio en lugar de usar solo la división por departamento."
+  },
+  "comentarios": {
+    "pregunta": "¿Qué percepciones expresa la audiencia frente a un caso de desaparición que termina en homicidio, y qué información aportan que no esté en los registros oficiales?",
+    "video": {
+      "titulo": "El misterio del taxista desaparecido en Bogotá: un año de búsqueda y un final trágico - El Rastro",
+      "canal": "El Rastro",
+      "enlace": "https://www.youtube.com/watch?v=V190AYPh-b0",
+      "publicacion": "4 de junio de 2024",
+      "duracion": "49 min 57 s",
+      "vistas_extraccion": 2212636,
+      "comentarios_descargados": 1437,
+      "comentarios_principales": 1125,
+      "respuestas": 312,
+      "fecha_extraccion": "9 de noviembre de 2026, 7:37 p. m. (hora de Colombia)",
+      "herramienta": "YouTube Data API v3 (endpoints videos, commentThreads y comments), script etapa6/youtube/extraer_comentarios_youtube.py"
+    },
+    "criterios_seleccion": "Video en español sobre un caso real de desaparición en Colombia, con más de 10 minutos de duración, comentarios habilitados y un volumen suficiente para el análisis de texto (más de 1.000).",
+    "restricciones_privacidad": "La clave de la API se guarda en un archivo .env que no se publica en el repositorio. La API tiene una cuota diaria de 10.000 unidades (cada página de 100 comentarios consume una) y solo entrega comentarios públicos: no incluye los eliminados ni los ocultos. Para no recoger información personal innecesaria, el script no guarda nombre del autor, foto ni identificador del canal; solo un número consecutivo, el texto, la fecha y los \"me gusta\".",
+    "limpieza": [
+      {"paso": "Corpus", "decision": "Texto en español; solo la columna texto como contenido", "comentarios": 1437},
+      {"paso": "Unique", "decision": "Elimina duplicados exactos agrupando por texto", "comentarios": 1422},
+      {"paso": "Statistics", "decision": "Cuenta palabras, menciones (@usuario) y emojis de tristeza", "comentarios": 1422},
+      {"paso": "Select Rows", "decision": "Conserva comentarios con 3 o más palabras; elimina los que solo tienen emojis o una o dos palabras", "comentarios": 1337},
+      {"paso": "Formula", "decision": "Crea la variable tristeza (Sí si el comentario tiene emojis de tristeza)", "comentarios": 1337}
+    ],
+    "limpieza_nota": "Se conserva el 93 % de los comentarios originales.",
+    "preprocesamiento": "Conversión a minúsculas y eliminación de enlaces; tokenización con la expresión regular [^\\W\\d_]+, que conserva solo palabras y descarta números, marcas de tiempo y emojis; lematización con UDPipe en español; eliminación de palabras vacías con la lista de Orange en español más una lista propia (stopwords_extra.txt) con verbos lematizados y abreviaturas; y filtro de frecuencia de documento. Los nombres de usuario citados en las respuestas quedan fuera del análisis por ser poco frecuentes.",
+    "temas": {
+      "metodo": "Latent Dirichlet Allocation (LDA) con 4 temas",
+      "coherencia": 0.421,
+      "log_perplejidad": 10.39,
+      "lista": [
+        {"tema": 1, "palabras_clave": "colombia, programa, vida, pena, preacuerdo, matar, tipo, justicia, caso, familia", "interpretacion": "Indignación con la justicia colombiana y comentarios sobre el programa"},
+        {"tema": 2, "palabras_clave": "si, persona, hijo, buen, señor, familia, pena, asesino, dio, triste", "interpretacion": "Duelo y empatía con la víctima (\"buen señor\") y su familia"},
+        {"tema": 3, "palabras_clave": "asesino, familia, justicia, condena, salir, caso, preacuerdo, señor, cárcel, pena", "interpretacion": "Castigo, condena y rechazo a los preacuerdos"},
+        {"tema": 4, "palabras_clave": "dio, joven, si, triste, vida, cárcel, señor, salir, persona, familia", "interpretacion": "Tristeza ante un victimario joven y religiosidad"}
+      ],
+      "nota": "\"dio\" es el lema que UDPipe asignó a \"Dios\" y \"si\" es una palabra vacía residual. El vocabulario de la justicia penal (pena, preacuerdo, condena, cárcel, justicia) aparece en tres de los cuatro temas: es el eje de la conversación, junto al duelo por la víctima y su familia y la expresión religiosa."
+    },
+    "sentimiento": {
+      "metodo": "Sentiment Analysis, método Multilingual en español (escala -100 a 100)",
+      "promedio_general": -10,
+      "tristeza_emoji_si": -11.3,
+      "tristeza_emoji_no": -9.0,
+      "tristeza_test": "t = 0,78; p = 0,435 (no significativo)",
+      "tristeza_nota": "El léxico de sentimiento no capta la tristeza que los usuarios expresan con emojis, que se eliminan al tokenizar. El puntaje de sentimiento debe tomarse como un indicador débil.",
+      "principal_vs_respuesta": {"principal": -10.8, "respuesta": -4.0, "nota": "Las respuestas tienden a ser conversacionales: muestran acuerdo, aclaran datos del caso o responden a otros usuarios."}
+    },
+    "grupos_comentarios": {
+      "metodo": "Hierarchical Clustering (Bag of Words + Distances) cortado en 4 grupos, caracterizados con Word Enrichment frente al total de 1.337 comentarios (FDR < 0,05 = significativo; 0,05-0,20 = tendencia)",
+      "lista": [
+        {"grupo": "C1", "comentarios": 385, "palabras": "pena (FDR 0,006, significativa); asesino, cárcel, salir (0,052); preacuerdo, justicia (0,084)", "interpretacion": "Exigencia de castigo y rechazo a los beneficios judiciales. Es el grupo más definido."},
+        {"grupo": "C2", "comentarios": null, "palabras": "programa (FDR 0,143, tendencia)", "interpretacion": "Comentarios sobre el programa y su valor para aprender a cuidarse."},
+        {"grupo": "C3", "comentarios": null, "palabras": "ninguna palabra con FDR < 0,20", "interpretacion": "Grupo heterogéneo, sin un vocabulario propio."},
+        {"grupo": "C4", "comentarios": null, "palabras": "buen, caso, vida (FDR 0,099, tendencia)", "interpretacion": "Valoración de la víctima y del caso."}
+      ],
+      "nota_verificacion": "La escala del dendrograma (hasta unas 22.000 unidades) resulta mayor de lo esperado para vectores de texto normalizados, lo que sugiere que columnas numéricas que no son palabras (id_comentario, likes o el conteo de palabras) pudieron entrar al cálculo de distancias. Queda pendiente verificarlo con un Data Table después de Bag of Words y, si es así, pasarlas a meta con Select Columns antes de Distances."
+    },
+    "aportes": {
+      "complementan": "Los registros oficiales solo dicen que una persona \"apareció sin vida\". Los comentarios muestran lo que hay detrás: un homicidio, una investigación que según la audiencia avanzó gracias a la familia, y una justicia percibida como benévola con el victimario. El comentario con más \"me gusta\" (1.033) resume esa percepción: \"Esos malditos preacuerdos son una burla para las víctimas\". Otro muy apoyado (587 \"me gusta\") destaca que la familia prácticamente llevó el hilo de la investigación.",
+      "cuestionan": "El caso ocurrió en Bogotá, del grupo de municipios urbanos (el de mejor desenlace estadístico). Aun así, los comentarios expresan desconfianza en la respuesta institucional, por ejemplo al preguntar por qué la denuncia de desaparición no generó una alerta. Un mejor desenlace estadístico no implica una percepción de buena atención.",
+      "amplian": "La clase \"Aparecido sin vida\" que los modelos no logran predecir está asociada a circunstancias (homicidio, actuación de la familia, proceso judicial) que los datos no registran. Esto explica en parte la baja capacidad predictiva para esa clase y señala qué información haría falta recolectar.",
+      "representatividad": "Las opiniones corresponden a quienes comentaron un video de un programa de televisión sobre un caso urbano de homicidio. No representan a toda la población ni a las familias de víctimas de desaparición forzada del conflicto, que son las predominantes en el grupo rural del agrupamiento."
+    }
+  },
+  "conclusiones": {
+    "coincidencias": "El modelo supervisado y el agrupamiento llegan, por caminos distintos, a la misma conclusión: el territorio, la ruralidad y el tipo de caso determinan el desenlace. En el árbol, el departamento, la clasificación y la zona son las variables decisivas, y la combinación rural más forzada presunta casi siempre termina en \"sigue desaparecido\". En el agrupamiento, los municipios rurales con huella del conflicto tienen 84 % de personas sin encontrar, frente a 48 % en los urbanos, aunque el desenlace no se usó para formar los grupos.",
+    "lo_que_no_se_ve": "La aparición sin vida es invisible para los modelos: los no balanceados nunca la predicen y los balanceados la predicen con una precisión cercana al 10 %. Los comentarios muestran que esa categoría depende de circunstancias del caso que no se registran.",
+    "diferencias": "Los datos ubican a Bogotá en el grupo con mejor desenlace, mientras los comentarios sobre un caso bogotano expresan desconfianza en la justicia y en la respuesta institucional. Ambas miradas son compatibles: una mide resultados agregados y la otra, la experiencia percibida de un caso.",
+    "decisiones": "Priorizar los municipios rurales con huella del conflicto en la búsqueda de largo plazo y la identificación forense; usar las reglas del árbol como apoyo para clasificar casos, no como decisión automática; registrar variables sobre las circunstancias del caso para mejorar la predicción; y considerar la percepción de impunidad al comunicar los avances de búsqueda y justicia.",
+    "evidencia_vs_hipotesis": [
+      {
+        "evidencia": "El territorio, la ruralidad y la clasificación del caso son los factores más asociados al desenlace (Rank, árbol y nomograma).",
+        "hipotesis": "Que la menor resolución en municipios rurales se deba a capacidad institucional o difícil acceso; los datos no lo miden."
+      },
+      {
+        "evidencia": "Existen tres tipos de municipio con desenlaces distintos (ANOVA p < 0,001; siluetas positivas).",
+        "hipotesis": "Que el patrón se mantenga con datos de población (tasas por 100.000 habitantes), que no se incluyeron."
+      },
+      {
+        "evidencia": "Con las variables actuales no es posible predecir la aparición sin vida (recall de 0 % a 50 % con precisión cercana al 10 %).",
+        "hipotesis": "Que variables sobre las circunstancias del caso mejoren esa predicción."
+      },
+      {
+        "evidencia": "En el video analizado, la conversación gira en torno a la justicia y los preacuerdos (temas y Word Enrichment).",
+        "hipotesis": "Que esa percepción de impunidad se repita en otros casos y públicos; requiere más videos y otras fuentes."
+      }
+    ],
+    "limitaciones_generales": "El modelo supervisado usa una sola fuente (Medicina Legal) y logra una exactitud moderada; el año mezcla el efecto del tiempo transcurrido; los grupos de municipios no consideran la población; el análisis de comentarios se basa en un único video y el puntaje de sentimiento no mostró validez frente a los emojis; y todos los hallazgos son asociaciones, no relaciones causales."
+  },
+  "referencias": [
+    {"texto": "Instituto Nacional de Medicina Legal y Ciencias Forenses. Desaparecidos en Colombia – Histórico. Datos Abiertos Colombia", "url": "https://www.datos.gov.co/Justicia-y-Derecho/Desaparecidos-en-Colombia-Histrico-junio-de-2026/8hqm-7fdt/about_data"},
+    {"texto": "Centro Nacional de Memoria Histórica. SIEVCAC – Víctimas DF Desaparición Forzada. Datos Abiertos Colombia", "url": "https://www.datos.gov.co/Inclusi-n-Social-y-Reconciliaci-n/Sistema-de-Informaci-n-de-Eventos-de-Violencia-del/c59y-p4sz/about_data"},
+    {"texto": "El Rastro (2024). El misterio del taxista desaparecido en Bogotá: un año de búsqueda y un final trágico. YouTube", "url": "https://www.youtube.com/watch?v=V190AYPh-b0"}
+  ]
+}

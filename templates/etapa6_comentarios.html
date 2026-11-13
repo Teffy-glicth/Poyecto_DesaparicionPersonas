@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Conocimiento oculto · Comentarios de YouTube{% endblock %}
+{% block content %}
+<section class="page">
+    <p class="eyebrow etapa5-eyebrow">Conocimiento oculto · Etapa 6</p>
+    <h1>4. Análisis de comentarios de YouTube</h1>
+    <p class="lead"><strong>Pregunta:</strong> {{ datos.pregunta }}</p>
+
+    <h2>Selección y extracción</h2>
+    <p><strong>Criterios de selección:</strong> {{ datos.criterios_seleccion }}</p>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <tbody>
+                <tr><td><strong>Título</strong></td><td>{{ datos.video.titulo }}</td></tr>
+                <tr><td><strong>Canal</strong></td><td>{{ datos.video.canal }}</td></tr>
+                <tr><td><strong>Enlace</strong></td><td><a href="{{ datos.video.enlace }}" target="_blank" rel="noopener">{{ datos.video.enlace }}</a></td></tr>
+                <tr><td><strong>Publicación</strong></td><td>{{ datos.video.publicacion }}</td></tr>
+                <tr><td><strong>Duración</strong></td><td>{{ datos.video.duracion }}</td></tr>
+                <tr><td><strong>Vistas al momento de la extracción</strong></td><td>{{ "{:,}".format(datos.video.vistas_extraccion).replace(",", ".") }}</td></tr>
+                <tr><td><strong>Comentarios descargados</strong></td><td>{{ datos.video.comentarios_descargados }} ({{ datos.video.comentarios_principales }} principales y {{ datos.video.respuestas }} respuestas)</td></tr>
+                <tr><td><strong>Fecha de extracción</strong></td><td>{{ datos.video.fecha_extraccion }}</td></tr>
+                <tr><td><strong>Herramienta</strong></td><td>{{ datos.video.herramienta }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">{{ datos.restricciones_privacidad }}</p>
+
+    <h2>Preparación y limpieza en Orange</h2>
+    <div class="tabla-scroll">
+        <table class="tabla-numeros">
+            <thead><tr><th class="texto">Paso (widget)</th><th class="texto">Decisión</th><th>Comentarios</th></tr></thead>
+            <tbody>
+                {% for paso in datos.limpieza %}
+                <tr><td class="texto">{{ paso.paso }}</td><td class="texto">{{ paso.decision }}</td><td>{{ paso.comentarios }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">{{ datos.limpieza_nota }}</p>
+    <p><strong>Preprocesamiento del texto:</strong> {{ datos.preprocesamiento }}</p>
+
+    <h2>Temas (Topic Modelling, LDA)</h2>
+    <div class="kpis">
+        <div class="kpi"><p class="kpi-valor">{{ datos.temas.coherencia }}</p><p class="kpi-label">Coherencia</p></div>
+        <div class="kpi"><p class="kpi-valor">{{ datos.temas.log_perplejidad }}</p><p class="kpi-label">Log-perplejidad</p></div>
+        <div class="kpi"><p class="kpi-valor">4</p><p class="kpi-label">Temas ({{ datos.temas.metodo }})</p></div>
+    </div>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <thead><tr><th>Tema</th><th>Palabras clave</th><th>Interpretación</th></tr></thead>
+            <tbody>
+                {% for t in datos.temas.lista %}
+                <tr><td>{{ t.tema }}</td><td>{{ t.palabras_clave }}</td><td>{{ t.interpretacion }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="nota">{{ datos.temas.nota }}</p>
+
+    <h2>Tono de los comentarios (Sentiment Analysis)</h2>
+    <div class="kpis">
+        <div class="kpi"><p class="kpi-valor">{{ datos.sentimiento.promedio_general }}</p><p class="kpi-label">Tono promedio (-100 a 100)</p></div>
+        <div class="kpi"><p class="kpi-valor">{{ datos.sentimiento.principal_vs_respuesta.principal }}</p><p class="kpi-label">Comentarios principales</p></div>
+        <div class="kpi"><p class="kpi-valor">{{ datos.sentimiento.principal_vs_respuesta.respuesta }}</p><p class="kpi-label">Respuestas</p></div>
+    </div>
+    <p>
+        Con emojis de tristeza: {{ datos.sentimiento.tristeza_emoji_si }} frente a {{ datos.sentimiento.tristeza_emoji_no }}
+        sin ellos ({{ datos.sentimiento.tristeza_test }}). {{ datos.sentimiento.tristeza_nota }}
+    </p>
+    <p class="nota">{{ datos.sentimiento.principal_vs_respuesta.nota }}</p>
+
+    <h2>Grupos de comentarios (Hierarchical Clustering + Word Enrichment)</h2>
+    <p>{{ datos.grupos_comentarios.metodo }}</p>
+    <div class="tabla-scroll">
+        <table class="tabla-resumen">
+            <thead><tr><th>Grupo</th><th>Palabras destacadas (FDR)</th><th>Interpretación</th></tr></thead>
+            <tbody>
+                {% for g in datos.grupos_comentarios.lista %}
+                <tr><td>{{ g.grupo }}{% if g.comentarios %} ({{ g.comentarios }} comentarios){% endif %}</td><td>{{ g.palabras }}</td><td>{{ g.interpretacion }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="caja-limitacion">
+        <p class="sub">Nota de verificación pendiente</p>
+        <p>{{ datos.grupos_comentarios.nota_verificacion }}</p>
+    </div>
+
+    <h2>Qué aportan los comentarios</h2>
+    <div class="page variable-card"><p><strong>Complementan.</strong> {{ datos.aportes.complementan }}</p></div>
+    <div class="page variable-card"><p><strong>Cuestionan.</strong> {{ datos.aportes.cuestionan }}</p></div>
+    <div class="page variable-card"><p><strong>Amplían.</strong> {{ datos.aportes.amplian }}</p></div>
+    <div class="page variable-card"><p><strong>Representatividad.</strong> {{ datos.aportes.representatividad }}</p></div>
+</section>
+{% endblock %}

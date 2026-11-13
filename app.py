@@ -3,6 +3,7 @@ import io
 import json
 import os
 import re
+from urllib.parse import urlparse, parse_qs
 from functools import lru_cache
 from pathlib import Path
 
@@ -18,6 +19,7 @@ PROCESSED_DIR = DATA_DIR / "processed"
 PRIMARIAS_DIR = DATA_DIR / "Primarias"
 REPO_URL = "https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas"
 APP_URL = "https://poyecto-desaparicionpersonas-kefg.onrender.com"
+ETAPA6_VIDEO_URL = "https://youtu.be/SiBh-1_yS-Q"
 POWERBI_URL = (
     "https://app.powerbi.com/view?r="
     "eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9"
@@ -107,6 +109,23 @@ ETAPA5_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA5_MENU}
 
 CONOCIMIENTOS_MULTIDIM_PATH = DATA_DIR / "conocimientos_multidimensionales.json"
 
+ETAPA6_MENU = [
+    {"numero": 1, "slug": "sintesis", "titulo": "Síntesis, objetivo y datos"},
+    {"numero": 2, "slug": "supervisado", "titulo": "Modelo supervisado (clasificación)"},
+    {"numero": 3, "slug": "clustering", "titulo": "Agrupamiento de municipios"},
+    {"numero": 4, "slug": "comentarios", "titulo": "Comentarios de YouTube"},
+    {"numero": 5, "slug": "conclusiones", "titulo": "Conclusiones integradas"},
+    {"numero": 6, "slug": "informe", "titulo": "Informe técnico (PDF)"},
+    {"numero": 7, "slug": "video", "titulo": "Video de sustentación"},
+]
+ETAPA6_MENU_BY_SLUG = {item["slug"]: item for item in ETAPA6_MENU}
+
+CONOCIMIENTO_OCULTO_PATH = DATA_DIR / "conocimiento_oculto.json"
+ETAPA6_STATIC = BASE_DIR / "static" / "etapa6"
+ETAPA6_INFORME = "informe_tecnico_oculto.pdf"
+ETAPA6_VIDEO_LOCAL = "video_sustentacion.mp4"
+ETAPA6_VIDEO_URL = os.environ.get("ETAPA6_VIDEO_URL", "https://youtu.be/SiBh-1_yS-Q")
+
 
 @app.context_processor
 def inject_menu():
@@ -116,6 +135,7 @@ def inject_menu():
         "etapa3_menu": ETAPA3_MENU,
         "etapa4_menu": ETAPA4_MENU,
         "etapa5_menu": ETAPA5_MENU,
+        "etapa6_menu": ETAPA6_MENU,
         "current_slug": None,
     }
 
@@ -1603,6 +1623,106 @@ def etapa5_pagina(slug):
         titulo=item["titulo"],
         current_slug=slug,
     )
+
+
+# ---------- Etapa 6 ----------
+
+@lru_cache(maxsize=1)
+def cargar_conocimiento_oculto():
+    if not CONOCIMIENTO_OCULTO_PATH.exists():
+        abort(500, description="Falta data/conocimiento_oculto.json.")
+    with open(CONOCIMIENTO_OCULTO_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.route("/etapa6/informe/pdf")
+def etapa6_informe_pdf():
+    if not (ETAPA6_STATIC / ETAPA6_INFORME).exists():
+        abort(404)
+    return send_from_directory(ETAPA6_STATIC, ETAPA6_INFORME, mimetype="application/pdf")
+
+
+def render_etapa6_sintesis():
+    return render_template(
+        "etapa6_sintesis.html",
+        datos=cargar_conocimiento_oculto(),
+        current_slug="sintesis",
+    )
+
+
+def render_etapa6_supervisado():
+    return render_template(
+        "etapa6_supervisado.html",
+        datos=cargar_conocimiento_oculto()["supervisado"],
+        current_slug="supervisado",
+    )
+
+
+def render_etapa6_clustering():
+    return render_template(
+        "etapa6_clustering.html",
+        datos=cargar_conocimiento_oculto()["clustering"],
+        current_slug="clustering",
+    )
+
+
+def render_etapa6_comentarios():
+    return render_template(
+        "etapa6_comentarios.html",
+        datos=cargar_conocimiento_oculto()["comentarios"],
+        current_slug="comentarios",
+    )
+
+
+def render_etapa6_conclusiones():
+    return render_template(
+        "etapa6_conclusiones.html",
+        datos=cargar_conocimiento_oculto()["conclusiones"],
+        referencias=cargar_conocimiento_oculto()["referencias"],
+        current_slug="conclusiones",
+    )
+
+
+def render_etapa6_informe():
+    return render_template(
+        "etapa6_informe.html",
+        hay_informe=(ETAPA6_STATIC / ETAPA6_INFORME).exists(),
+        informe_url=url_for("etapa6_informe_pdf"),
+        repo_url=REPO_URL,
+        app_url=APP_URL,
+        current_slug="informe",
+    )
+
+
+
+def render_etapa6_video():
+    video_local = (ETAPA6_STATIC / ETAPA6_VIDEO_LOCAL).exists()
+    return render_template(
+        "etapa6_video.html",
+        video_url=ETAPA6_VIDEO_URL,
+        video_embed=video_embed_url(ETAPA6_VIDEO_URL),
+        video_local_url=url_for("static", filename=f"etapa6/{ETAPA6_VIDEO_LOCAL}") if video_local else None,
+        current_slug="video",
+    )
+
+
+ETAPA6_RENDER = {
+    "sintesis": render_etapa6_sintesis,
+    "supervisado": render_etapa6_supervisado,
+    "clustering": render_etapa6_clustering,
+    "comentarios": render_etapa6_comentarios,
+    "conclusiones": render_etapa6_conclusiones,
+    "informe": render_etapa6_informe,
+    "video": render_etapa6_video,
+}
+
+
+@app.route("/etapa6/<slug>")
+def etapa6_pagina(slug):
+    if slug not in ETAPA6_MENU_BY_SLUG:
+        abort(404)
+    return ETAPA6_RENDER[slug]()
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.environ.get("PORT", 5000)))
