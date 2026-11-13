@@ -3,6 +3,7 @@ import io
 import json
 import os
 import re
+from urllib.parse import urlparse, parse_qs
 from functools import lru_cache
 from pathlib import Path
 
@@ -18,6 +19,7 @@ PROCESSED_DIR = DATA_DIR / "processed"
 PRIMARIAS_DIR = DATA_DIR / "Primarias"
 REPO_URL = "https://github.com/Teffy-glicth/Poyecto_DesaparicionPersonas"
 APP_URL = "https://poyecto-desaparicionpersonas-kefg.onrender.com"
+ETAPA6_VIDEO_URL = "https://youtu.be/SiBh-1_yS-Q"
 POWERBI_URL = (
     "https://app.powerbi.com/view?r="
     "eyJrIjoiZmNhMGZjOGQtZjA2OC00ZjhlLWI2OWEtN2I3N2QyOGVjZWQ0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9"
@@ -122,7 +124,7 @@ CONOCIMIENTO_OCULTO_PATH = DATA_DIR / "conocimiento_oculto.json"
 ETAPA6_STATIC = BASE_DIR / "static" / "etapa6"
 ETAPA6_INFORME = "informe_tecnico_oculto.pdf"
 ETAPA6_VIDEO_LOCAL = "video_sustentacion.mp4"
-ETAPA6_VIDEO_URL = os.environ.get("ETAPA6_VIDEO_URL", "")
+ETAPA6_VIDEO_URL = os.environ.get("ETAPA6_VIDEO_URL", "https://youtu.be/SiBh-1_yS-Q")
 
 
 @app.context_processor
@@ -1690,6 +1692,7 @@ def render_etapa6_informe():
         app_url=APP_URL,
         current_slug="informe",
     )
+
 
 
 def render_etapa6_video():
